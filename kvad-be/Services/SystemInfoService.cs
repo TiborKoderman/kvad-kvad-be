@@ -9,7 +9,7 @@ public class SystemInfoService
     {
         var jsonString = File.ReadAllLines("/proc/cpuinfo");
         JsonArray jsonArray = new JsonArray();
-        JsonObject currentProcessor = null;
+        JsonObject? currentProcessor = null;
 
         foreach (var line in jsonString)
         {

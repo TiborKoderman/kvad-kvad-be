@@ -6,19 +6,24 @@ public class SystemServiceManagmentService
 
     public async Task<JsonArray> GetProcessList()
     {
-        var processes = Process.GetProcesses();
-        JsonArray jsonArray = new JsonArray();
-
-        foreach (var process in processes)
+        return await Task.Run(() =>
         {
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.Add("Name", process.ProcessName);
-            jsonObject.Add("Id", process.Id);
-            jsonObject.Add("Memory", process.WorkingSet64);
-            jsonArray.Add(jsonObject);
-        }
+            var processes = Process.GetProcesses();
+            JsonArray jsonArray = new JsonArray();
 
-        return jsonArray;
+            foreach (var process in processes)
+            {
+                JsonObject jsonObject = new JsonObject
+                {
+                    { "Name", process.ProcessName },
+                    { "Id", process.Id },
+                    { "Memory", process.WorkingSet64 }
+                };
+                jsonArray.Add(jsonObject);
+            }
+
+            return jsonArray;
+        });
     }
 
     public async Task<JsonArray> GetServiceList(String? type, String? status)
@@ -52,12 +57,18 @@ public class SystemServiceManagmentService
         while (!processes.StandardOutput.EndOfStream)
         {
             var line = processes.StandardOutput.ReadLine();
+            if (line == null)
+            {
+                continue;
+            }
             var split = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
             JsonObject jsonObject = new JsonObject();
             jsonObject.Add("Name", split[0]);
             jsonObject.Add("Status", split[2]);
             jsonArray.Add(jsonObject);
         }
+
+        await processes.WaitForExitAsync();
 
         return jsonArray;
     }
