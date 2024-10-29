@@ -1,3 +1,4 @@
+using kvad_be.Controllers;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,6 +15,7 @@ builder.Services.AddScoped<SystemInfoService>();
 builder.Services.AddScoped<SystemServiceManagmentService>();
 builder.Services.AddScoped<DockerService>();
 builder.Services.AddScoped<CounterService>();
+builder.Services.AddScoped<NodesService>();
 
 // Configure the SQLite connection
 builder.Services.AddDbContext<AppDbContext>();
