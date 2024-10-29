@@ -103,7 +103,7 @@ public class DockerService {
         return Task.FromResult<JsonNode>(jsonObject);
     }
 
-    public Task<int> startContainer(String containerId) {
+    public Task startContainer(String containerId) {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -119,7 +119,12 @@ public class DockerService {
         process.Start();
         process.WaitForExit();
 
-        return Task.FromResult(process.ExitCode);
+        if (process.ExitCode != 0)
+        {
+            throw new Exception("Failed to start container");
+        }
+
+        return Task.CompletedTask;
     }
 
     public Task<int> stopContainer(String containerId) {
