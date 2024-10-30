@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -75,6 +76,35 @@ namespace kvad_be.Controllers
                 return Unauthorized();
             }
             return Ok(authenticatedUser);
+        }
+
+        //upload icon
+        [HttpPost("icon")]
+        public async Task<IActionResult> UploadIcon(IFormFile icon)
+        {
+            var user = await _userService.getUser("admin");
+            if (user == null)
+            {
+                return NotFound();
+            }
+            await _userService.uploadIcon(user.Id, icon);
+            return Ok();
+        }
+
+        [HttpGet("icon/{username}")]
+        public async Task<IActionResult> GetIcon(string username)
+        {
+            var user = await _userService.getUser(username);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            var icon = await _userService.getIcon(user.Id);
+            if (icon == null)
+            {
+                return NotFound();
+            }
+            return File(icon, "image/png");
         }
     }
 }
