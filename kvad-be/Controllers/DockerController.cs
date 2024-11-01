@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
-public class DockerController : Controller
+public class DockerController : ControllerBase
 {
     private DockerService _dockerService;
 

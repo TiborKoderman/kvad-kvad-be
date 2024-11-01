@@ -1,110 +1,88 @@
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace kvad_be.Controllers
+[ApiController]
+[Authorize]
+[Route("api/[controller]")]
+public class UserController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class UserController : ControllerBase
+    private readonly UserService _userService;
+
+    public UserController(UserService userService)
     {
-        private readonly UserService _userService;
+        _userService = userService;
+    }
 
-        public UserController(UserService userService)
+    [HttpGet("{username}")]
+    public async Task<IActionResult> GetUserByUsername(string username)
+    {
+        var user = await _userService.getUser(username);
+        if (user == null)
         {
-            _userService = userService;
+            return NotFound();
         }
+        return Ok(user);
+    }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> RegisterUser([FromBody] RegisterUserDTO user)
+    [HttpGet("id/{id}")]
+    public async Task<IActionResult> GetUserById(Guid id)
+    {
+        var user = await _userService.getUser(id);
+        if (user == null)
         {
-            await _userService.registerUser(user);
-            return Ok();
+            return NotFound();
         }
+        return Ok(user);
+    }
 
-        [HttpGet("{username}")]
-        public async Task<IActionResult> GetUserByUsername(string username)
-        {
-            var user = await _userService.getUser(username);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return Ok(user);
-        }
+    [HttpGet]
+    public async Task<IActionResult> GetUsers()
+    {
+        var users = await _userService.getUsers();
+        return Ok(users);
+    }
 
-        [HttpGet("id/{id}")]
-        public async Task<IActionResult> GetUserById(Guid id)
-        {
-            var user = await _userService.getUser(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            return Ok(user);
-        }
+    [HttpPut]
+    public async Task<IActionResult> UpdateUser([FromBody] User user)
+    {
+        await _userService.updateUser(user);
+        return Ok();
+    }
 
-        [HttpGet]
-        public async Task<IActionResult> GetUsers()
-        {
-            var users = await _userService.getUsers();
-            return Ok(users);
-        }
+    [HttpDelete]
+    public async Task<IActionResult> DeleteUser([FromBody] User user)
+    {
+        await _userService.deleteUser(user);
+        return Ok();
+    }
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateUser([FromBody] User user)
-        {
-            await _userService.updateUser(user);
-            return Ok();
-        }
 
-        [HttpDelete]
-        public async Task<IActionResult> DeleteUser([FromBody] User user)
+    //upload icon
+    [HttpPost("icon")]
+    public async Task<IActionResult> UploadIcon(IFormFile icon)
+    {
+        var user = await _userService.getUser("admin");
+        if (user == null)
         {
-            await _userService.deleteUser(user);
-            return Ok();
+            return NotFound();
         }
+        await _userService.uploadIcon(user.Id, icon);
+        return Ok();
+    }
 
-        [HttpPost("authenticate")]
-        public async Task<IActionResult> AuthenticateUser([FromBody] RegisterUserDTO user)
+    [HttpGet("icon/{username}")]
+    public async Task<IActionResult> GetIcon(string username)
+    {
+        var user = await _userService.getUser(username);
+        if (user == null)
         {
-            var authenticatedUser = await _userService.authenticateUser(user.Username, user.Password);
-            if (authenticatedUser == null)
-            {
-                return Unauthorized();
-            }
-            return Ok(authenticatedUser);
+            return NotFound();
         }
-
-        //upload icon
-        [HttpPost("icon")]
-        public async Task<IActionResult> UploadIcon(IFormFile icon)
+        var icon = await _userService.getIcon(user.Id);
+        if (icon == null)
         {
-            var user = await _userService.getUser("admin");
-            if (user == null)
-            {
-                return NotFound();
-            }
-            await _userService.uploadIcon(user.Id, icon);
-            return Ok();
+            return NotFound();
         }
-
-        [HttpGet("icon/{username}")]
-        public async Task<IActionResult> GetIcon(string username)
-        {
-            var user = await _userService.getUser(username);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            var icon = await _userService.getIcon(user.Id);
-            if (icon == null)
-            {
-                return NotFound();
-            }
-            return File(icon, "image/png");
-        }
+        return File(icon, "image/png");
     }
 }
