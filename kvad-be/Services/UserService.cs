@@ -59,7 +59,7 @@ public class UserService{
         return Task.FromResult(true);
     }
 
-    public Task<byte[]> getIcon(Guid userId){
+    public Task<byte[]>? getIcon(Guid userId){
         using var db = new AppDbContext();
         var user = db.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null || user.Icon == null){

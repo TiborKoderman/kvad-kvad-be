@@ -28,12 +28,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
         .HasAlternateKey(u => u.Username);
 
-        // modelBuilder.Entity<User>()
-        // .HasMany(u => u.UserRoles!)
-        // .WithMany(ur => ur.Users!)
-        // .UsingEntity(j => j.ToTable("UserUserRoles"));
-
-
         SeedData(modelBuilder);
     }
 
