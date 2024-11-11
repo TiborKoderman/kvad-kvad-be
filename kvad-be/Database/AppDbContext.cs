@@ -44,7 +44,7 @@ public class AppDbContext : DbContext
             new UserRole
             {
                 Id = 2,
-                Name = "User"
+                Name = "User",
             }
         );
 
@@ -60,7 +60,7 @@ public class AppDbContext : DbContext
 
         //admin has admin role
         modelBuilder.Entity<User>()
-            .HasMany(u => u.UserRoles!)
+            .HasMany(u => u.UserRoles)
             .WithMany(r => r.Users)
             .UsingEntity(j => j.HasData(new { UsersId = adminUserId, UserRolesId = 1 }));
     }

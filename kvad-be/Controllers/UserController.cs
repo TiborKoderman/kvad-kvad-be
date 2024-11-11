@@ -78,7 +78,13 @@ public class UserController : ControllerBase
         {
             return NotFound();
         }
+        if (user == null)
+        {
+            return NotFound();
+        }
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         var icon = await _userService.getIcon(user.Id);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         if (icon == null)
         {
             return NotFound();

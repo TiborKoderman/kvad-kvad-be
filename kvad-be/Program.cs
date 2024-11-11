@@ -2,9 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using System.Text;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authorization;
 
 
@@ -15,13 +13,12 @@ var Configuration = builder.Configuration;
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllHeaders",
-        builder =>
-        {
-            builder.AllowAnyOrigin()
-                   .AllowAnyHeader()
-                   .AllowAnyMethod();
-        });
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -48,7 +45,7 @@ builder.Services.AddSwaggerGen(c =>
                     Id = "Bearer"
                 }
             },
-            new string[] { }
+            Array.Empty<string>()
         }
     });
 
@@ -86,43 +83,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudiences = jwtAudiences,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
-        if (builder.Environment.IsDevelopment())
-        {
-            options.Events = new JwtBearerEvents
-            {
-                OnAuthenticationFailed = context =>
-                {
-                    Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                    return Task.CompletedTask;
-                },
-                OnMessageReceived = context =>
-                {
-                    var token = context.Request.Headers["Authorization"].ToString();
-                    Console.WriteLine($"Received token: {token}");
-                    return Task.CompletedTask;
-                }
-            };
-        }
-
     });
 
 
 // Authorization
 builder.Services.AddAuthorization(options =>
 {
-    var defaultPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
-
-    options.DefaultPolicy = defaultPolicy;
 });
 
 
 // APP
 var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+    app.UseCors("AllowAll");
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -139,22 +121,15 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate();
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.UseCors("AllowAllHeaders");
 
-}
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 // app.UseMiddleware<UserMiddleware>();
 
 app.MapControllers();
 app.MapGet("/swagger/{**slug}", async context =>
 {
-    context.Response.Redirect("/swagger/index.html");
+    await Task.Run(() => context.Response.Redirect("/swagger/index.html"));
 }).AllowAnonymous(); // Allow anonymous access to Swagger
 
 app.Run();
