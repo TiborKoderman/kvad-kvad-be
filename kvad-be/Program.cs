@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.Authorization;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +37,6 @@ builder.Services.AddSwaggerGen(c =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-
     c.AddSecurityRequirement(new OpenApiSecurityRequirement()
     {
         {
@@ -66,40 +66,59 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddDbContext<AppDbContext>();
 
 // JWT
-var jwtIssuer = builder.Configuration["Jwt:Issuer"];
-var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Authentication:Schemes:Bearer:Issuer"];
+var jwtKey = builder.Configuration["Authentication:Schemes:Bearer:Key"];
+if (string.IsNullOrEmpty(jwtKey))
+{
+    throw new ArgumentNullException(nameof(jwtKey), "JWT Key cannot be null or empty.");
+}
+var jwtAudiences = builder.Configuration.GetSection("Authentication:Schemes:Bearer:ValidAudiences").Get<string[]>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidateAudience = false,
+            ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
-            ValidAudience = jwtIssuer,
+            ValidAudiences = jwtAudiences,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
-        options.Events = new JwtBearerEvents
+        if (builder.Environment.IsDevelopment())
         {
-            OnAuthenticationFailed = context =>
+            options.Events = new JwtBearerEvents
             {
-                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
-                return Task.CompletedTask;
-            },
-            OnMessageReceived = context =>
-            {
-                var token = context.Request.Headers["Authorization"].ToString();
-                Console.WriteLine($"Received token: {token}");
-                return Task.CompletedTask;
-            }
-        };
+                OnAuthenticationFailed = context =>
+                {
+                    Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                    return Task.CompletedTask;
+                },
+                OnMessageReceived = context =>
+                {
+                    var token = context.Request.Headers["Authorization"].ToString();
+                    Console.WriteLine($"Received token: {token}");
+                    return Task.CompletedTask;
+                }
+            };
+        }
+
     });
 
 
 // Authorization
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    var defaultPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+
+    options.DefaultPolicy = defaultPolicy;
+});
 
 
 // APP
@@ -133,4 +152,9 @@ app.UseHttpsRedirection();
 // app.UseMiddleware<UserMiddleware>();
 
 app.MapControllers();
+app.MapGet("/swagger/{**slug}", async context =>
+{
+    context.Response.Redirect("/swagger/index.html");
+}).AllowAnonymous(); // Allow anonymous access to Swagger
+
 app.Run();

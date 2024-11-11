@@ -22,17 +22,27 @@ public class AuthService
 
         var tokenHandler = new JwtSecurityTokenHandler();
         var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
-        var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"] ?? "");
+        var key = Encoding.ASCII.GetBytes(configuration["Authentication:Schemes:Bearer:Key"] ?? "");
+
+        var roles = await _context.UserRoles
+            .Where(ur => ur.Users!.Any(u => u.Id == user.Id))
+            .Select(ur => ur.Name)
+            .ToListAsync();
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.Id.ToString())
+        };
+
+        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
-            Subject = new ClaimsIdentity(new Claim[]
-            {
-                new Claim(ClaimTypes.Name, user.Id.ToString())
-            }),
+            Subject = new ClaimsIdentity(claims),
             Expires = DateTime.UtcNow.AddHours(24),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-            Issuer = configuration["Jwt:Issuer"],
-            Audience = configuration["Jwt:Audience"]
+            Issuer = configuration["Authentication:Schemes:Bearer:Issuer"],
+            Audience = configuration["Authentication:Schemes:Bearer:Audience"]
         };
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);

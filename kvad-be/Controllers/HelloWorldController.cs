@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize]
+[Authorize (Roles = "Admin")]
 [Route("api/[controller]")]
 public class HelloWorldController : Controller
 {

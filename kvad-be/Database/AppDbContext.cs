@@ -24,18 +24,51 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        
+
         modelBuilder.Entity<User>()
         .HasAlternateKey(u => u.Username);
+
+        // modelBuilder.Entity<User>()
+        // .HasMany(u => u.UserRoles!)
+        // .WithMany(ur => ur.Users!)
+        // .UsingEntity(j => j.ToTable("UserUserRoles"));
+
+
+        SeedData(modelBuilder);
+    }
+
+    private void SeedData(ModelBuilder modelBuilder)
+    {
+        var adminUserId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730");
+
+        modelBuilder.Entity<UserRole>().HasData(
+            new UserRole
+            {
+                Id = 1,
+                Name = "Admin",
+            },
+            new UserRole
+            {
+                Id = 2,
+                Name = "User"
+            }
+        );
 
         modelBuilder.Entity<User>().HasData(
             new User
             {
-                Id = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                Id = adminUserId,
                 Username = "admin",
                 Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU", // In a real application, ensure passwords are hashed
             }
         );
+
+
+        //admin has admin role
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.UserRoles!)
+            .WithMany(r => r.Users)
+            .UsingEntity(j => j.HasData(new { UsersId = adminUserId, UserRolesId = 1 }));
     }
 
 }
