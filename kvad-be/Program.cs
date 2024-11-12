@@ -101,8 +101,13 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    System.Console.WriteLine("Development mode");
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+     {
+         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Kvad API V1");
+     });
+
     app.UseCors("AllowAll");
 }
 
@@ -127,9 +132,10 @@ using (var scope = app.Services.CreateScope())
 // app.UseMiddleware<UserMiddleware>();
 
 app.MapControllers();
-app.MapGet("/swagger/{**slug}", async context =>
+app.UseSwaggerUI(c =>
 {
-    await Task.Run(() => context.Response.Redirect("/swagger/index.html"));
-}).AllowAnonymous(); // Allow anonymous access to Swagger
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Kvad API V1");
+    c.RoutePrefix = "swagger";
+});
 
 app.Run();

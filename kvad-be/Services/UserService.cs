@@ -1,38 +1,50 @@
 
+using Microsoft.EntityFrameworkCore;
+
 public class UserService{
 
+    private readonly AppDbContext _context;
+
+    public UserService(AppDbContext context){
+        _context = context;
+    }
+
     public Task<User?> getUser(string username){
-        using var db = new AppDbContext();
-        return Task.FromResult(db.Users.FirstOrDefault(u => u.Username == username));
+        return Task.FromResult(_context.Users.FirstOrDefault(u => u.Username == username));
     }
 
     public Task<User?> getUser(Guid id){
-        using var db = new AppDbContext();
-        return Task.FromResult(db.Users.FirstOrDefault(u => u.Id == id));
+        return Task.FromResult(_context.Users.FirstOrDefault(u => u.Id == id));
+    }
+    public  Task<List<User>> getUsers(){
+        return  Task.FromResult(_context.Users.ToList());
     }
 
-    public Task<List<User>> getUsers(){
-        using var db = new AppDbContext();
-        return Task.FromResult(db.Users.ToList());
+    public Task<List<UserTableDTO> getUserTable(){
+        var users = _context.Users.ToList();
+        var userTable = new List<UserTableDTO>();
+        foreach (var user in users){
+            var userRoles = _context.UserRoles.Where(ur => ur.UserId == user.Id).Select(ur => ur.Role.Name).ToList();
+            var userGroups = _context.UserGroups.Where(ug => ug.UserId == user.Id).Select(ug => ug.Group.Name).ToList();
+            userTable.Add(new UserTableDTO(user.Id, user.Username, userRoles, userGroups));
+        }
+        return Task.FromResult(userTable);
     }
 
     public Task updateUser(User user){
-        using var db = new AppDbContext();
-        db.Users.Update(user);
-        db.SaveChanges();
+        _context.Users.Update(user);
+        _context.SaveChanges();
         return Task.CompletedTask;
     }
 
     public Task deleteUser(User user){
-        using var db = new AppDbContext();
-        db.Users.Remove(user);
-        db.SaveChanges();
+        _context.Users.Remove(user);
+        _context.SaveChanges();
         return Task.CompletedTask;
     }
 
     public Task<bool> uploadIcon(Guid userId, IFormFile icon){
-        using var db = new AppDbContext();
-        var user = db.Users.FirstOrDefault(u => u.Id == userId);
+        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null){
             return Task.FromResult(false);
         }
@@ -40,13 +52,12 @@ public class UserService{
         using var fileStream = new FileStream(iconPath, FileMode.Create);
         icon.CopyTo(fileStream);
         user.Icon = iconPath;
-        db.SaveChanges();
+        _context.SaveChanges();
         return Task.FromResult(true);
     }
 
     public Task<bool> deleteIcon(Guid userId){
-        using var db = new AppDbContext();
-        var user = db.Users.FirstOrDefault(u => u.Id == userId);
+        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null){
             return Task.FromResult(false);
         }
@@ -55,13 +66,12 @@ public class UserService{
         }
         File.Delete(user.Icon);
         user.Icon = null;
-        db.SaveChanges();
+        _context.SaveChanges();
         return Task.FromResult(true);
     }
 
     public Task<byte[]>? getIcon(Guid userId){
-        using var db = new AppDbContext();
-        var user = db.Users.FirstOrDefault(u => u.Id == userId);
+        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null || user.Icon == null){
             return null;
         }

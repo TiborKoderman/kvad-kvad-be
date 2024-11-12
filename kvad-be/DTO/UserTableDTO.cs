@@ -1,0 +1,1 @@
+public record UserTableDTO(Guid Id, string Username, List<string> UserRoles, List<string> UserGroups);
