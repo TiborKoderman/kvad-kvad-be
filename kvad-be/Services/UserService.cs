@@ -9,27 +9,28 @@ public class UserService{
         _context = context;
     }
 
+    public Task<User?> getUser(Guid id){
+        return Task.FromResult(_context.Users.FirstOrDefault(u => u.Id == id));
+    }
+
     public Task<User?> getUser(string username){
         return Task.FromResult(_context.Users.FirstOrDefault(u => u.Username == username));
     }
 
-    public Task<User?> getUser(Guid id){
-        return Task.FromResult(_context.Users.FirstOrDefault(u => u.Id == id));
-    }
     public  Task<List<User>> getUsers(){
         return  Task.FromResult(_context.Users.ToList());
     }
 
-    public Task<List<UserTableDTO> getUserTable(){
-        var users = _context.Users.ToList();
-        var userTable = new List<UserTableDTO>();
-        foreach (var user in users){
-            var userRoles = _context.UserRoles.Where(ur => ur.UserId == user.Id).Select(ur => ur.Role.Name).ToList();
-            var userGroups = _context.UserGroups.Where(ug => ug.UserId == user.Id).Select(ug => ug.Group.Name).ToList();
-            userTable.Add(new UserTableDTO(user.Id, user.Username, userRoles, userGroups));
-        }
-        return Task.FromResult(userTable);
-    }
+    // public Task<List<UserTableDTO> getUserTable(){
+    //     var users = _context.Users.ToList();
+    //     var userTable = new List<UserTableDTO>();
+    //     foreach (var user in users){l
+    //         var userRoles = _context.UserRoles.Where(ur => ur.UserId == user.Id).Select(ur => ur.Role.Name).ToList();
+    //         var userGroups = _context.UserGroups.Where(ug => ug.UserId == user.Id).Select(ug => ug.Group.Name).ToList();
+    //         userTable.Add(new UserTableDTO(user.Id, user.Username, userRoles, userGroups));
+    //     }
+    //     return Task.FromResult(userTable);
+    // }
 
     public Task updateUser(User user){
         _context.Users.Update(user);
