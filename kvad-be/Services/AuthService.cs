@@ -100,6 +100,19 @@ public class AuthService
         return PasswordHash.ArgonHashString(password);
     }
 
+    public async Task<List<string>> GetUserRoles(User user)
+    {
+        return await _context.UserRoles
+            .Where(ur => ur.Users!.Any(u => u.Id == user.Id))
+            .Select(ur => ur.Name)
+            .ToListAsync();
+    }
+
+    public async Task<List<UserRole>> GetAllRoles()
+    {
+        return await _context.UserRoles.ToListAsync();
+    }
+
 
 
 
