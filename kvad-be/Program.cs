@@ -69,7 +69,7 @@ if (string.IsNullOrEmpty(jwtKey))
 {
     throw new ArgumentNullException(nameof(jwtKey), "JWT Key cannot be null or empty.");
 }
-var jwtAudiences = builder.Configuration.GetSection("Authentication:Schemes:Bearer:ValidAudiences").Get<string[]>();
+var jwtAudiences = builder.Configuration.GetSection("Authentication:Schemes:Bealrer:ValidAudiences").Get<string[]>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -125,8 +125,6 @@ using (var scope = app.Services.CreateScope())
     // Applies pending migrations, which will create the __EFMigrationsHistory table
     context.Database.Migrate();
 }
-
-
 
 // app.UseHttpsRedirection();
 // app.UseMiddleware<UserMiddleware>();
