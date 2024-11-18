@@ -18,7 +18,18 @@ public class UserService{
     }
 
     public  Task<List<User>> getUsers(){
-        return  Task.FromResult(_context.Users.ToList());
+        return  Task.FromResult(_context.Users.Include(u => u.UserRoles).ToList());
+    }
+
+    public Task<List<UserTableDTO>> getUserTable(){
+        var users = _context.Users.Include(u => u.UserRoles).Include(u => u.UserGroups).ToList();
+        var userTable = new List<UserTableDTO>();
+        foreach (var user in users){
+            var userRoles = user.UserRoles.Select(ur => ur.Name).ToList();
+            var userGroups = user.UserGroups.Select(ug => ug.Name).ToList();
+            userTable.Add(new UserTableDTO(user.Id, user.Username, userRoles, userGroups));
+        }
+        return Task.FromResult(userTable);
     }
 
     // public Task<List<UserTableDTO> getUserTable(){

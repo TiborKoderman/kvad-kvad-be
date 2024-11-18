@@ -10,7 +10,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 var Configuration = builder.Configuration;
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    // .AddJsonOptions(options =>
+    // {
+    //     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    //     // options.JsonSerializerOptions.WriteIndented = true;
+    // })
+    ;
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -69,7 +75,7 @@ if (string.IsNullOrEmpty(jwtKey))
 {
     throw new ArgumentNullException(nameof(jwtKey), "JWT Key cannot be null or empty.");
 }
-var jwtAudiences = builder.Configuration.GetSection("Authentication:Schemes:Bealrer:ValidAudiences").Get<string[]>();
+var jwtAudiences = builder.Configuration.GetSection("Authentication:Schemes:Bearer:ValidAudiences").Get<string[]>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

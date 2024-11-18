@@ -42,6 +42,13 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
+    [HttpGet("table")]
+    public async Task<IActionResult> GetUserTable()
+    {
+        var userTable = await _userService.getUserTable();
+        return Ok(userTable);
+    }
+
     [HttpPut]
     public async Task<IActionResult> UpdateUser([FromBody] User user)
     {

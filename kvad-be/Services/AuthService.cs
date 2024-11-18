@@ -74,7 +74,7 @@ public class AuthService
 
     public async Task<List<User>?> GetUsers()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users.Include(u => u.UserRoles).ToListAsync();
     }
 
     public async Task<User?> Register(string username, string password)
