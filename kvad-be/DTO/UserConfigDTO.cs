@@ -1,4 +1,5 @@
 public record UserConfigDTO(
+    Guid? Id,
     string Username, 
     string Password, 
     string Icon, 
