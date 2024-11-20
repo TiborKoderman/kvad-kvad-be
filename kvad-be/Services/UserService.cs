@@ -9,7 +9,6 @@ public class UserService{
 
     public UserService(AppDbContext context){
         _context = context;
-        return Task.FromResult(userConfig);
     }
 
     public Task<User?> getUser(Guid id){
@@ -57,20 +56,20 @@ public class UserService{
         _context.SaveChanges();
         return Task.CompletedTask;
     }
-    public Task editUser(UserConfigDTO userConfig){
-        var user = _context.Users.FirstOrDefault(u => u.Id == userConfig.Id);
-        if (user == null){
-            user = new User { Id = Guid.NewGuid(), Username = userConfig.Username, Password = userConfig.Password };
-            _context.Users.Add(user);
-        }
-        user.Username = userConfig.Username;
-        user.Password = userConfig.Password;
-        user.Icon = userConfig.Icon;
-        user.UserRoles = userConfig.UserRoles.Select(ur => new UserRole{Id = user.Id, RoleId = ur, Name = _context.Roles.FirstOrDefault(r => r.Id == ur)?.Name}).ToList();
-        user.UserGroups = userConfig.UserGroups.Select(ug => new UserGroup{Id = user.Id, GroupId = ug, Name = _context.Groups.FirstOrDefault(g => g.Id == ug)?.Name}).ToList();
-        _context.SaveChanges();
-        return Task.CompletedTask;
-    }
+    // public Task editUser(UserConfigDTO userConfig){
+    //     var user = _context.Users.FirstOrDefault(u => u.Id == userConfig.Id);
+    //     if (user == null){
+    //         user = new User { Id = Guid.NewGuid(), Username = userConfig.Username, Password = userConfig.Password };
+    //         _context.Users.Add(user);
+    //     }
+    //     user.Username = userConfig.Username;
+    //     user.Password = userConfig.Password;
+    //     user.Icon = userConfig.Icon;
+    //     user.UserRoles = userConfig.UserRoles.Select(ur => new UserRole{Id = user.Id, RoleId = ur, Name = _context.Roles.FirstOrDefault(r => r.Id == ur)?.Name}).ToList();
+    //     user.UserGroups = userConfig.UserGroups.Select(ug => new UserGroup{Id = user.Id, GroupId = ug, Name = _context.Groups.FirstOrDefault(g => g.Id == ug)?.Name}).ToList();
+    //     _context.SaveChanges();
+    //     return Task.CompletedTask;
+    // }
 
     public Task<UserConfigDTO?> getUserConfig(Guid userId){
         var configuration = new MapperConfiguration(cfg => cfg.CreateMap<User, UserConfigDTO>());
@@ -81,6 +80,8 @@ public class UserService{
             return Task.FromResult<UserConfigDTO?>(null);
         }
         var userConfig = mapper.Map<UserConfigDTO>(user);
+
+        return Task.FromResult(userConfig);
     }
 
     public Task<bool> uploadIcon(Guid userId, IFormFile icon){
