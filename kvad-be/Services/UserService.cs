@@ -45,6 +45,12 @@ public class UserService{
     //     return Task.FromResult(userTable);
     // }
 
+    public Task addUser(User user){
+        _context.Users.Add(user);
+        _context.SaveChanges();
+        return Task.CompletedTask;
+    }
+
     public Task updateUser(User user){
         _context.Users.Update(user);
         _context.SaveChanges();
@@ -79,7 +85,7 @@ public class UserService{
         if (user == null){
             return Task.FromResult<UserConfigDTO?>(null);
         }
-        var userConfig = mapper.Map<UserConfigDTO>(user);
+        var userConfig = mapper.Map<UserConfigDTO?>(user);
 
         return Task.FromResult(userConfig);
     }

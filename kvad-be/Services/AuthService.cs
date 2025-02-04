@@ -39,7 +39,7 @@ public class AuthService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddHours(24),
+            Expires = DateTime.UtcNow.AddHours(24*1000),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Issuer = configuration["Authentication:Schemes:Bearer:Issuer"],
             Audience = configuration["Authentication:Schemes:Bearer:Audience"]
@@ -48,6 +48,16 @@ public class AuthService
         return tokenHandler.WriteToken(token);
     }
 
+    // public async Task<string?> GenerateApiKey(User? user, DateTime? expirationDate)
+    // {
+    //     if (user == null)
+    //         return null;
+
+    //     var apiKey = Guid.NewGuid().ToString();
+    //     user.ApiKey = apiKey;
+    //     await _context.SaveChangesAsync();
+    //     return apiKey;
+    // }
     public async Task<bool> AuthenticateWithoutToken(string username, string password)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
@@ -108,12 +118,11 @@ public class AuthService
             .ToListAsync();
     }
 
+
     public async Task<List<UserRole>> GetAllRoles()
     {
         return await _context.UserRoles.ToListAsync();
     }
-
-
 
 
 }
