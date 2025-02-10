@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.Json;
 
 public class AppDbContext : DbContext
 {
@@ -32,6 +34,12 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<User>()
         .HasAlternateKey(u => u.Username);
+
+        modelBuilder.Entity<Unit>()
+        .Property(u => u.BaseUnitRelation)
+        .HasConversion(
+            new JsonObjectConverter()
+        );
 
         SeedData(modelBuilder);
     }

@@ -1,3 +1,5 @@
+using System.Text.Json.Nodes;
+
 public class Unit{
     public int Id { get; set; }
     public required string Name { get; set; }
@@ -7,7 +9,9 @@ public class Unit{
     public string? Dimension { get; set; }
     public bool Prefixable { get; set; } = true;
     public List<SIPrefix>? Prefix { get; set; } = null;
-    public object? BaseUnitRelation { get; set; } = null;
+    // public JsonObject? BaseUnitRelation { get; set; } = null;
+    public JsonObject? BaseUnitRelation;
+
 }
 
 public enum UnitType
