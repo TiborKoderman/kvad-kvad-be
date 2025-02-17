@@ -7,74 +7,49 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 
-public class MqttBrokerService : BackgroundService
+public class MqttBrokerService
 {
     private readonly ILogger<MqttBrokerService> _logger;
-    private Mqtt _mqttServer;
+    private readonly IMqttClient _mqttClient;
 
-    public MqttBrokerService(ILogger<MqttBrokerService> logger)
+    public MqttBrokerService(ILogger<MqttBrokerService> logger, IMqttClient mqttClient)
     {
         _logger = logger;
+        _mqttClient = mqttClient;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting MQTT Broker Service...");
+        _logger.LogInformation("MqttBrokerService is starting.");
 
-        // Build the MQTT server options.
-        var options = new MqttServerOptionsBuilder()
-            .WithDefaultEndpoint()             // Listen on all network interfaces.
-            .WithDefaultEndpointPort(1883)       // Default MQTT port.
-            .Build();
-
-        // Create the MQTT server instance.
-        _mqttServer = new MqttFactory().CreateMqttServer();
-
-        // Attach event handlers.
-        _mqttServer.ClientConnectedAsync += e =>
+        _mqttClient.UseConnectedHandler(async e =>
         {
-            _logger.LogInformation("Client connected: {ClientId}", e.ClientId);
-            return Task.CompletedTask;
-        };
+            _logger.LogInformation("Connected to MQTT broker.");
+            await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic("test").Build());
+        });
 
-        _mqttServer.ClientDisconnectedAsync += e =>
+        _mqttClient.UseDisconnectedHandler(async e =>
         {
-            _logger.LogInformation("Client disconnected: {ClientId}", e.ClientId);
-            return Task.CompletedTask;
-        };
+            _logger.LogInformation("Disconnected from MQTT broker.");
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            await _mqttClient.ConnectAsync(new MqttClientOptionsBuilder().WithTcpServer("localhost").Build(), cancellationToken);
+        });
 
-        _mqttServer.ApplicationMessageReceivedAsync += e =>
+        _mqttClient.UseApplicationMessageReceivedHandler(e =>
         {
-            string payload = e.ApplicationMessage.Payload is null
-                ? string.Empty
-                : Encoding.UTF8.GetString(e.ApplicationMessage.Payload);
-            _logger.LogInformation("Received message from client {ClientId} on topic {Topic}: {Payload}",
-                e.ClientId, e.ApplicationMessage.Topic, payload);
-            return Task.CompletedTask;
-        };
+            _logger.LogInformation("Received message from MQTT broker.");
+            _logger.LogInformation("Topic = {0}", e.ApplicationMessage.Topic);
+            _logger.LogInformation("Payload = {0}", Encoding.UTF8.GetString(e.ApplicationMessage.Payload));
+        });
 
-        // Start the MQTT broker.
-        await _mqttServer.StartAsync(options);
-        _logger.LogInformation("MQTT Broker started.");
-
-        // Wait here until the service is cancelled.
-        try
-        {
-            await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-        catch (TaskCanceledException)
-        {
-            // Expected when the service is stopping.
-        }
+        return _mqttClient.ConnectAsync(new MqttClientOptionsBuilder().WithTcpServer("localhost").Build(), cancellationToken);
     }
 
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Stopping MQTT Broker Service...");
-        if (_mqttServer != null)
-        {
-            await _mqttServer.StopAsync();
-        }
-        await base.StopAsync(cancellationToken);
+        _logger.LogInformation("MqttBrokerService is stopping.");
+
+        return _mqttClient.DisconnectAsync();
     }
+
 }
