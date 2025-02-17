@@ -64,6 +64,7 @@ builder.Services.AddScoped<CounterService>();
 builder.Services.AddScoped<NodesService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
+// builder.Services.AddHostedService<MqttBrokerService>();
 
 // Configure the SQLite connection
 builder.Services.AddDbContext<AppDbContext>();
