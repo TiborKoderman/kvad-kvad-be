@@ -8,70 +8,71 @@ using MQTTnet.Protocol;
 using MQTTnet.Server;
 using MQTTnet.Diagnostics.Logger;
 
-namespace MQTTnetBackgroundService
+public class MqttServerService : BackgroundService
 {
-    public class MqttBackgroundService : BackgroundService
+    private MqttServer? _mqttServer;
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        private MqttServer? _mqttServer;
+        _mqttServer = await StartMqttServer();
 
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            _mqttServer = await StartMqttServer();
-
-            // Wait for the service to stop
-            stoppingToken.Register(async () => await StopMqttServer());
-        }
-
-        private async Task<MqttServer> StartMqttServer()
-        {
-            var mqttServerFactory = new MqttServerFactory();
-            var mqttServerOptions = mqttServerFactory.CreateServerOptionsBuilder().WithDefaultEndpoint().Build();
-            var server = mqttServerFactory.CreateMqttServer(mqttServerOptions);
-            await server.StartAsync();
-            Console.WriteLine("MQTT server started.");
-            return server;
-        }
-
-        private async Task StopMqttServer()
-        {
-            if (_mqttServer != null)
-            {
-                await _mqttServer.StopAsync();
-                Console.WriteLine("MQTT server stopped.");
-            }
-        }
+        // Wait for the service to stop
+        stoppingToken.Register(async () => await StopMqttServer());
     }
 
-    public class ConsoleLogger : IMqttNetLogger
+    private async Task<MqttServer> StartMqttServer()
     {
-        private readonly object _consoleSyncRoot = new();
-        public bool IsEnabled => true;
+        var mqttServerFactory = new MqttServerFactory();
+        var mqttServerOptions =
+        mqttServerFactory.CreateServerOptionsBuilder().
+        WithDefaultEndpoint().
+        WithDefaultEndpointPort(1883).
+        Build();
+        var server = mqttServerFactory.CreateMqttServer(mqttServerOptions);
+        await server.StartAsync();
+        Console.WriteLine("MQTT server started.");
+        return server;
+    }
 
-        public void Publish(MqttNetLogLevel logLevel, string source, string message, object[]? parameters, Exception? exception)
+    private async Task StopMqttServer()
+    {
+        if (_mqttServer != null)
         {
-            var foregroundColor = logLevel switch
-            {
-                MqttNetLogLevel.Verbose => ConsoleColor.White,
-                MqttNetLogLevel.Info => ConsoleColor.Green,
-                MqttNetLogLevel.Warning => ConsoleColor.DarkYellow,
-                MqttNetLogLevel.Error => ConsoleColor.Red,
-                _ => ConsoleColor.White
-            };
+            await _mqttServer.StopAsync();
+            Console.WriteLine("MQTT server stopped.");
+        }
+    }
+}
 
-            if (parameters?.Length > 0)
-            {
-                message = string.Format(message, parameters);
-            }
+public class ConsoleLogger : IMqttNetLogger
+{
+    private readonly object _consoleSyncRoot = new();
+    public bool IsEnabled => true;
 
-            lock (_consoleSyncRoot)
-            {
-                Console.ForegroundColor = foregroundColor;
-                Console.WriteLine(message);
+    public void Publish(MqttNetLogLevel logLevel, string source, string message, object[]? parameters, Exception? exception)
+    {
+        var foregroundColor = logLevel switch
+        {
+            MqttNetLogLevel.Verbose => ConsoleColor.White,
+            MqttNetLogLevel.Info => ConsoleColor.Green,
+            MqttNetLogLevel.Warning => ConsoleColor.DarkYellow,
+            MqttNetLogLevel.Error => ConsoleColor.Red,
+            _ => ConsoleColor.White
+        };
 
-                if (exception != null)
-                {
-                    Console.WriteLine(exception);
-                }
+        if (parameters?.Length > 0)
+        {
+            message = string.Format(message, parameters);
+        }
+
+        lock (_consoleSyncRoot)
+        {
+            Console.ForegroundColor = foregroundColor;
+            Console.WriteLine(message);
+
+            if (exception != null)
+            {
+                Console.WriteLine(exception);
             }
         }
     }
