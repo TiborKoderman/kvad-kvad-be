@@ -117,16 +117,15 @@ public class UserService{
         return Task.FromResult(true);
     }
 
-    public Task<byte[]>? getIcon(Guid userId){
+    public Task<byte[]?> getIcon(Guid? userId){
         var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-        if (user == null || user.Icon == null){
-            return null;
+        if (user?.Icon == null){
+            return Task.FromResult<byte[]?>(null); 
         }
         var iconPath = user.Icon;
         var icon = File.ReadAllBytes(iconPath);
 
-        return Task.FromResult(icon);
-
+        return Task.FromResult<byte[]?>(icon);
     }
 
 }

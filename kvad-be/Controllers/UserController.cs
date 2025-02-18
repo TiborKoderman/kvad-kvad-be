@@ -80,18 +80,12 @@ public class UserController : ControllerBase
     [HttpGet("icon/{username}")]
     public async Task<IActionResult> GetIcon(string username)
     {
-        var user = await _userService.getUser(username);
+        User? user = await _userService.getUser(username);
         if (user == null)
         {
             return NotFound();
         }
-        if (user == null)
-        {
-            return NotFound();
-        }
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
         var icon = await _userService.getIcon(user.Id);
-#pragma warning restore CS8602 // Dereference of a possibly null reference.
         if (icon == null)
         {
             return NotFound();
