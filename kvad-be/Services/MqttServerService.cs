@@ -1,62 +1,78 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using MQTTnet;
-using MQTTnet.AspNetCore;
-using MQTTnet.Server;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using MQTTnet;
+using MQTTnet.Protocol;
+using MQTTnet.Server;
+using MQTTnet.Diagnostics.Logger;
 
-public class MqttBackgroundService : BackgroundService
+namespace MQTTnetBackgroundService
 {
-    private readonly ILogger<MqttBackgroundService> _logger;
-    private readonly IServiceProvider _serviceProvider;
-    private MqttServer? _mqttServer;
-
-    public MqttBackgroundService(IServiceProvider serviceProvider, ILogger<MqttBackgroundService> logger)
+    public class MqttBackgroundService : BackgroundService
     {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
+        private MqttServer? _mqttServer;
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        _logger.LogInformation("Starting MQTT server...");
-
-        var mqttServerOptions = new MqttServerOptionsBuilder()
-            .WithDefaultEndpoint()
-            .Build();
-
-        _mqttServer = new MqttServer(mqttServerOptions);
-
-        using var scope = _serviceProvider.CreateScope();
-        var mqttController = scope.ServiceProvider.GetRequiredService<MqttController>();
-
-        // Attach event handlers
-        _mqttServer.ValidatingConnectionAsync += mqttController.ValidateConnection;
-        _mqttServer.ClientConnectedAsync += mqttController.OnClientConnected;
-
-        // Start the MQTT server
-        await _mqttServer.StartAsync();
-
-        _logger.LogInformation("MQTT server started.");
-
-        // Keep service running until stopped
-        while (!stoppingToken.IsCancellationRequested)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            await Task.Delay(1000, stoppingToken);
+            _mqttServer = await StartMqttServer();
+
+            // Wait for the service to stop
+            stoppingToken.Register(async () => await StopMqttServer());
+        }
+
+        private async Task<MqttServer> StartMqttServer()
+        {
+            var mqttServerFactory = new MqttServerFactory();
+            var mqttServerOptions = mqttServerFactory.CreateServerOptionsBuilder().WithDefaultEndpoint().Build();
+            var server = mqttServerFactory.CreateMqttServer(mqttServerOptions);
+            await server.StartAsync();
+            Console.WriteLine("MQTT server started.");
+            return server;
+        }
+
+        private async Task StopMqttServer()
+        {
+            if (_mqttServer != null)
+            {
+                await _mqttServer.StopAsync();
+                Console.WriteLine("MQTT server stopped.");
+            }
         }
     }
 
-    public override async Task StopAsync(CancellationToken cancellationToken)
+    public class ConsoleLogger : IMqttNetLogger
     {
-        _logger.LogInformation("Stopping MQTT server...");
-        if (_mqttServer != null)
+        private readonly object _consoleSyncRoot = new();
+        public bool IsEnabled => true;
+
+        public void Publish(MqttNetLogLevel logLevel, string source, string message, object[]? parameters, Exception? exception)
         {
-            await _mqttServer.StopAsync();
-            _mqttServer.Dispose();
+            var foregroundColor = logLevel switch
+            {
+                MqttNetLogLevel.Verbose => ConsoleColor.White,
+                MqttNetLogLevel.Info => ConsoleColor.Green,
+                MqttNetLogLevel.Warning => ConsoleColor.DarkYellow,
+                MqttNetLogLevel.Error => ConsoleColor.Red,
+                _ => ConsoleColor.White
+            };
+
+            if (parameters?.Length > 0)
+            {
+                message = string.Format(message, parameters);
+            }
+
+            lock (_consoleSyncRoot)
+            {
+                Console.ForegroundColor = foregroundColor;
+                Console.WriteLine(message);
+
+                if (exception != null)
+                {
+                    Console.WriteLine(exception);
+                }
+            }
         }
-        _logger.LogInformation("MQTT server stopped.");
     }
 }
