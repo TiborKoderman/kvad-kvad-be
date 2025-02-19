@@ -4,9 +4,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using System.Diagnostics;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+if (builder.Environment.IsDevelopment())
+{
+    StartDockerCompose();
+}
 
 var Configuration = builder.Configuration;
 
@@ -148,3 +154,34 @@ app.UseSwaggerUI(c =>
 });
 
 app.Run();
+
+
+
+static void StartDockerCompose()
+{
+    try
+    {
+        Process process = new Process();
+        process.StartInfo.FileName = "docker";
+        process.StartInfo.Arguments = "compose up -d"; // Run docker compose in detached mode
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.CreateNoWindow = true;
+
+        process.Start();
+        string output = process.StandardOutput.ReadToEnd();
+        string error = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+
+        Console.WriteLine("Docker Compose Output: " + output);
+        if (!string.IsNullOrEmpty(error))
+        {
+            Console.WriteLine("Docker Compose Error: " + error);
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine("Failed to start Docker Compose: " + ex.Message);
+    }
+}

@@ -39,11 +39,11 @@ public class WebSocketController : ControllerBase
         }
     }
 
-    [HttpGet("chatRoom/{id}")]
-    public async Task ChatRoom(Guid id)
-    {
+    // [HttpGet("chatRoom/{id}")]
+    // public async Task ChatRoom(Guid id)
+    // {
         
         
-    }
+    // }
 
 }

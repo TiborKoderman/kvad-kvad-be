@@ -1,19 +1,18 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using System.Text.Json;
-
+using System.Net.NetworkInformation;
 public class AppDbContext : DbContext
 {
-    public AppDbContext()
-    {
-        var folder = Environment.SpecialFolder.LocalApplicationData;
-        var path = Environment.GetFolderPath(folder);
-        DbPath = Path.Join(path, "app.db");
-    }
-    public string DbPath { get; init; }
+    private readonly IConfiguration _configuration;
 
+    public AppDbContext(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
     protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlite($"Data Source={DbPath}");
+    {
+        var connectionString = _configuration.GetConnectionString("DefaultConnection");
+        options.UseNpgsql(connectionString);
+    }
 
     public DbSet<KeyValue> KeyValues { get; set; }
     public DbSet<Node> Nodes { get; set; }
@@ -56,6 +55,13 @@ public class AppDbContext : DbContext
             .HasMany(u => u.ChatRooms)
             .WithMany(cr => cr.Users)  // Many-to-Many relation
             .UsingEntity(j => j.ToTable("UserChatRooms")); // Optional: rename join table
+
+        modelBuilder.Entity<Device>()
+.Property(d => d.Id)
+.HasConversion(
+    v => v.ToString(),
+    v => PhysicalAddress.Parse(v)
+);
 
         SeedData(modelBuilder);
     }

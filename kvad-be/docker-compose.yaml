@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:latest
+    container_name: kvad-db
+    restart: always
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=kvad
+      - POSTGRES_PASSWORD=T1VSC0cOQpYuY1XrOY0XJj1zaVa1ZRP7MGxjy3x8KcEwXfzYCk
+    ports:
+      - "5432:5432"
+    volumes:
+      - db:/var/lib/postgresql/data
+volumes:
+  db:

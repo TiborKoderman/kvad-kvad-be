@@ -1,4 +1,3 @@
-using kvad_be.Migrations;
 using Microsoft.AspNetCore.Mvc;
 
 public class ChatService

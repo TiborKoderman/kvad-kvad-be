@@ -28,7 +28,7 @@ public class MqttServerService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        EnsureCertificateExists();
+        // EnsureCertificateExists();
         _mqttServer = await StartMqttServer();
 
         // Wait for the service to stop
@@ -97,10 +97,10 @@ public class MqttServerService : BackgroundService
 
     //Handle certificates
     
-    private X509Certificate2 LoadCertificate()
-    {
-        return X509CertificateLoader.LoadFromFile(_certPath, _certPassword);
-    }
+    // private X509Certificate2 LoadCertificate()
+    // {
+    //     return X509CertificateLoader.LoadFromFile(_certPath, _certPassword);
+    // }
 
     
 }
