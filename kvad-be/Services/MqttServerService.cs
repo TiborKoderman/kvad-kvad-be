@@ -7,13 +7,28 @@ using MQTTnet;
 using MQTTnet.Protocol;
 using MQTTnet.Server;
 using MQTTnet.Diagnostics.Logger;
+using System.Security.Cryptography.X509Certificates;
 
 public class MqttServerService : BackgroundService
 {
-    private MqttServer? _mqttServer;
+     private MqttServer? _mqttServer;
+    private readonly string _certPath;
+    private readonly string _certPassword;
+    private readonly int _mqttPort;
+    private readonly int _encryptedMqttPort;
+
+        public MqttServerService(IConfiguration configuration)
+    {
+        _certPath = configuration["MqttServer:CertPath"] ?? "server-cert.pfx";
+        _certPassword = configuration["MqttServer:CertPassword"] ?? "your_password";
+        _mqttPort = int.Parse(configuration["MqttServer:MqttPort"] ?? "8883");
+        _encryptedMqttPort = int.Parse(configuration["MqttServer:EncryptedMqttPort"] ?? "8884");
+    }
+
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        EnsureCertificateExists();
         _mqttServer = await StartMqttServer();
 
         // Wait for the service to stop
@@ -80,7 +95,7 @@ public class MqttServerService : BackgroundService
     }
 
 
-    //Get all active topics
+    //Handle certificates
     
 
     
