@@ -64,7 +64,8 @@ builder.Services.AddScoped<CounterService>();
 builder.Services.AddScoped<NodesService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddHostedService<MqttServerService>();
+builder.Services.AddSingleton<MqttServerService>(); // Ensures single instance
+builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttServerService>()); // Use the same instance
 
 // Configure the SQLite connection
 builder.Services.AddDbContext<AppDbContext>();
@@ -108,7 +109,7 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    System.Console.WriteLine("Development mode");
+    Console.WriteLine("Development mode");
     app.UseSwagger();
     app.UseSwaggerUI(c =>
      {
@@ -120,6 +121,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseWebSockets();
 
 
 using (var scope = app.Services.CreateScope())
@@ -134,7 +136,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // app.UseHttpsRedirection();
-// app.UseMiddleware<UserMiddleware>();
+app.UseMiddleware<UserMiddleware>();
+app.UseMiddleware<WebSocketMiddleware>();
 
 app.MapControllers();
 app.UseSwaggerUI(c =>

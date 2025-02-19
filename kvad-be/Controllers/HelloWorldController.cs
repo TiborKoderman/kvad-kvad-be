@@ -11,6 +11,5 @@ public class HelloWorldController : Controller
     {
         return Task.FromResult<IActionResult>(Ok("Hello, World!"));
     }
-
     
 }

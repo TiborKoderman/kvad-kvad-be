@@ -48,16 +48,7 @@ public class AuthService
         return tokenHandler.WriteToken(token);
     }
 
-    // public async Task<string?> GenerateApiKey(User? user, DateTime? expirationDate)
-    // {
-    //     if (user == null)
-    //         return null;
 
-    //     var apiKey = Guid.NewGuid().ToString();
-    //     user.ApiKey = apiKey;
-    //     await _context.SaveChangesAsync();
-    //     return apiKey;
-    // }
     public async Task<bool> AuthenticateWithoutToken(string username, string password)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);

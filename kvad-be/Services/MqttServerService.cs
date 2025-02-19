@@ -42,6 +42,48 @@ public class MqttServerService : BackgroundService
             Console.WriteLine("MQTT server stopped.");
         }
     }
+
+    public async Task<List<MqttClientStatus>> GetAllActiveClients()
+    {
+        if (_mqttServer == null)
+        {
+            return new List<MqttClientStatus>();
+        }
+        IList<MqttClientStatus> clients = await _mqttServer.GetClientsAsync();
+
+
+
+        Console.WriteLine("Active clients:");
+
+        foreach (var client in clients)
+        {
+             Console.WriteLine($"Client ID: {client.Id}");
+        }
+
+        return clients.ToList();
+    }
+
+    public async Task<List<MqttSessionStatus>> GetAllActiveSessions()
+    {
+        if (_mqttServer == null)
+        {
+            return new List<MqttSessionStatus>();
+        }
+        IList<MqttSessionStatus> sessions = await _mqttServer.GetSessionsAsync();
+
+        foreach (var session in sessions)
+        {
+            Console.WriteLine($"Session ID: {session.Id}");
+        }
+
+        return sessions.ToList();
+    }
+
+
+    //Get all active topics
+    
+
+    
 }
 
 public class ConsoleLogger : IMqttNetLogger
