@@ -16,8 +16,8 @@ public class ChatService
             Name = chatRoomName,
             Users = new List<User>(),
             Messages = new List<ChatMessage>(),
-            CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
         };
         chatRoom.Users.Add(user);
 
