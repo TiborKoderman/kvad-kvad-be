@@ -47,6 +47,11 @@ public class AppDbContext : DbContext
             .Property(cm => cm.Id)
             .ValueGeneratedOnAdd();
 
+        modelBuilder.Entity<ChatMessage>()
+            .HasOne<ChatRoom>()
+            .WithMany(c => c.Messages)
+            .HasForeignKey(cm => cm.ChatRoomId);
+
         modelBuilder.Entity<User>()
             .HasMany(u => u.ChatRooms)
             .WithMany(cr => cr.Users)  // Many-to-Many relation

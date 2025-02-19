@@ -45,13 +45,19 @@ public class ChatService
     }
 
     //get chats in a chat room
-    public Task<List<ChatMessage>> GetChatMessages(Guid chatRoomId)
+    public Task<List<ChatMessageDTO>> GetChatMessages(Guid chatRoomId)
     {
-        var chatMessages = _context.ChatMessages.Where(cm => cm.ChatRoomId == chatRoomId).ToList();
-        return Task.FromResult(chatMessages);
+        var chatMessages = _context.ChatMessages
+            .Where(cm => cm.ChatRoomId == chatRoomId)
+            .OrderBy(cm => cm.CreatedAt)
+            .ToList();
+        var chatMessageDTOs = chatMessages
+            .Select(cm => new ChatMessageDTO(cm.Id, cm.User.Id, cm.User.Username, cm.Content, cm.CreatedAt, cm.UpdatedAt))
+            .ToList();
+        return Task.FromResult(chatMessageDTOs);
     }
 
-    public Task AddChatMessage(Guid chatRoomId, User user, string content)
+    public async Task AddChatMessage(Guid chatRoomId, User user, string content)
     {
         var chatRoom = _context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
         if (chatRoom == null)
@@ -61,17 +67,18 @@ public class ChatService
 
         var chatMessage = new ChatMessage
         {
+            Id = Guid.NewGuid(),
             ChatRoomId = chatRoomId,
             User = user,
             Content = content,
             CreatedAt = DateTime.Now,
-            UpdatedAt = DateTime.Now
+            UpdatedAt = null
         };
 
-        // chatRoom.UpdatedAt = DateTime.Now;
-        _context.ChatMessages.Add(chatMessage);
-        _context.SaveChanges();
-        return Task.CompletedTask;
+        chatRoom.UpdatedAt = DateTime.Now;
+         await _context.ChatMessages.AddAsync(chatMessage);
+
+        await _context.SaveChangesAsync();
     }
 
     public Task AddUserToChatRoom(Guid chatRoomId, User user)
