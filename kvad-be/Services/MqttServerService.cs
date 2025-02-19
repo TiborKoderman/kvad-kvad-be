@@ -97,6 +97,10 @@ public class MqttServerService : BackgroundService
 
     //Handle certificates
     
+    private X509Certificate2 LoadCertificate()
+    {
+        return X509CertificateLoader.LoadFromFile(_certPath, _certPassword);
+    }
 
     
 }
