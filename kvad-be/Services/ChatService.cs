@@ -92,6 +92,22 @@ public class ChatService
         _context.SaveChanges();
         return Task.CompletedTask;
     }
+
+    public Task DeleteChatRoom(Guid chatRoomId, User user)
+    {
+        var chatRoom = _context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
+        if (chatRoom == null)
+        {
+            throw new Exception("Chat room not found");
+        }
+        if (!chatRoom.Users.Contains(user))
+        {
+            throw new Exception("User is not a member of the chat room");
+        }
+        _context.ChatRooms.Remove(chatRoom);
+        _context.SaveChanges();
+        return Task.CompletedTask;
+    }
     
 
 }

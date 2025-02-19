@@ -86,4 +86,15 @@ public class ChatController : ControllerBase
         return Ok();
     }
     
+    [HttpDelete("deleteChatRoom/{id}")]
+    public async Task<IActionResult> DeleteChatRoom(Guid id)
+    {
+        var user = HttpContext.Items["User"] as User;
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+        await _chatService.DeleteChatRoom(id, user);
+        return Ok();
+    }
 }
