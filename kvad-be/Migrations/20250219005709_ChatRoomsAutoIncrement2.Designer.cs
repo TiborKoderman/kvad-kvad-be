@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -9,9 +10,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250219005709_ChatRoomsAutoIncrement2")]
+    partial class ChatRoomsAutoIncrement2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.2");
@@ -64,21 +67,6 @@ namespace kvad_be.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ChatRooms");
-                });
-
-            modelBuilder.Entity("ChatRoomUser", b =>
-                {
-                    b.Property<Guid>("ChatRoomsId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UsersId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("ChatRoomsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("UserChatRooms", (string)null);
                 });
 
             modelBuilder.Entity("Device", b =>
@@ -646,6 +634,9 @@ namespace kvad_be.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("ChatRoomId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Icon")
                         .HasColumnType("TEXT");
 
@@ -660,6 +651,8 @@ namespace kvad_be.Migrations
                     b.HasKey("Id");
 
                     b.HasAlternateKey("Username");
+
+                    b.HasIndex("ChatRoomId");
 
                     b.ToTable("Users");
 
@@ -768,26 +761,18 @@ namespace kvad_be.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("ChatRoomUser", b =>
-                {
-                    b.HasOne("ChatRoom", null)
-                        .WithMany()
-                        .HasForeignKey("ChatRoomsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("SIPrefix", b =>
                 {
                     b.HasOne("Unit", null)
                         .WithMany("Prefix")
                         .HasForeignKey("UnitId");
+                });
+
+            modelBuilder.Entity("User", b =>
+                {
+                    b.HasOne("ChatRoom", null)
+                        .WithMany("Users")
+                        .HasForeignKey("ChatRoomId");
                 });
 
             modelBuilder.Entity("UserUserGroup", b =>
@@ -823,6 +808,8 @@ namespace kvad_be.Migrations
             modelBuilder.Entity("ChatRoom", b =>
                 {
                     b.Navigation("Messages");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Unit", b =>

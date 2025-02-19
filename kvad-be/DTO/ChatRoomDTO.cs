@@ -1,0 +1,1 @@
+public record ChatRoomDTO(Guid Id, string Name, List<User> Users, DateTime CreatedAt, DateTime UpdatedAt);

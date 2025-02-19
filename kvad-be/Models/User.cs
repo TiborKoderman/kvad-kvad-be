@@ -9,6 +9,7 @@ public class User
     public ICollection<UserRole> UserRoles { get; set; } =  [];
     public ICollection<UserGroup> UserGroups { get; set; } = [];
 
+    public List<ChatRoom> ChatRooms { get; set; } = [];
 }
 
 public class UserProfile : Profile

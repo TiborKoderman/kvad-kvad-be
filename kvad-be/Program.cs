@@ -64,6 +64,7 @@ builder.Services.AddScoped<CounterService>();
 builder.Services.AddScoped<NodesService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ChatService>();
 builder.Services.AddSingleton<MqttServerService>(); // Ensures single instance
 builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttServerService>()); // Use the same instance
 

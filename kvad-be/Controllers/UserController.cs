@@ -24,6 +24,17 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
+    [HttpGet("me")]
+    public IActionResult GetMe()
+    {
+        var user = HttpContext.Items["User"] as User;
+        if (user == null)
+        {
+            return NotFound();
+        }
+        return Ok(user);
+    }
+
     [HttpGet("id/{id}")]
     public async Task<IActionResult> GetUserById(Guid id)
     {

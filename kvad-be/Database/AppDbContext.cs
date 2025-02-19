@@ -4,9 +4,6 @@ using System.Text.Json;
 
 public class AppDbContext : DbContext
 {
-    // public AppDbContext(DbContextOptions<AppDbContext> options)
-    //     : base(options) { }
-
     public AppDbContext()
     {
         var folder = Environment.SpecialFolder.LocalApplicationData;
@@ -28,6 +25,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Unit> Units { get; set; }
     public DbSet<SIPrefix> SIPrefixes { get; set; }
+    public DbSet<ChatRoom> ChatRooms { get; set; }
+    public DbSet<ChatMessage> ChatMessages { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -40,6 +39,18 @@ public class AppDbContext : DbContext
         .HasConversion(
             new JsonObjectConverter()
         );
+
+        modelBuilder.Entity<ChatMessage>()
+            .HasKey(cm => new { cm.ChatRoomId, cm.Id });
+
+        modelBuilder.Entity<ChatMessage>()
+            .Property(cm => cm.Id)
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.ChatRooms)
+            .WithMany(cr => cr.Users)  // Many-to-Many relation
+            .UsingEntity(j => j.ToTable("UserChatRooms")); // Optional: rename join table
 
         SeedData(modelBuilder);
     }
@@ -77,7 +88,7 @@ public class AppDbContext : DbContext
             .WithMany(r => r.Users)
             .UsingEntity(j => j.HasData(new { UsersId = adminUserId, UserRolesId = 1 }));
 
-            //populate SI Prefixes
+        //populate SI Prefixes
         modelBuilder.Entity<SIPrefix>().HasData(
             new SIPrefix { Id = 1, Name = "Yotta", Symbol = "Y", Factor = 1e24 },
             new SIPrefix { Id = 2, Name = "Zetta", Symbol = "Z", Factor = 1e21 },

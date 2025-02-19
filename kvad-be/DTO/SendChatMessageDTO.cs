@@ -1,0 +1,1 @@
+public record SendChatMessageDTO(Guid ChatRoomId, string Content);

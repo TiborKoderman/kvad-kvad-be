@@ -1,0 +1,1 @@
+public record NewChatRoomDTO(string Name);
