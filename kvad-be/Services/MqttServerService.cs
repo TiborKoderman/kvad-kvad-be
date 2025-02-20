@@ -88,14 +88,14 @@ public class MqttServerService : BackgroundService
     }
 
 
-    //load certificate
-    private X509Certificate2 LoadCertificate()
-    {
-        var certificateLoader = new X509CertificateLoader();
-        return certificateLoader.LoadCertificate(_certPath, _certPassword);
+    // //load certificate
+    // private X509Certificate2 LoadCertificate()
+    // {
+    //     var certificateLoader = new X509CertificateLoader();
+    //     return certificateLoader.LoadCertificate(_certPath, _certPassword);
         
 
-    }
+    // }
 
     
 }

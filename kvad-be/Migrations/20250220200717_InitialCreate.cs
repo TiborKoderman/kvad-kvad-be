@@ -155,7 +155,8 @@ namespace kvad_be.Migrations
                 name: "ChatMessages",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     ChatRoomId = table.Column<Guid>(type: "uuid", nullable: false),
                     UserId = table.Column<Guid>(type: "uuid", nullable: false),
                     Content = table.Column<string>(type: "text", nullable: false),
@@ -180,7 +181,7 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserChatRooms",
+                name: "ChatRoomUser",
                 columns: table => new
                 {
                     ChatRoomsId = table.Column<Guid>(type: "uuid", nullable: false),
@@ -188,16 +189,41 @@ namespace kvad_be.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserChatRooms", x => new { x.ChatRoomsId, x.UsersId });
+                    table.PrimaryKey("PK_ChatRoomUser", x => new { x.ChatRoomsId, x.UsersId });
                     table.ForeignKey(
-                        name: "FK_UserChatRooms_ChatRooms_ChatRoomsId",
+                        name: "FK_ChatRoomUser_ChatRooms_ChatRoomsId",
                         column: x => x.ChatRoomsId,
                         principalTable: "ChatRooms",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserChatRooms_Users_UsersId",
+                        name: "FK_ChatRoomUser_Users_UsersId",
                         column: x => x.UsersId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserChatRooms",
+                columns: table => new
+                {
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    ChatRoomId = table.Column<Guid>(type: "uuid", nullable: false),
+                    PrivateKey = table.Column<byte[]>(type: "bytea", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserChatRooms", x => new { x.UserId, x.ChatRoomId });
+                    table.ForeignKey(
+                        name: "FK_UserChatRooms_ChatRooms_ChatRoomId",
+                        column: x => x.ChatRoomId,
+                        principalTable: "ChatRooms",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_UserChatRooms_Users_UserId",
+                        column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -339,14 +365,19 @@ namespace kvad_be.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_ChatRoomUser_UsersId",
+                table: "ChatRoomUser",
+                column: "UsersId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SIPrefixes_UnitId",
                 table: "SIPrefixes",
                 column: "UnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserChatRooms_UsersId",
+                name: "IX_UserChatRooms_ChatRoomId",
                 table: "UserChatRooms",
-                column: "UsersId");
+                column: "ChatRoomId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserUserGroup_UsersId",
@@ -364,6 +395,9 @@ namespace kvad_be.Migrations
         {
             migrationBuilder.DropTable(
                 name: "ChatMessages");
+
+            migrationBuilder.DropTable(
+                name: "ChatRoomUser");
 
             migrationBuilder.DropTable(
                 name: "Devices");

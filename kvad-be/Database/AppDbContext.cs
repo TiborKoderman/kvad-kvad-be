@@ -51,11 +51,6 @@ public class AppDbContext : DbContext
             .WithMany(c => c.Messages)
             .HasForeignKey(cm => cm.ChatRoomId);
 
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.ChatRooms)
-            .WithMany(cr => cr.Users)  // Many-to-Many relation
-            .UsingEntity(j => j.ToTable("UserChatRooms")); // Optional: rename join table
-
         modelBuilder.Entity<Device>()
 .Property(d => d.Id)
 .HasConversion(

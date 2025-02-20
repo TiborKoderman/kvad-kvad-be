@@ -1,14 +1,19 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using AutoMapper;
 
 public class User
 {
     public Guid Id { get; set; }
     public required string Username { get; set; }
-    public required string Password { get; set; }
+    [JsonIgnore, Required]
+    public string Password { get; set; } = "";
     public string? Icon { get; set; }
-    public ICollection<UserRole> UserRoles { get; set; } =  [];
-    public ICollection<UserGroup> UserGroups { get; set; } = [];
-
+    [JsonIgnore]
+    public List<UserRole> UserRoles { get; set; } = [];
+    [JsonIgnore]
+    public List<UserGroup> UserGroups { get; set; } = [];
+    [JsonIgnore]
     public List<ChatRoom> ChatRooms { get; set; } = [];
 }
 

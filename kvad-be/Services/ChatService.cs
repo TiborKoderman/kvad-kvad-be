@@ -8,7 +8,7 @@ public class ChatService
     {
         _context = context;
     }
-    public Task<String> CreateChatRoom(string chatRoomName, User user)
+    public Task<ChatRoomDTO> CreateChatRoom(string chatRoomName, User user)
     {
         var chatRoom = new ChatRoom
         {
@@ -19,16 +19,19 @@ public class ChatService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+
+        ChatRoomDTO chatRoomDTO = new ChatRoomDTO(chatRoom.Id, chatRoom.Name, chatRoom.Users , chatRoom.CreatedAt, chatRoom.UpdatedAt);
         chatRoom.Users.Add(user);
+
 
         _context.ChatRooms.Add(chatRoom);
         _context.SaveChanges();
-        return Task.FromResult(chatRoom.Name);
+        return Task.FromResult(chatRoomDTO);
     }
 
     public Task<List<ChatRoomDTO>> GetChatRooms(User user)
     {
-        var chatRooms = _context.ChatRooms.Where(cr => cr.Users.Contains(user)).ToList();
+        var chatRooms = _context.ChatRooms.Where(cr => cr.Users.Contains(user)).OrderByDescending(cr => cr.UpdatedAt).ToList();
         var chatRoomDTOs = chatRooms.Select(cr => new ChatRoomDTO(cr.Id, cr.Name, cr.Users, cr.CreatedAt, cr.UpdatedAt)).ToList();
         return Task.FromResult(chatRoomDTOs);
     }
@@ -66,7 +69,6 @@ public class ChatService
 
         var chatMessage = new ChatMessage
         {
-            Id = Guid.NewGuid(),
             ChatRoomId = chatRoomId,
             User = user,
             Content = content,

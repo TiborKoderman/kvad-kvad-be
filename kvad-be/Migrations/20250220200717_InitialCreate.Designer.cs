@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250219221603_InitialCreate")]
+    [Migration("20250220200717_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -30,9 +30,11 @@ namespace kvad_be.Migrations
                     b.Property<Guid>("ChatRoomId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Content")
                         .IsRequired()
@@ -87,7 +89,7 @@ namespace kvad_be.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("UserChatRooms", (string)null);
+                    b.ToTable("ChatRoomUser");
                 });
 
             modelBuilder.Entity("Device", b =>
@@ -685,6 +687,24 @@ namespace kvad_be.Migrations
                         });
                 });
 
+            modelBuilder.Entity("UserChatRoom", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChatRoomId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("PrivateKey")
+                        .HasColumnType("bytea");
+
+                    b.HasKey("UserId", "ChatRoomId");
+
+                    b.HasIndex("ChatRoomId");
+
+                    b.ToTable("UserChatRooms");
+                });
+
             modelBuilder.Entity("UserGroup", b =>
                 {
                     b.Property<int>("Id")
@@ -805,6 +825,25 @@ namespace kvad_be.Migrations
                     b.HasOne("Unit", null)
                         .WithMany("Prefix")
                         .HasForeignKey("UnitId");
+                });
+
+            modelBuilder.Entity("UserChatRoom", b =>
+                {
+                    b.HasOne("ChatRoom", "ChatRoom")
+                        .WithMany()
+                        .HasForeignKey("ChatRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChatRoom");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("UserUserGroup", b =>

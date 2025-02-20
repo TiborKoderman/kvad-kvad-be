@@ -1,1 +1,1 @@
-public record ChatMessageDTO(Guid Id, Guid UserId, string username, string Content, DateTime CreatedAt, DateTime? UpdatedAt);
+public record ChatMessageDTO(int Id, Guid UserId, string username, string Content, DateTime CreatedAt, DateTime? UpdatedAt);

@@ -1,11 +1,10 @@
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Numerics;
+using Microsoft.EntityFrameworkCore;
 
+[PrimaryKey(nameof(Id), nameof(ChatRoomId))]
 public class ChatMessage
 {
-    [Key]
-    public required Guid Id { get; set; } // Changed to long
+    public int Id { get; set; } // Changed to long
     [ForeignKey("ChatRoom")]
     public required Guid ChatRoomId { get; set; }
     public required User User { get; set; }
