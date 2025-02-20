@@ -70,11 +70,11 @@ public class ChatService
             ChatRoomId = chatRoomId,
             User = user,
             Content = content,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
 
-        chatRoom.UpdatedAt = DateTime.Now;
+        chatRoom.UpdatedAt = DateTime.UtcNow;
          await _context.ChatMessages.AddAsync(chatMessage);
 
         await _context.SaveChangesAsync();

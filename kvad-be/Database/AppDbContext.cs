@@ -89,6 +89,7 @@ public class AppDbContext : DbContext
                 Id = adminUserId,
                 Username = "admin",
                 Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU", // In a real application, ensure passwords are hashed
+                
             }
         );
 

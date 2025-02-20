@@ -1,17 +1,10 @@
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
-using MQTTnet;
-using MQTTnet.Protocol;
 using MQTTnet.Server;
 using MQTTnet.Diagnostics.Logger;
 using System.Security.Cryptography.X509Certificates;
 
 public class MqttServerService : BackgroundService
 {
-     private MqttServer? _mqttServer;
+    private MqttServer? _mqttServer;
     private readonly string _certPath;
     private readonly string _certPassword;
     private readonly int _mqttPort;
@@ -41,7 +34,7 @@ public class MqttServerService : BackgroundService
         var mqttServerOptions =
         mqttServerFactory.CreateServerOptionsBuilder().
         WithDefaultEndpoint().
-        WithDefaultEndpointPort(1883).
+        WithDefaultEndpointPort(_mqttPort).
         Build();
         var server = mqttServerFactory.CreateMqttServer(mqttServerOptions);
         await server.StartAsync();
@@ -95,12 +88,14 @@ public class MqttServerService : BackgroundService
     }
 
 
-    //Handle certificates
-    
-    // private X509Certificate2 LoadCertificate()
-    // {
-    //     return X509CertificateLoader.LoadFromFile(_certPath, _certPassword);
-    // }
+    //load certificate
+    private X509Certificate2 LoadCertificate()
+    {
+        var certificateLoader = new X509CertificateLoader();
+        return certificateLoader.LoadCertificate(_certPath, _certPassword);
+        
+
+    }
 
     
 }
