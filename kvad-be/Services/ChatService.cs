@@ -20,8 +20,8 @@ public class ChatService
             UpdatedAt = DateTime.UtcNow
         };
 
-        ChatRoomDTO chatRoomDTO = new ChatRoomDTO(chatRoom.Id, chatRoom.Name, chatRoom.Users , chatRoom.CreatedAt, chatRoom.UpdatedAt);
         chatRoom.Users.Add(user);
+        ChatRoomDTO chatRoomDTO = new ChatRoomDTO(chatRoom.Id, chatRoom.Name, chatRoom.Users , chatRoom.CreatedAt, chatRoom.UpdatedAt);
 
 
         _context.ChatRooms.Add(chatRoom);
@@ -77,7 +77,7 @@ public class ChatService
         };
 
         chatRoom.UpdatedAt = DateTime.UtcNow;
-         await _context.ChatMessages.AddAsync(chatMessage);
+        await _context.ChatMessages.AddAsync(chatMessage);
 
         await _context.SaveChangesAsync();
     }
