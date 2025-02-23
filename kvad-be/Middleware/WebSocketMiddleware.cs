@@ -1,5 +1,4 @@
 using System.IdentityModel.Tokens.Jwt;
-using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
@@ -13,7 +12,7 @@ public class WebSocketMiddleware
         _next = next;
     }
 
-    public async Task Invoke(HttpContext context)
+    public async Task InvokeAsync(HttpContext context, AuthService authService)
     {
         if (context.Request.Path.StartsWithSegments("/ws") && context.WebSockets.IsWebSocketRequest)
         {
@@ -24,6 +23,17 @@ public class WebSocketMiddleware
                 context.Response.StatusCode = 401; // Unauthorized
                 return;
             }
+
+            var userId = principal.FindFirst(ClaimTypes.Name)?.Value;
+            if (userId != null)
+            {
+                context.Items["User"] = await authService.GetUserById(userId);
+            }
+            else
+            {
+                context.Items["User"] = null;
+            }
+
             await _next(context);
         }
         else

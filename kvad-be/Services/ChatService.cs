@@ -1,8 +1,16 @@
+using System.Collections.Concurrent;
+using System.Net.WebSockets;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 public class ChatService
 {
     private readonly AppDbContext _context;
+
+    // private readonly List<WebSocket> connections = [];
+
+    private static ConcurrentDictionary<Guid, HashSet<WebSocket>> connections = new ConcurrentDictionary<Guid, HashSet<WebSocket>>();
 
     public ChatService(AppDbContext context)
     {
@@ -61,7 +69,7 @@ public class ChatService
 
     public async Task AddChatMessage(Guid chatRoomId, User user, string content)
     {
-        var chatRoom = _context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
+        var chatRoom = _context.ChatRooms.Include(cr => cr.Users).FirstOrDefault(cr => cr.Id == chatRoomId);
         if (chatRoom == null)
         {
             throw new Exception("Chat room not found");
@@ -75,10 +83,25 @@ public class ChatService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = null
         };
-
         chatRoom.UpdatedAt = DateTime.UtcNow;
-        await _context.ChatMessages.AddAsync(chatMessage);
 
+        chatRoom.Users.ForEach(async u =>
+        {
+            if (connections.TryGetValue(u.Id, out HashSet<WebSocket>? sockets) && sockets != null)
+            {
+                foreach (var socket in sockets)
+                {
+                    if (socket.State == WebSocketState.Open)
+                    {
+                        var message = Encoding.UTF8.GetBytes(chatMessage.Content);
+                        var messageSegment = new ArraySegment<byte>(message);
+                        await socket.SendAsync(messageSegment, WebSocketMessageType.Text, true, CancellationToken.None);
+                    }
+                }
+            }
+        });
+
+        await _context.ChatMessages.AddAsync(chatMessage);
         await _context.SaveChangesAsync();
     }
 
@@ -109,6 +132,57 @@ public class ChatService
         _context.SaveChanges();
         return Task.CompletedTask;
     }
-    
 
+
+    public Task AddSocket(WebSocket socket, Guid userId)
+    {
+        if (connections.TryGetValue(userId, out HashSet<WebSocket>? sockets) && sockets != null)
+        {
+            sockets.Add(socket);
+        }
+        else
+        {
+            connections.TryAdd(userId, new HashSet<WebSocket> { socket });
+        }
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveSocket(WebSocket socket, Guid userId)
+    {
+        if (connections.TryGetValue(userId, out HashSet<WebSocket>? sockets) && sockets != null)
+        {
+            sockets.Remove(socket);
+        }
+        return Task.CompletedTask;
+    }
+
+    public async Task Receive(WebSocket socket)
+    {
+        var buffer = new byte[1024 * 4];
+        while (socket.State == WebSocketState.Open)
+        {
+            var result = await socket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+                await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                return;
+            }
+            else if (result.MessageType == WebSocketMessageType.Text)
+            {
+                var message = Encoding.UTF8.GetString(buffer).Trim('\0');
+                var messageBytes = Encoding.UTF8.GetBytes(message);
+                var messageSegment = new ArraySegment<byte>(messageBytes);
+                foreach (var (userId, sockets) in connections)
+                {
+                    foreach (var userSocket in sockets)
+                    {
+                        if (userSocket.State == WebSocketState.Open)
+                        {
+                            await userSocket.SendAsync(messageSegment, WebSocketMessageType.Text, true, CancellationToken.None);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

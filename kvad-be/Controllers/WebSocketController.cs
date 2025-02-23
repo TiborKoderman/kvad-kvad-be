@@ -11,6 +11,11 @@ public class WebSocketController : ControllerBase
 
     private readonly ChatService _chatService;
 
+    public WebSocketController(ChatService chatService)
+    {
+        _chatService = chatService;
+    }
+
     [HttpGet("time")]
     public async Task Time()
     {
@@ -39,11 +44,26 @@ public class WebSocketController : ControllerBase
         }
     }
 
-    // [HttpGet("chatRoom/{id}")]
-    // public async Task ChatRoom(Guid id)
-    // {
-        
-        
-    // }
+    [HttpGet("chat")]
+    public async Task ChatWS()
+    {
+        var user = HttpContext.Items["User"] as User;
+        if (user == null)
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+        var userId = user.Id;
+        if (HttpContext.WebSockets.IsWebSocketRequest)
+        {
+            using var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
+            await _chatService.AddSocket(ws, userId);
+            await _chatService.Receive(ws);
+        }
+        else
+        {
+            HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+        }
 
+    }
 }
