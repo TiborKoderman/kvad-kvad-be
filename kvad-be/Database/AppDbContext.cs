@@ -26,6 +26,10 @@ public class AppDbContext : DbContext
     public DbSet<SIPrefix> SIPrefixes { get; set; }
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<TagHist> TagHists { get; set; }
+
+    public DbSet<Obis> Obis { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -52,11 +56,17 @@ public class AppDbContext : DbContext
             .HasForeignKey(cm => cm.ChatRoomId);
 
         modelBuilder.Entity<Device>()
-.Property(d => d.Id)
-.HasConversion(
-    v => v.ToString(),
-    v => PhysicalAddress.Parse(v)
-);
+            .Property(d => d.Id)
+            .HasConversion(
+                v => v.ToString(),
+                v => PhysicalAddress.Parse(v)
+            );
+
+        modelBuilder.Entity<Obis>()
+            .Property(o => o.Id)
+            .HasComputedColumnSql(@"
+                (A || '-' || B || ':' || C || '.' || D || '.' || E || '*' || F)"
+                , stored: true);
 
         SeedData(modelBuilder);
     }
@@ -84,7 +94,7 @@ public class AppDbContext : DbContext
                 Id = adminUserId,
                 Username = "admin",
                 Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU", // In a real application, ensure passwords are hashed
-                
+
             }
         );
 
