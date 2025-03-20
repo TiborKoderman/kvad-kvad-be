@@ -27,9 +27,8 @@ public class AppDbContext : DbContext
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
     public DbSet<Tag> Tags { get; set; }
-    public DbSet<TagHist> TagHists { get; set; }
+    // public DbSet<TagHist> TagHists { get; set; }
 
-    public DbSet<Obis> Obis { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,19 +53,6 @@ public class AppDbContext : DbContext
             .HasOne<ChatRoom>()
             .WithMany(c => c.Messages)
             .HasForeignKey(cm => cm.ChatRoomId);
-
-        modelBuilder.Entity<Device>()
-            .Property(d => d.Id)
-            .HasConversion(
-                v => v.ToString(),
-                v => PhysicalAddress.Parse(v)
-            );
-
-        modelBuilder.Entity<Obis>()
-            .Property(o => o.Id)
-            .HasComputedColumnSql(@"
-                (A || '-' || B || ':' || C || '.' || D || '.' || E || '*' || F)"
-                , stored: true);
 
         SeedData(modelBuilder);
     }

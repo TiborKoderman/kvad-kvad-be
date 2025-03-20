@@ -1,10 +1,10 @@
-using System.ComponentModel.DataAnnotations;
+using System.Net.NetworkInformation;
+using Microsoft.EntityFrameworkCore;
 
-[PrimaryKey("ObisId", AutoIncrement = false)]
+[PrimaryKey(nameof(DeviceId), nameof(Id))]
 public class Tag{
-    public required string ObisId { get; set; }
-    public required Obis Obis { get; set; }
+    public required Guid DeviceId { get; set; }
     public required Device Device { get; set; }
-    public required int DeviceId { get; set; }
+    public required string Id { get; set; }
     public required Unit Unit { get; set; }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,7 +34,8 @@ namespace kvad_be.Migrations
                 name: "Devices",
                 columns: table => new
                 {
-                    Id = table.Column<string>(type: "text", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Mac = table.Column<PhysicalAddress>(type: "macaddr", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Description = table.Column<string>(type: "text", nullable: false),
                     Location = table.Column<string>(type: "text", nullable: false),
@@ -152,6 +154,31 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Tags",
+                columns: table => new
+                {
+                    DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    UnitId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tags", x => new { x.DeviceId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_Tags_Devices_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Devices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Tags_Units_UnitId",
+                        column: x => x.UnitId,
+                        principalTable: "Units",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ChatMessages",
                 columns: table => new
                 {
@@ -199,31 +226,6 @@ namespace kvad_be.Migrations
                     table.ForeignKey(
                         name: "FK_ChatRoomUser_Users_UsersId",
                         column: x => x.UsersId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserChatRooms",
-                columns: table => new
-                {
-                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
-                    ChatRoomId = table.Column<Guid>(type: "uuid", nullable: false),
-                    PrivateKey = table.Column<byte[]>(type: "bytea", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserChatRooms", x => new { x.UserId, x.ChatRoomId });
-                    table.ForeignKey(
-                        name: "FK_UserChatRooms_ChatRooms_ChatRoomId",
-                        column: x => x.ChatRoomId,
-                        principalTable: "ChatRooms",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_UserChatRooms_Users_UserId",
-                        column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -375,9 +377,9 @@ namespace kvad_be.Migrations
                 column: "UnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserChatRooms_ChatRoomId",
-                table: "UserChatRooms",
-                column: "ChatRoomId");
+                name: "IX_Tags_UnitId",
+                table: "Tags",
+                column: "UnitId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserUserGroup_UsersId",
@@ -400,9 +402,6 @@ namespace kvad_be.Migrations
                 name: "ChatRoomUser");
 
             migrationBuilder.DropTable(
-                name: "Devices");
-
-            migrationBuilder.DropTable(
                 name: "KeyValues");
 
             migrationBuilder.DropTable(
@@ -412,7 +411,7 @@ namespace kvad_be.Migrations
                 name: "SIPrefixes");
 
             migrationBuilder.DropTable(
-                name: "UserChatRooms");
+                name: "Tags");
 
             migrationBuilder.DropTable(
                 name: "UserUserGroup");
@@ -421,10 +420,13 @@ namespace kvad_be.Migrations
                 name: "UserUserRole");
 
             migrationBuilder.DropTable(
-                name: "Units");
+                name: "ChatRooms");
 
             migrationBuilder.DropTable(
-                name: "ChatRooms");
+                name: "Devices");
+
+            migrationBuilder.DropTable(
+                name: "Units");
 
             migrationBuilder.DropTable(
                 name: "UserGroups");
