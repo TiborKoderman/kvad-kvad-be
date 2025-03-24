@@ -9,4 +9,5 @@ public class DashboardItem {
     public required string Description { get; set; }
     public required string Icon { get; set; }
     public required string Color { get; set; }
+    public required List<Tag> Tags { get; set; }
 }
