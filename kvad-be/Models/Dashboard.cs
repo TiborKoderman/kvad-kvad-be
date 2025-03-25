@@ -1,14 +1,16 @@
-using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
-[PrimaryKey(nameof(Id), nameof(UserId))]
 public class Dashboard
 {
-    public required int Id { get; set; }
-    public required User User { get; set; }
-    public required Guid UserId { get; set; }
+    [Key]
+    public required Guid Id { get; set; }
+    public required User Owner { get; set; }
+    public required Group[] Groups { get; set; }
     public required string Name { get; set; }
     public required string Description { get; set; }
     public bool scrollable { get; set; } = false;
     public string? Icon { get; set; }
     public string? Color { get; set; }
+
+    public required List<DashboardItem> Items { get; set; } = [];
 }

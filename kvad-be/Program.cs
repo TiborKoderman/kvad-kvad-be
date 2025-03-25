@@ -16,13 +16,7 @@ if (builder.Environment.IsDevelopment())
 
 var Configuration = builder.Configuration;
 
-builder.Services.AddControllers()
-    // .AddJsonOptions(options =>
-    // {
-    //     options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
-    //     // options.JsonSerializerOptions.WriteIndented = true;
-    // })
-    ;
+builder.Services.AddControllers();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -121,7 +115,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
      {
-         c.SwaggerEndpoint("/swagger/v1/swagger.json", "Kvad API V1");
+         //  c.SwaggerEndpoint("/swagger/v1/swagger.json", "Kvad API V1");
      });
 
     app.UseCors("AllowAll");
