@@ -20,16 +20,16 @@ public class UserService{
     }
 
     public  Task<List<User>> getUsers(){
-        return  Task.FromResult(_context.Users.Include(u => u.UserRoles).ToList());
+        return  Task.FromResult(_context.Users.Include(u => u.Roles).ToList());
     }
 
     public Task<List<UserTableDTO>> getUserTable(){
-        var users = _context.Users.Include(u => u.UserRoles).Include(u => u.UserGroups).ToList();
+        var users = _context.Users.Include(u => u.Roles).Include(u => u.Groups).ToList();
         var userTable = new List<UserTableDTO>();
         foreach (var user in users){
-            var userRoles = user.UserRoles.Select(ur => ur.Name).ToList();
-            var userGroups = user.UserGroups.Select(ug => ug.Name).ToList();
-            userTable.Add(new UserTableDTO(user.Id, user.Username, userRoles, userGroups));
+            var roles = user.Roles.Select(ur => ur.Name).ToList();
+            var groups = user.Groups.Select(ug => ug.Name).ToList();
+            userTable.Add(new UserTableDTO(user.Id, user.Username, roles, groups));
         }
         return Task.FromResult(userTable);
     }
@@ -51,26 +51,12 @@ public class UserService{
         _context.SaveChanges();
         return Task.CompletedTask;
     }
-    // public Task editUser(UserConfigDTO userConfig){
-    //     var user = _context.Users.FirstOrDefault(u => u.Id == userConfig.Id);
-    //     if (user == null){
-    //         user = new User { Id = Guid.NewGuid(), Username = userConfig.Username, Password = userConfig.Password };
-    //         _context.Users.Add(user);
-    //     }
-    //     user.Username = userConfig.Username;
-    //     user.Password = userConfig.Password;
-    //     user.Icon = userConfig.Icon;
-    //     user.UserRoles = userConfig.UserRoles.Select(ur => new UserRole{Id = user.Id, RoleId = ur, Name = _context.Roles.FirstOrDefault(r => r.Id == ur)?.Name}).ToList();
-    //     user.UserGroups = userConfig.UserGroups.Select(ug => new UserGroup{Id = user.Id, GroupId = ug, Name = _context.Groups.FirstOrDefault(g => g.Id == ug)?.Name}).ToList();
-    //     _context.SaveChanges();
-    //     return Task.CompletedTask;
-    // }
 
     public Task<UserConfigDTO?> getUserConfig(Guid userId){
         var configuration = new MapperConfiguration(cfg => cfg.CreateMap<User, UserConfigDTO>());
         var mapper = configuration.CreateMapper();
 
-        var user = _context.Users.Include(u => u.UserRoles).Include(u => u.UserGroups).FirstOrDefault(u => u.Id == userId);
+        var user = _context.Users.Include(u => u.Roles).Include(u => u.Groups).FirstOrDefault(u => u.Id == userId);
         if (user == null){
             return Task.FromResult<UserConfigDTO?>(null);
         }

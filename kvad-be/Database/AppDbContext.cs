@@ -17,8 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<KeyValue> KeyValues { get; set; }
     public DbSet<Node> Nodes { get; set; }
     public DbSet<User> Users { get; set; }
-    public DbSet<UserRole> UserRoles { get; set; }
-    public DbSet<UserGroup> UserGroups { get; set; }
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<Group> Groups { get; set; }
 
     public DbSet<Device> Devices { get; set; }
 
@@ -27,7 +27,8 @@ public class AppDbContext : DbContext
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
     public DbSet<Tag> Tags { get; set; }
-    // public DbSet<TagHist> TagHists { get; set; }
+    public DbSet<DashboardItem> DashboardItems { get; set; }
+    public DbSet<Dashboard> Dashboards { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -61,15 +62,20 @@ public class AppDbContext : DbContext
     {
         var adminUserId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730");
 
-        modelBuilder.Entity<UserRole>().HasData(
-            new UserRole
+        modelBuilder.Entity<Role>().HasData(
+            new Role
             {
                 Id = 1,
                 Name = "Admin",
             },
-            new UserRole
+            new Role
             {
                 Id = 2,
+                Name = "Moderator",
+            },
+            new Role
+            {
+                Id = 3,
                 Name = "User",
             }
         );
@@ -80,16 +86,16 @@ public class AppDbContext : DbContext
                 Id = adminUserId,
                 Username = "admin",
                 Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU", // In a real application, ensure passwords are hashed
-
+                Icon = "cf960f59-cf1f-49cc-8b2c-de4c5e437730.png",
             }
         );
 
 
         //admin has admin role
         modelBuilder.Entity<User>()
-            .HasMany(u => u.UserRoles)
+            .HasMany(u => u.Roles)
             .WithMany(r => r.Users)
-            .UsingEntity(j => j.HasData(new { UsersId = adminUserId, UserRolesId = 1 }));
+            .UsingEntity(j => j.HasData(new { UsersId = adminUserId, RolesId = 1 }));
 
         //populate SI Prefixes
         modelBuilder.Entity<SIPrefix>().HasData(

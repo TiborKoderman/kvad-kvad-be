@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     /// <inheritdoc />
-    public partial class initial : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -47,6 +47,19 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Groups",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Groups", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "KeyValues",
                 columns: table => new
                 {
@@ -73,6 +86,19 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Roles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Units",
                 columns: table => new
                 {
@@ -89,32 +115,6 @@ namespace kvad_be.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Units", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserGroups",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserGroups", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserRoles",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserRoles", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -151,31 +151,6 @@ namespace kvad_be.Migrations
                         column: x => x.UnitId,
                         principalTable: "Units",
                         principalColumn: "Id");
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tags",
-                columns: table => new
-                {
-                    DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    UnitId = table.Column<int>(type: "integer", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tags", x => new { x.DeviceId, x.Id });
-                    table.ForeignKey(
-                        name: "FK_Tags_Devices_DeviceId",
-                        column: x => x.DeviceId,
-                        principalTable: "Devices",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Tags_Units_UnitId",
-                        column: x => x.UnitId,
-                        principalTable: "Units",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -232,23 +207,46 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserUserGroup",
+                name: "Dashboards",
                 columns: table => new
                 {
-                    UserGroupsId = table.Column<int>(type: "integer", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    scrollable = table.Column<bool>(type: "boolean", nullable: false),
+                    Icon = table.Column<string>(type: "text", nullable: true),
+                    Color = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Dashboards", x => new { x.Id, x.UserId });
+                    table.ForeignKey(
+                        name: "FK_Dashboards_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GroupUser",
+                columns: table => new
+                {
+                    GroupsId = table.Column<int>(type: "integer", nullable: false),
                     UsersId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserUserGroup", x => new { x.UserGroupsId, x.UsersId });
+                    table.PrimaryKey("PK_GroupUser", x => new { x.GroupsId, x.UsersId });
                     table.ForeignKey(
-                        name: "FK_UserUserGroup_UserGroups_UserGroupsId",
-                        column: x => x.UserGroupsId,
-                        principalTable: "UserGroups",
+                        name: "FK_GroupUser_Groups_GroupsId",
+                        column: x => x.GroupsId,
+                        principalTable: "Groups",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserUserGroup_Users_UsersId",
+                        name: "FK_GroupUser_Users_UsersId",
                         column: x => x.UsersId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -256,27 +254,91 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserUserRole",
+                name: "RoleUser",
                 columns: table => new
                 {
-                    UserRolesId = table.Column<int>(type: "integer", nullable: false),
+                    RolesId = table.Column<int>(type: "integer", nullable: false),
                     UsersId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserUserRole", x => new { x.UserRolesId, x.UsersId });
+                    table.PrimaryKey("PK_RoleUser", x => new { x.RolesId, x.UsersId });
                     table.ForeignKey(
-                        name: "FK_UserUserRole_UserRoles_UserRolesId",
-                        column: x => x.UserRolesId,
-                        principalTable: "UserRoles",
+                        name: "FK_RoleUser_Roles_RolesId",
+                        column: x => x.RolesId,
+                        principalTable: "Roles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserUserRole_Users_UsersId",
+                        name: "FK_RoleUser_Users_UsersId",
                         column: x => x.UsersId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DashboardItems",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false),
+                    DashboardId = table.Column<int>(type: "integer", nullable: false),
+                    DashboardUserId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: true),
+                    Icon = table.Column<string>(type: "text", nullable: true),
+                    Color = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DashboardItems", x => new { x.Id, x.DashboardId });
+                    table.ForeignKey(
+                        name: "FK_DashboardItems_Dashboards_DashboardId_DashboardUserId",
+                        columns: x => new { x.DashboardId, x.DashboardUserId },
+                        principalTable: "Dashboards",
+                        principalColumns: new[] { "Id", "UserId" });
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tags",
+                columns: table => new
+                {
+                    DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    UnitId = table.Column<int>(type: "integer", nullable: false),
+                    DashboardItemDashboardId = table.Column<int>(type: "integer", nullable: true),
+                    DashboardItemId = table.Column<int>(type: "integer", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tags", x => new { x.DeviceId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_Tags_DashboardItems_DashboardItemId_DashboardItemDashboardId",
+                        columns: x => new { x.DashboardItemId, x.DashboardItemDashboardId },
+                        principalTable: "DashboardItems",
+                        principalColumns: new[] { "Id", "DashboardId" });
+                    table.ForeignKey(
+                        name: "FK_Tags_Devices_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Devices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Tags_Units_UnitId",
+                        column: x => x.UnitId,
+                        principalTable: "Units",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Roles",
+                columns: new[] { "Id", "Name" },
+                values: new object[,]
+                {
+                    { 1, "Admin" },
+                    { 2, "Moderator" },
+                    { 3, "User" }
                 });
 
             migrationBuilder.InsertData(
@@ -343,22 +405,13 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.InsertData(
-                table: "UserRoles",
-                columns: new[] { "Id", "Name" },
-                values: new object[,]
-                {
-                    { 1, "Admin" },
-                    { 2, "User" }
-                });
-
-            migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "Icon", "Password", "Username" },
-                values: new object[] { new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), null, "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU", "admin" });
+                values: new object[] { new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), "cf960f59-cf1f-49cc-8b2c-de4c5e437730.png", "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU", "admin" });
 
             migrationBuilder.InsertData(
-                table: "UserUserRole",
-                columns: new[] { "UserRolesId", "UsersId" },
+                table: "RoleUser",
+                columns: new[] { "RolesId", "UsersId" },
                 values: new object[] { 1, new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730") });
 
             migrationBuilder.CreateIndex(
@@ -372,24 +425,39 @@ namespace kvad_be.Migrations
                 column: "UsersId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DashboardItems_DashboardId_DashboardUserId",
+                table: "DashboardItems",
+                columns: new[] { "DashboardId", "DashboardUserId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Dashboards_UserId",
+                table: "Dashboards",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_GroupUser_UsersId",
+                table: "GroupUser",
+                column: "UsersId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RoleUser_UsersId",
+                table: "RoleUser",
+                column: "UsersId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SIPrefixes_UnitId",
                 table: "SIPrefixes",
                 column: "UnitId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Tags_DashboardItemId_DashboardItemDashboardId",
+                table: "Tags",
+                columns: new[] { "DashboardItemId", "DashboardItemDashboardId" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tags_UnitId",
                 table: "Tags",
                 column: "UnitId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserUserGroup_UsersId",
-                table: "UserUserGroup",
-                column: "UsersId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserUserRole_UsersId",
-                table: "UserUserRole",
-                column: "UsersId");
         }
 
         /// <inheritdoc />
@@ -402,10 +470,16 @@ namespace kvad_be.Migrations
                 name: "ChatRoomUser");
 
             migrationBuilder.DropTable(
+                name: "GroupUser");
+
+            migrationBuilder.DropTable(
                 name: "KeyValues");
 
             migrationBuilder.DropTable(
                 name: "Nodes");
+
+            migrationBuilder.DropTable(
+                name: "RoleUser");
 
             migrationBuilder.DropTable(
                 name: "SIPrefixes");
@@ -414,13 +488,16 @@ namespace kvad_be.Migrations
                 name: "Tags");
 
             migrationBuilder.DropTable(
-                name: "UserUserGroup");
-
-            migrationBuilder.DropTable(
-                name: "UserUserRole");
-
-            migrationBuilder.DropTable(
                 name: "ChatRooms");
+
+            migrationBuilder.DropTable(
+                name: "Groups");
+
+            migrationBuilder.DropTable(
+                name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "DashboardItems");
 
             migrationBuilder.DropTable(
                 name: "Devices");
@@ -429,10 +506,7 @@ namespace kvad_be.Migrations
                 name: "Units");
 
             migrationBuilder.DropTable(
-                name: "UserGroups");
-
-            migrationBuilder.DropTable(
-                name: "UserRoles");
+                name: "Dashboards");
 
             migrationBuilder.DropTable(
                 name: "Users");

@@ -10,9 +10,9 @@ public class User
     public string Password { get; set; } = "";
     public string? Icon { get; set; }
     [JsonIgnore]
-    public List<UserRole> UserRoles { get; set; } = [];
+    public List<Role> Roles { get; set; } = [];
     [JsonIgnore]
-    public List<UserGroup> UserGroups { get; set; } = [];
+    public List<Group> Groups { get; set; } = [];
     [JsonIgnore]
     public List<ChatRoom> ChatRooms { get; set; } = [];
 }
@@ -24,10 +24,10 @@ public class UserProfile : Profile
         CreateMap<User, UserTableDTO>()
             .ForMember(
                 dest => dest.UserRoles,
-                opt => opt.MapFrom(src => src.UserRoles.Select(ur => ur.Name).ToList()))
+                opt => opt.MapFrom(src => src.Roles.Select(ur => ur.Name).ToList()))
             .ForMember(
                 dest => dest.UserGroups,
-                opt => opt.MapFrom(src => src.UserGroups.Select(ug => ug.Name).ToList()));
+                opt => opt.MapFrom(src => src.Groups.Select(ug => ug.Name).ToList()));
         CreateMap<User, UserConfigDTO>();
     }
 }

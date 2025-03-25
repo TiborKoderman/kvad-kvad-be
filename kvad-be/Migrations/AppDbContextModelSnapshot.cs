@@ -18,7 +18,7 @@ namespace kvad_be.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.2")
+                .HasAnnotation("ProductVersion", "9.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -90,6 +90,69 @@ namespace kvad_be.Migrations
                     b.ToTable("ChatRoomUser");
                 });
 
+            modelBuilder.Entity("Dashboard", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Color")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Icon")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("scrollable")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Dashboards");
+                });
+
+            modelBuilder.Entity("DashboardItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DashboardId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Color")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("DashboardUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Icon")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id", "DashboardId");
+
+                    b.HasIndex("DashboardId", "DashboardUserId");
+
+                    b.ToTable("DashboardItems");
+                });
+
             modelBuilder.Entity("Device", b =>
                 {
                     b.Property<Guid>("Id")
@@ -119,6 +182,38 @@ namespace kvad_be.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Devices");
+                });
+
+            modelBuilder.Entity("Group", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Groups");
+                });
+
+            modelBuilder.Entity("GroupUser", b =>
+                {
+                    b.Property<int>("GroupsId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UsersId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("GroupsId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("GroupUser");
                 });
 
             modelBuilder.Entity("KeyValue", b =>
@@ -156,6 +251,62 @@ namespace kvad_be.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Nodes");
+                });
+
+            modelBuilder.Entity("Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Roles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Admin"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Moderator"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "User"
+                        });
+                });
+
+            modelBuilder.Entity("RoleUser", b =>
+                {
+                    b.Property<int>("RolesId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UsersId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("RolesId", "UsersId");
+
+                    b.HasIndex("UsersId");
+
+                    b.ToTable("RoleUser");
+
+                    b.HasData(
+                        new
+                        {
+                            RolesId = 1,
+                            UsersId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
+                        });
                 });
 
             modelBuilder.Entity("SIPrefix", b =>
@@ -337,12 +488,20 @@ namespace kvad_be.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
+                    b.Property<int?>("DashboardItemDashboardId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("DashboardItemId")
+                        .HasColumnType("integer");
+
                     b.Property<int>("UnitId")
                         .HasColumnType("integer");
 
                     b.HasKey("DeviceId", "Id");
 
                     b.HasIndex("UnitId");
+
+                    b.HasIndex("DashboardItemId", "DashboardItemDashboardId");
 
                     b.ToTable("Tags");
                 });
@@ -703,91 +862,9 @@ namespace kvad_be.Migrations
                         new
                         {
                             Id = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            Icon = "cf960f59-cf1f-49cc-8b2c-de4c5e437730.png",
                             Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU",
                             Username = "admin"
-                        });
-                });
-
-            modelBuilder.Entity("UserGroup", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserGroups");
-                });
-
-            modelBuilder.Entity("UserRole", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Admin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "User"
-                        });
-                });
-
-            modelBuilder.Entity("UserUserGroup", b =>
-                {
-                    b.Property<int>("UserGroupsId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("UsersId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("UserGroupsId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("UserUserGroup");
-                });
-
-            modelBuilder.Entity("UserUserRole", b =>
-                {
-                    b.Property<int>("UserRolesId")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("UsersId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("UserRolesId", "UsersId");
-
-                    b.HasIndex("UsersId");
-
-                    b.ToTable("UserUserRole");
-
-                    b.HasData(
-                        new
-                        {
-                            UserRolesId = 1,
-                            UsersId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
                         });
                 });
 
@@ -823,6 +900,56 @@ namespace kvad_be.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Dashboard", b =>
+                {
+                    b.HasOne("User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("DashboardItem", b =>
+                {
+                    b.HasOne("Dashboard", "Dashboard")
+                        .WithMany()
+                        .HasForeignKey("DashboardId", "DashboardUserId");
+
+                    b.Navigation("Dashboard");
+                });
+
+            modelBuilder.Entity("GroupUser", b =>
+                {
+                    b.HasOne("Group", null)
+                        .WithMany()
+                        .HasForeignKey("GroupsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RoleUser", b =>
+                {
+                    b.HasOne("Role", null)
+                        .WithMany()
+                        .HasForeignKey("RolesId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("User", null)
+                        .WithMany()
+                        .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SIPrefix", b =>
                 {
                     b.HasOne("Unit", null)
@@ -844,44 +971,23 @@ namespace kvad_be.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("DashboardItem", null)
+                        .WithMany("Tags")
+                        .HasForeignKey("DashboardItemId", "DashboardItemDashboardId");
+
                     b.Navigation("Device");
 
                     b.Navigation("Unit");
                 });
 
-            modelBuilder.Entity("UserUserGroup", b =>
-                {
-                    b.HasOne("UserGroup", null)
-                        .WithMany()
-                        .HasForeignKey("UserGroupsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("UserUserRole", b =>
-                {
-                    b.HasOne("UserRole", null)
-                        .WithMany()
-                        .HasForeignKey("UserRolesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("User", null)
-                        .WithMany()
-                        .HasForeignKey("UsersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("ChatRoom", b =>
                 {
                     b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("DashboardItem", b =>
+                {
+                    b.Navigation("Tags");
                 });
 
             modelBuilder.Entity("Unit", b =>

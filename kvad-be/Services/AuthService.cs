@@ -24,7 +24,7 @@ public class AuthService
         var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
         var key = Encoding.ASCII.GetBytes(configuration["Authentication:Schemes:Bearer:Key"] ?? "");
 
-        var roles = await _context.UserRoles
+        var roles = await _context.Roles
             .Where(ur => ur.Users!.Any(u => u.Id == user.Id))
             .Select(ur => ur.Name)
             .ToListAsync();
@@ -75,7 +75,7 @@ public class AuthService
 
     public async Task<List<User>?> GetUsers()
     {
-        return await _context.Users.Include(u => u.UserRoles).ToListAsync();
+        return await _context.Users.Include(u => u.Roles).ToListAsync();
     }
 
     public async Task<User?> Register(string username, string password)
@@ -103,16 +103,16 @@ public class AuthService
 
     public async Task<List<string>> GetUserRoles(User user)
     {
-        return await _context.UserRoles
+        return await _context.Roles
             .Where(ur => ur.Users!.Any(u => u.Id == user.Id))
             .Select(ur => ur.Name)
             .ToListAsync();
     }
 
 
-    public async Task<List<UserRole>> GetAllRoles()
+    public async Task<List<Role>> GetAllRoles()
     {
-        return await _context.UserRoles.ToListAsync();
+        return await _context.Roles.ToListAsync();
     }
 
 
