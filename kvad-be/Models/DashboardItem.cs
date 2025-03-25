@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 
 [PrimaryKey(nameof(Id), nameof(DashboardId))]
@@ -12,5 +13,7 @@ public class DashboardItem
     public string? Description { get; set; }
     public string? Icon { get; set; }
     public string? Color { get; set; }
+    public string? Type { get; set; }
+    public JsonNode? Config { get; set; }
     public required List<Tag> Tags { get; set; } = [];
 }
