@@ -38,6 +38,17 @@ public class DashboardController : ControllerBase
         }
         return Ok(dashboard);
     }
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteDashboard(Guid id)
+    {
+        var user = HttpContext.Items["User"] as User;
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+        await _dashboardService.DeleteDashboard(user, id);
+        return Ok();
+    }
 
     [HttpPost]
     public async Task<IActionResult> SaveDashboard(DashboardDTO dashboardDTO)

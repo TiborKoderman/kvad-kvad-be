@@ -53,6 +53,16 @@ public class DashboardService
         return dashboard;
     }
 
+    public async Task DeleteDashboard(User user, Guid id)
+    {
+        var dashboard = await GetDashboard(user, id);
+        if (dashboard == null)
+        {
+            throw new InvalidOperationException("Dashboard not found or access denied.");
+        }
+        _context.Dashboards.Remove(dashboard);
+        await _context.SaveChangesAsync();
+    }
     public async Task<Dashboard> GetDashboard(User user, Guid id)
     {
         var dashboard = await _context.Dashboards
