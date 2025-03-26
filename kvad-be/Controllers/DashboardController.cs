@@ -12,7 +12,7 @@ public class DashboardController : ControllerBase
         _dashboardService = dashboardService;
     }
 
-    [HttpGet("dashboard")]
+    [HttpGet("all")]
     public async Task<IActionResult> GetDashboard()
     {
         var user = HttpContext.Items["User"] as User;
@@ -21,5 +21,32 @@ public class DashboardController : ControllerBase
             return Unauthorized();
         }
         return Ok(await _dashboardService.GetDashboards(user));
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetDashboard(Guid id)
+    {
+        var user = HttpContext.Items["User"] as User;
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+        var dashboard = await _dashboardService.GetDashboard(user, id);
+        if (dashboard == null)
+        {
+            return NotFound();
+        }
+        return Ok(dashboard);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SaveDashboard(DashboardDTO dashboardDTO)
+    {
+        var user = HttpContext.Items["User"] as User;
+        if (user == null)
+        {
+            return Unauthorized();
+        }
+        return Ok(await _dashboardService.SaveDashboard(user, dashboardDTO));
     }
 }

@@ -2,9 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250325145935_DashboardItems")]
+    partial class DashboardItems
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -101,6 +103,7 @@ namespace kvad_be.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Icon")
@@ -113,7 +116,7 @@ namespace kvad_be.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
-                    b.Property<bool>("Scrollable")
+                    b.Property<bool>("scrollable")
                         .HasColumnType("boolean");
 
                     b.HasKey("Id");
@@ -134,9 +137,6 @@ namespace kvad_be.Migrations
                     b.Property<string>("Color")
                         .HasColumnType("text");
 
-                    b.Property<JsonDocument>("Config")
-                        .HasColumnType("jsonb");
-
                     b.Property<Guid>("DashboardId1")
                         .HasColumnType("uuid");
 
@@ -151,7 +151,6 @@ namespace kvad_be.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Type")
-                        .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id", "DashboardId");
