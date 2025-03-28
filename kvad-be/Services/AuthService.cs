@@ -39,7 +39,7 @@ public class AuthService
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddHours(24*1000),
+            Expires = DateTime.UtcNow.AddHours(24 * 1000),
             SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
             Issuer = configuration["Authentication:Schemes:Bearer:Issuer"],
             Audience = configuration["Authentication:Schemes:Bearer:Audience"]
@@ -84,12 +84,28 @@ public class AuthService
         if (user != null)
             return null;
 
-        user = new User
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+            throw new ArgumentException("Username and password cannot be empty or whitespace.");
+
+
+        var userId = Guid.NewGuid();
+        var privateGroup = new Group
         {
-            Id = Guid.NewGuid(),
-            Username = username,
-            Password = HashPassword(password)
+            Id = userId,
+            Name = username,
+            Users = []
         };
+
+        user = new User()
+        {
+            Id = userId,
+            Username = username,
+            Password = HashPassword(password),
+            PrivateGroup = privateGroup,
+            Groups = [privateGroup],
+        };
+
+        privateGroup.Users.Add(user);
 
         _context.Users.Add(user);
         await _context.SaveChangesAsync();

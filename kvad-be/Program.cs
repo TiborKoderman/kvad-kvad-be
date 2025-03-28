@@ -148,6 +148,9 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
+await DbSeeder.SeedAsync(app.Services);
+
+
 app.Run();
 
 

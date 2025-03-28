@@ -55,13 +55,20 @@ public class AppDbContext : DbContext
             .WithMany(c => c.Messages)
             .HasForeignKey(cm => cm.ChatRoomId);
 
+ 
+
+        modelBuilder.Entity<User>()
+    .HasOne(u => u.PrivateGroup)
+    .WithOne(g => g.PrivateOwner) // 👈 1-to-1 setup
+    .HasForeignKey<User>(u => u.PrivateGroupId)
+    .OnDelete(DeleteBehavior.Cascade); // optional, prevents cascade loops
+
+
         SeedData(modelBuilder);
     }
 
     private void SeedData(ModelBuilder modelBuilder)
     {
-        var adminUserId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730");
-
         modelBuilder.Entity<Role>().HasData(
             new Role
             {
@@ -79,23 +86,6 @@ public class AppDbContext : DbContext
                 Name = "User",
             }
         );
-
-        modelBuilder.Entity<User>().HasData(
-            new User
-            {
-                Id = adminUserId,
-                Username = "admin",
-                Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU", // In a real application, ensure passwords are hashed
-                Icon = "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png",
-            }
-        );
-
-
-        //admin has admin role
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.Roles)
-            .WithMany(r => r.Users)
-            .UsingEntity(j => j.HasData(new { UsersId = adminUserId, RolesId = 1 }));
 
         //populate SI Prefixes
         modelBuilder.Entity<SIPrefix>().HasData(

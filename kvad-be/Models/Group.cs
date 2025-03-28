@@ -1,6 +1,11 @@
+using System.Text.Json.Serialization;
+
 public class Group
 {
-    public int Id { get; set; }
+    public required Guid Id { get; set; }
     public required string Name { get; set; }
-    public ICollection<User> Users { get; set; } = [];
+    public List<User> Users { get; set; } = [];
+
+    [JsonIgnore]
+    public User? PrivateOwner { get; set; }
 }

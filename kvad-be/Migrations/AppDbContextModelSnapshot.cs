@@ -194,11 +194,9 @@ namespace kvad_be.Migrations
 
             modelBuilder.Entity("Group", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("DashboardId")
                         .HasColumnType("uuid");
@@ -216,8 +214,8 @@ namespace kvad_be.Migrations
 
             modelBuilder.Entity("GroupUser", b =>
                 {
-                    b.Property<int>("GroupsId")
-                        .HasColumnType("integer");
+                    b.Property<Guid>("GroupsId")
+                        .HasColumnType("uuid");
 
                     b.Property<Guid>("UsersId")
                         .HasColumnType("uuid");
@@ -313,13 +311,6 @@ namespace kvad_be.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("RoleUser");
-
-                    b.HasData(
-                        new
-                        {
-                            RolesId = 1,
-                            UsersId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
-                        });
                 });
 
             modelBuilder.Entity("SIPrefix", b =>
@@ -861,6 +852,9 @@ namespace kvad_be.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("PrivateGroupId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("text");
@@ -869,16 +863,10 @@ namespace kvad_be.Migrations
 
                     b.HasAlternateKey("Username");
 
-                    b.ToTable("Users");
+                    b.HasIndex("PrivateGroupId")
+                        .IsUnique();
 
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
-                            Icon = "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png",
-                            Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU",
-                            Username = "admin"
-                        });
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ChatMessage", b =>
@@ -1002,6 +990,17 @@ namespace kvad_be.Migrations
                     b.Navigation("Unit");
                 });
 
+            modelBuilder.Entity("User", b =>
+                {
+                    b.HasOne("Group", "PrivateGroup")
+                        .WithOne("PrivateOwner")
+                        .HasForeignKey("User", "PrivateGroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PrivateGroup");
+                });
+
             modelBuilder.Entity("ChatRoom", b =>
                 {
                     b.Navigation("Messages");
@@ -1017,6 +1016,11 @@ namespace kvad_be.Migrations
             modelBuilder.Entity("DashboardItem", b =>
                 {
                     b.Navigation("Tags");
+                });
+
+            modelBuilder.Entity("Group", b =>
+                {
+                    b.Navigation("PrivateOwner");
                 });
 
             modelBuilder.Entity("Unit", b =>
