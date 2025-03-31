@@ -28,7 +28,6 @@ public class AppDbContext : DbContext
     public DbSet<ChatMessage> ChatMessages { get; set; }
     public DbSet<Tag> Tags { get; set; }
     public DbSet<TagHist> TagHists { get; set; }
-    public DbSet<DashboardItem> DashboardItems { get; set; }
     public DbSet<Dashboard> Dashboards { get; set; }
 
 
