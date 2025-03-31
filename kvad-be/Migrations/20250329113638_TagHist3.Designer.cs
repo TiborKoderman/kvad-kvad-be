@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -14,9 +15,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250329113638_TagHist3")]
+    partial class TagHist3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -513,20 +516,26 @@ namespace kvad_be.Migrations
 
             modelBuilder.Entity("TagHist", b =>
                 {
-                    b.Property<Guid>("TagDeviceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TagId")
-                        .HasColumnType("text");
+                    b.Property<int>("TagId")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TagDeviceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TagId1")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<JsonValue>("Value")
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.HasKey("TagDeviceId", "TagId", "Timestamp");
+                    b.HasKey("TagId", "Timestamp");
+
+                    b.HasIndex("TagDeviceId", "TagId1");
 
                     b.HasIndex("TagId", "Timestamp")
                         .IsDescending(false, true);
@@ -1018,7 +1027,7 @@ namespace kvad_be.Migrations
                 {
                     b.HasOne("Tag", "Tag")
                         .WithMany()
-                        .HasForeignKey("TagDeviceId", "TagId")
+                        .HasForeignKey("TagDeviceId", "TagId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

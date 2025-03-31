@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -14,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250328232449_Initial")]
+    partial class Initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -511,29 +513,6 @@ namespace kvad_be.Migrations
                     b.ToTable("Tags");
                 });
 
-            modelBuilder.Entity("TagHist", b =>
-                {
-                    b.Property<Guid>("TagDeviceId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("TagId")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<JsonValue>("Value")
-                        .IsRequired()
-                        .HasColumnType("jsonb");
-
-                    b.HasKey("TagDeviceId", "TagId", "Timestamp");
-
-                    b.HasIndex("TagId", "Timestamp")
-                        .IsDescending(false, true);
-
-                    b.ToTable("TagHists");
-                });
-
             modelBuilder.Entity("Unit", b =>
                 {
                     b.Property<int>("Id")
@@ -939,7 +918,7 @@ namespace kvad_be.Migrations
             modelBuilder.Entity("DashboardItem", b =>
                 {
                     b.HasOne("Dashboard", "Dashboard")
-                        .WithMany()
+                        .WithMany("Items")
                         .HasForeignKey("DashboardId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1014,17 +993,6 @@ namespace kvad_be.Migrations
                     b.Navigation("Unit");
                 });
 
-            modelBuilder.Entity("TagHist", b =>
-                {
-                    b.HasOne("Tag", "Tag")
-                        .WithMany()
-                        .HasForeignKey("TagDeviceId", "TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Tag");
-                });
-
             modelBuilder.Entity("User", b =>
                 {
                     b.HasOne("Group", "PrivateGroup")
@@ -1044,6 +1012,8 @@ namespace kvad_be.Migrations
             modelBuilder.Entity("Dashboard", b =>
                 {
                     b.Navigation("Groups");
+
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("DashboardItem", b =>

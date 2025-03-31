@@ -28,7 +28,7 @@ public static class DbSeeder
             {
                 Id = adminId,
                 Username = adminUsername,
-                Password = "hashedpassword",
+                Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU",
                 PrivateGroup = group,
                 Groups = [group],
                 Roles = [.. db.Roles.Where(r => r.Name == "Admin")],

@@ -8,13 +8,12 @@ public class User
     public Guid Id { get; set; }
     public required string Username { get; set; }
     [JsonIgnore]
-    public required string Password { get; set; } = "";
+    public string Password { get; set; } = "";
     public string? Icon { get; set; }
     [JsonIgnore]
     public List<Role> Roles { get; set; } = [];
 
-    [JsonIgnore]
-    public required Group PrivateGroup { get; set; }
+    public required Group PrivateGroup { get; set; } = null!;
     public Guid PrivateGroupId { get; set; }
 
     [JsonIgnore]

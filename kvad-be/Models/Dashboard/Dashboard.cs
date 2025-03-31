@@ -11,5 +11,6 @@ public class Dashboard
     public bool Scrollable { get; set; } = false;
     public string? Icon { get; set; }
     public string? Color { get; set; }
-    public List<DashboardItem> Items { get; set; } = [];
+    
+    // public List<DashboardItem> Items { get; set; } = [];
 }

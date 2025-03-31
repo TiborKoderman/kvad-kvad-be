@@ -32,7 +32,6 @@ public class DashboardService
                 Scrollable = dashboardDTO.Scrollable,
                 Icon = dashboardDTO.Icon,
                 Color = dashboardDTO.Color,
-                Items = new List<DashboardItem>() // Initialize the required Items property
             };
             _context.Dashboards.Add(dashboard);
             await _context.SaveChangesAsync();

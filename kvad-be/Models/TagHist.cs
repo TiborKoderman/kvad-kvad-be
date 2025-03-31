@@ -1,10 +1,15 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 
-[PrimaryKey(nameof(Timestamp), nameof(Tag))]
+[PrimaryKey(nameof(TagDeviceId), nameof(TagId), nameof(Timestamp))]
 public class TagHist
 {
-    public required DateTime Timestamp { get; set; }
+    public required Guid TagDeviceId { get; set; }
+    public required string TagId { get; set; } 
     public required Tag Tag { get; set; }
+    public required DateTime Timestamp { get; set; }
+
+    [Column(TypeName = "jsonb")]
     public required JsonValue Value { get; set; }
 }

@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
     public DbSet<Tag> Tags { get; set; }
+    public DbSet<TagHist> TagHists { get; set; }
     public DbSet<DashboardItem> DashboardItems { get; set; }
     public DbSet<Dashboard> Dashboards { get; set; }
 
@@ -55,13 +56,17 @@ public class AppDbContext : DbContext
             .WithMany(c => c.Messages)
             .HasForeignKey(cm => cm.ChatRoomId);
 
- 
+
 
         modelBuilder.Entity<User>()
-    .HasOne(u => u.PrivateGroup)
-    .WithOne(g => g.PrivateOwner) // 👈 1-to-1 setup
-    .HasForeignKey<User>(u => u.PrivateGroupId)
-    .OnDelete(DeleteBehavior.Cascade); // optional, prevents cascade loops
+            .HasOne(u => u.PrivateGroup)
+            .WithOne(g => g.PrivateOwner) // 👈 1-to-1 setup
+            .HasForeignKey<User>(u => u.PrivateGroupId)
+            .OnDelete(DeleteBehavior.Cascade); // optional, prevents cascade loops
+
+        modelBuilder.Entity<TagHist>()
+            .HasIndex(th => new { th.TagId, th.Timestamp })
+            .IsDescending(false, true);
 
 
         SeedData(modelBuilder);

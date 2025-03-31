@@ -126,16 +126,16 @@ app.UseAuthorization();
 app.UseWebSockets();
 
 
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-    // Ensures the database file and tables are created if they don't exist
-    context.Database.EnsureCreated();
+//     // Ensures the database file and tables are created if they don't exist
+//     context.Database.EnsureCreated();
 
-    // Applies pending migrations, which will create the __EFMigrationsHistory table
-    context.Database.Migrate();
-}
+//     // Applies pending migrations, which will create the __EFMigrationsHistory table
+//     context.Database.Migrate();
+// }
 
 // app.UseHttpsRedirection();
 app.UseMiddleware<UserMiddleware>();
