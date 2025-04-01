@@ -33,6 +33,13 @@ public class DashboardService
                 Icon = dashboardDTO.Icon,
                 Color = dashboardDTO.Color,
             };
+            dashboard.Layout = new Layout
+            {
+                Id = 0,
+                Dashboard = dashboard,
+                DashboardId = dashboard.Id,
+                Direction = enumDirection.row,
+            };
             _context.Dashboards.Add(dashboard);
             await _context.SaveChangesAsync();
             return dashboard;

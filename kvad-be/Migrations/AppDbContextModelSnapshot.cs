@@ -203,6 +203,44 @@ namespace kvad_be.Migrations
                     b.ToTable("KeyValues");
                 });
 
+            modelBuilder.Entity("Layout", b =>
+                {
+                    b.Property<Guid>("DashboardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Height")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ParentDashboardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("WidgetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Width")
+                        .HasColumnType("text");
+
+                    b.HasKey("DashboardId", "Id");
+
+                    b.HasIndex("DashboardId")
+                        .IsUnique();
+
+                    b.HasIndex("WidgetId");
+
+                    b.HasIndex("ParentDashboardId", "ParentId");
+
+                    b.ToTable("Layout");
+                });
+
             modelBuilder.Entity("Node", b =>
                 {
                     b.Property<Guid>("Id")
@@ -848,15 +886,13 @@ namespace kvad_be.Migrations
 
             modelBuilder.Entity("Widget", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("text");
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Color")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<Guid>("DashboardId")
-                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -874,8 +910,6 @@ namespace kvad_be.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("DashboardId");
 
                     b.HasIndex("TypeId");
 
@@ -969,6 +1003,29 @@ namespace kvad_be.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Layout", b =>
+                {
+                    b.HasOne("Dashboard", "Dashboard")
+                        .WithOne("Layout")
+                        .HasForeignKey("Layout", "DashboardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Widget", "Widget")
+                        .WithMany()
+                        .HasForeignKey("WidgetId");
+
+                    b.HasOne("Layout", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentDashboardId", "ParentId");
+
+                    b.Navigation("Dashboard");
+
+                    b.Navigation("Parent");
+
+                    b.Navigation("Widget");
+                });
+
             modelBuilder.Entity("RoleUser", b =>
                 {
                     b.HasOne("Role", null)
@@ -1034,17 +1091,9 @@ namespace kvad_be.Migrations
 
             modelBuilder.Entity("Widget", b =>
                 {
-                    b.HasOne("Dashboard", "Dashboard")
-                        .WithMany("Widgets")
-                        .HasForeignKey("DashboardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("WidgetType", "Type")
                         .WithMany()
                         .HasForeignKey("TypeId");
-
-                    b.Navigation("Dashboard");
 
                     b.Navigation("Type");
                 });
@@ -1058,12 +1107,17 @@ namespace kvad_be.Migrations
                 {
                     b.Navigation("Groups");
 
-                    b.Navigation("Widgets");
+                    b.Navigation("Layout");
                 });
 
             modelBuilder.Entity("Group", b =>
                 {
                     b.Navigation("PrivateOwner");
+                });
+
+            modelBuilder.Entity("Layout", b =>
+                {
+                    b.Navigation("Children");
                 });
 
             modelBuilder.Entity("Unit", b =>

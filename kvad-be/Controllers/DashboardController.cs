@@ -60,4 +60,6 @@ public class DashboardController : ControllerBase
         }
         return Ok(await _dashboardService.SaveDashboard(user, dashboardDTO));
     }
+
+    
 }

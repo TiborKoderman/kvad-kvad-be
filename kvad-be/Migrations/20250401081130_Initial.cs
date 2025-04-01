@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
-using System.Text.Json;
+using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -106,6 +106,20 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "WidgetType",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    VueComponent = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_WidgetType", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SIPrefixes",
                 columns: table => new
                 {
@@ -124,6 +138,72 @@ namespace kvad_be.Migrations
                         column: x => x.UnitId,
                         principalTable: "Units",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Tags",
+                columns: table => new
+                {
+                    DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<string>(type: "text", nullable: false),
+                    UnitId = table.Column<int>(type: "integer", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tags", x => new { x.DeviceId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_Tags_Devices_DeviceId",
+                        column: x => x.DeviceId,
+                        principalTable: "Devices",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Tags_Units_UnitId",
+                        column: x => x.UnitId,
+                        principalTable: "Units",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Widget",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    TypeId = table.Column<string>(type: "text", nullable: true),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Description = table.Column<string>(type: "text", nullable: false),
+                    Icon = table.Column<string>(type: "text", nullable: false),
+                    Color = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Widget", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Widget_WidgetType_TypeId",
+                        column: x => x.TypeId,
+                        principalTable: "WidgetType",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TagHists",
+                columns: table => new
+                {
+                    TagDeviceId = table.Column<Guid>(type: "uuid", nullable: false),
+                    TagId = table.Column<string>(type: "text", nullable: false),
+                    Timestamp = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    Value = table.Column<JsonValue>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TagHists", x => new { x.TagDeviceId, x.TagId, x.Timestamp });
+                    table.ForeignKey(
+                        name: "FK_TagHists_Tags_TagDeviceId_TagId",
+                        columns: x => new { x.TagDeviceId, x.TagId },
+                        principalTable: "Tags",
+                        principalColumns: new[] { "DeviceId", "Id" },
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -168,57 +248,6 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "DashboardItems",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false),
-                    DashboardId = table.Column<int>(type: "integer", nullable: false),
-                    DashboardId1 = table.Column<Guid>(type: "uuid", nullable: false),
-                    Title = table.Column<string>(type: "text", nullable: false),
-                    Type = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true),
-                    Icon = table.Column<string>(type: "text", nullable: true),
-                    Color = table.Column<string>(type: "text", nullable: true),
-                    Config = table.Column<JsonDocument>(type: "jsonb", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_DashboardItems", x => new { x.Id, x.DashboardId });
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Tags",
-                columns: table => new
-                {
-                    DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
-                    Id = table.Column<string>(type: "text", nullable: false),
-                    UnitId = table.Column<int>(type: "integer", nullable: false),
-                    DashboardItemDashboardId = table.Column<int>(type: "integer", nullable: true),
-                    DashboardItemId = table.Column<int>(type: "integer", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Tags", x => new { x.DeviceId, x.Id });
-                    table.ForeignKey(
-                        name: "FK_Tags_DashboardItems_DashboardItemId_DashboardItemDashboardId",
-                        columns: x => new { x.DashboardItemId, x.DashboardItemDashboardId },
-                        principalTable: "DashboardItems",
-                        principalColumns: new[] { "Id", "DashboardId" });
-                    table.ForeignKey(
-                        name: "FK_Tags_Devices_DeviceId",
-                        column: x => x.DeviceId,
-                        principalTable: "Devices",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Tags_Units_UnitId",
-                        column: x => x.UnitId,
-                        principalTable: "Units",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Dashboards",
                 columns: table => new
                 {
@@ -250,6 +279,40 @@ namespace kvad_be.Migrations
                         name: "FK_Groups_Dashboards_DashboardId",
                         column: x => x.DashboardId,
                         principalTable: "Dashboards",
+                        principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Layout",
+                columns: table => new
+                {
+                    DashboardId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<int>(type: "integer", nullable: false),
+                    Direction = table.Column<int>(type: "integer", nullable: false),
+                    Width = table.Column<string>(type: "text", nullable: true),
+                    Height = table.Column<string>(type: "text", nullable: true),
+                    ParentDashboardId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ParentId = table.Column<int>(type: "integer", nullable: true),
+                    WidgetId = table.Column<Guid>(type: "uuid", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Layout", x => new { x.DashboardId, x.Id });
+                    table.ForeignKey(
+                        name: "FK_Layout_Dashboards_DashboardId",
+                        column: x => x.DashboardId,
+                        principalTable: "Dashboards",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Layout_Layout_ParentDashboardId_ParentId",
+                        columns: x => new { x.ParentDashboardId, x.ParentId },
+                        principalTable: "Layout",
+                        principalColumns: new[] { "DashboardId", "Id" });
+                    table.ForeignKey(
+                        name: "FK_Layout_Widget_WidgetId",
+                        column: x => x.WidgetId,
+                        principalTable: "Widget",
                         principalColumn: "Id");
                 });
 
@@ -407,11 +470,6 @@ namespace kvad_be.Migrations
                 column: "UsersId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DashboardItems_DashboardId1",
-                table: "DashboardItems",
-                column: "DashboardId1");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Dashboards_OwnerId",
                 table: "Dashboards",
                 column: "OwnerId");
@@ -427,6 +485,22 @@ namespace kvad_be.Migrations
                 column: "UsersId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Layout_DashboardId",
+                table: "Layout",
+                column: "DashboardId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Layout_ParentDashboardId_ParentId",
+                table: "Layout",
+                columns: new[] { "ParentDashboardId", "ParentId" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Layout_WidgetId",
+                table: "Layout",
+                column: "WidgetId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_RoleUser_UsersId",
                 table: "RoleUser",
                 column: "UsersId");
@@ -437,9 +511,10 @@ namespace kvad_be.Migrations
                 column: "UnitId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tags_DashboardItemId_DashboardItemDashboardId",
-                table: "Tags",
-                columns: new[] { "DashboardItemId", "DashboardItemDashboardId" });
+                name: "IX_TagHists_TagId_Timestamp",
+                table: "TagHists",
+                columns: new[] { "TagId", "Timestamp" },
+                descending: new[] { false, true });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Tags_UnitId",
@@ -451,6 +526,11 @@ namespace kvad_be.Migrations
                 table: "Users",
                 column: "PrivateGroupId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Widget_TypeId",
+                table: "Widget",
+                column: "TypeId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ChatMessages_Users_UserId",
@@ -465,14 +545,6 @@ namespace kvad_be.Migrations
                 table: "ChatRoomUser",
                 column: "UsersId",
                 principalTable: "Users",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_DashboardItems_Dashboards_DashboardId1",
-                table: "DashboardItems",
-                column: "DashboardId1",
-                principalTable: "Dashboards",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Cascade);
 
@@ -505,6 +577,9 @@ namespace kvad_be.Migrations
                 name: "KeyValues");
 
             migrationBuilder.DropTable(
+                name: "Layout");
+
+            migrationBuilder.DropTable(
                 name: "Nodes");
 
             migrationBuilder.DropTable(
@@ -514,16 +589,22 @@ namespace kvad_be.Migrations
                 name: "SIPrefixes");
 
             migrationBuilder.DropTable(
-                name: "Tags");
+                name: "TagHists");
 
             migrationBuilder.DropTable(
                 name: "ChatRooms");
 
             migrationBuilder.DropTable(
+                name: "Widget");
+
+            migrationBuilder.DropTable(
                 name: "Roles");
 
             migrationBuilder.DropTable(
-                name: "DashboardItems");
+                name: "Tags");
+
+            migrationBuilder.DropTable(
+                name: "WidgetType");
 
             migrationBuilder.DropTable(
                 name: "Devices");

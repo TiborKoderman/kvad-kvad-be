@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Net.NetworkInformation;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -15,8 +14,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250329113941_TagHist5")]
-    partial class TagHist5
+    [Migration("20250401081130_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -127,44 +126,6 @@ namespace kvad_be.Migrations
                     b.ToTable("Dashboards");
                 });
 
-            modelBuilder.Entity("DashboardItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("DashboardId")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("Color")
-                        .HasColumnType("text");
-
-                    b.Property<JsonDocument>("Config")
-                        .HasColumnType("jsonb");
-
-                    b.Property<Guid>("DashboardId1")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Icon")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id", "DashboardId");
-
-                    b.HasIndex("DashboardId1");
-
-                    b.ToTable("DashboardItems");
-                });
-
             modelBuilder.Entity("Device", b =>
                 {
                     b.Property<Guid>("Id")
@@ -243,6 +204,44 @@ namespace kvad_be.Migrations
                     b.HasKey("Key");
 
                     b.ToTable("KeyValues");
+                });
+
+            modelBuilder.Entity("Layout", b =>
+                {
+                    b.Property<Guid>("DashboardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Height")
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("ParentDashboardId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("WidgetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Width")
+                        .HasColumnType("text");
+
+                    b.HasKey("DashboardId", "Id");
+
+                    b.HasIndex("DashboardId")
+                        .IsUnique();
+
+                    b.HasIndex("WidgetId");
+
+                    b.HasIndex("ParentDashboardId", "ParentId");
+
+                    b.ToTable("Layout");
                 });
 
             modelBuilder.Entity("Node", b =>
@@ -496,12 +495,6 @@ namespace kvad_be.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
-                    b.Property<int?>("DashboardItemDashboardId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("DashboardItemId")
-                        .HasColumnType("integer");
-
                     b.Property<int>("UnitId")
                         .HasColumnType("integer");
 
@@ -509,14 +502,12 @@ namespace kvad_be.Migrations
 
                     b.HasIndex("UnitId");
 
-                    b.HasIndex("DashboardItemId", "DashboardItemDashboardId");
-
                     b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("TagHist", b =>
                 {
-                    b.Property<Guid>("DeviceId")
+                    b.Property<Guid>("TagDeviceId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("TagId")
@@ -525,16 +516,11 @@ namespace kvad_be.Migrations
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("TagDeviceId")
-                        .HasColumnType("uuid");
-
                     b.Property<JsonValue>("Value")
                         .IsRequired()
                         .HasColumnType("jsonb");
 
-                    b.HasKey("DeviceId", "TagId", "Timestamp");
-
-                    b.HasIndex("TagDeviceId", "TagId");
+                    b.HasKey("TagDeviceId", "TagId", "Timestamp");
 
                     b.HasIndex("TagId", "Timestamp")
                         .IsDescending(false, true);
@@ -901,6 +887,60 @@ namespace kvad_be.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Widget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TypeId")
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TypeId");
+
+                    b.ToTable("Widget");
+                });
+
+            modelBuilder.Entity("WidgetType", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VueComponent")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("WidgetType");
+                });
+
             modelBuilder.Entity("ChatMessage", b =>
                 {
                     b.HasOne("ChatRoom", null)
@@ -944,17 +984,6 @@ namespace kvad_be.Migrations
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("DashboardItem", b =>
-                {
-                    b.HasOne("Dashboard", "Dashboard")
-                        .WithMany()
-                        .HasForeignKey("DashboardId1")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Dashboard");
-                });
-
             modelBuilder.Entity("Group", b =>
                 {
                     b.HasOne("Dashboard", null)
@@ -975,6 +1004,29 @@ namespace kvad_be.Migrations
                         .HasForeignKey("UsersId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Layout", b =>
+                {
+                    b.HasOne("Dashboard", "Dashboard")
+                        .WithOne("Layout")
+                        .HasForeignKey("Layout", "DashboardId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Widget", "Widget")
+                        .WithMany()
+                        .HasForeignKey("WidgetId");
+
+                    b.HasOne("Layout", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentDashboardId", "ParentId");
+
+                    b.Navigation("Dashboard");
+
+                    b.Navigation("Parent");
+
+                    b.Navigation("Widget");
                 });
 
             modelBuilder.Entity("RoleUser", b =>
@@ -1013,10 +1065,6 @@ namespace kvad_be.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DashboardItem", null)
-                        .WithMany("Tags")
-                        .HasForeignKey("DashboardItemId", "DashboardItemDashboardId");
-
                     b.Navigation("Device");
 
                     b.Navigation("Unit");
@@ -1026,7 +1074,9 @@ namespace kvad_be.Migrations
                 {
                     b.HasOne("Tag", "Tag")
                         .WithMany()
-                        .HasForeignKey("TagDeviceId", "TagId");
+                        .HasForeignKey("TagDeviceId", "TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Tag");
                 });
@@ -1042,6 +1092,15 @@ namespace kvad_be.Migrations
                     b.Navigation("PrivateGroup");
                 });
 
+            modelBuilder.Entity("Widget", b =>
+                {
+                    b.HasOne("WidgetType", "Type")
+                        .WithMany()
+                        .HasForeignKey("TypeId");
+
+                    b.Navigation("Type");
+                });
+
             modelBuilder.Entity("ChatRoom", b =>
                 {
                     b.Navigation("Messages");
@@ -1050,16 +1109,18 @@ namespace kvad_be.Migrations
             modelBuilder.Entity("Dashboard", b =>
                 {
                     b.Navigation("Groups");
-                });
 
-            modelBuilder.Entity("DashboardItem", b =>
-                {
-                    b.Navigation("Tags");
+                    b.Navigation("Layout");
                 });
 
             modelBuilder.Entity("Group", b =>
                 {
                     b.Navigation("PrivateOwner");
+                });
+
+            modelBuilder.Entity("Layout", b =>
+                {
+                    b.Navigation("Children");
                 });
 
             modelBuilder.Entity("Unit", b =>
