@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     public DbSet<Tag> Tags { get; set; }
     public DbSet<TagHist> TagHists { get; set; }
     public DbSet<Dashboard> Dashboards { get; set; }
+    public DbSet<Layout> Layouts { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
