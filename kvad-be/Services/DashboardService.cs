@@ -30,6 +30,7 @@ public class DashboardService
                 Name = dashboardDTO.Name,
                 Description = dashboardDTO.Description,
                 Scrollable = dashboardDTO.Scrollable,
+                Groups = new List<Group> { user.PrivateGroup },
                 Icon = dashboardDTO.Icon,
                 Color = dashboardDTO.Color,
             };
