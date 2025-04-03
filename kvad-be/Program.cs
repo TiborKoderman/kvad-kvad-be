@@ -68,6 +68,7 @@ builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddSingleton<MqttServerService>(); // Ensures single instance
 builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttServerService>()); // Use the same instance
+builder.Services.AddHostedService<MdnsDiscoveryService>();
 
 // Configure the SQLite connection
 builder.Services.AddDbContext<AppDbContext>();

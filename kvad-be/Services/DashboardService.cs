@@ -30,7 +30,7 @@ public class DashboardService
                 Name = dashboardDTO.Name,
                 Description = dashboardDTO.Description,
                 Scrollable = dashboardDTO.Scrollable,
-                Groups = new List<Group> { user.PrivateGroup },
+                Groups = user.PrivateGroup != null ? new List<Group> { user.PrivateGroup } : new List<Group>(),
                 Icon = dashboardDTO.Icon,
                 Color = dashboardDTO.Color,
             };
@@ -60,6 +60,34 @@ public class DashboardService
         return dashboard;
     }
 
+    public async Task<Dashboard> AddLayout(User user, Guid DashboardId, enumDirection direction, int parentId)
+    {
+
+    var dashboard = await GetDashboard(user, DashboardId);
+        if (dashboard == null)
+        {
+            throw new InvalidOperationException("Dashboard not found or access denied.");
+        }
+
+        int index = _context.Layouts
+            .Where(l => l.DashboardId == DashboardId)
+            .OrderByDescending(l => l.Id)
+            .Select(l => l.Id)
+            .FirstOrDefault() + 1;
+
+        var layout = new Layout
+        {
+            Id = index,
+            Dashboard = dashboard,
+            DashboardId = dashboard.Id,
+            Direction = direction,
+            ParentId = parentId
+        };
+
+        _context.Layouts.Add(layout);
+        await _context.SaveChangesAsync();
+        return dashboard;
+    }
     public async Task DeleteDashboard(User user, Guid id)
     {
         var dashboard = await GetDashboard(user, id);
