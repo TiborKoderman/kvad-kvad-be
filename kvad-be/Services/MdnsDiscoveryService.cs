@@ -1,11 +1,4 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Zeroconf;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-
 public class MdnsDiscoveryService : BackgroundService
 {
     private readonly ILogger<MdnsDiscoveryService> _logger;
