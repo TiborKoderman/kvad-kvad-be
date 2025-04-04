@@ -36,10 +36,7 @@ public class WebSocketMiddleware
 
             await _next(context);
         }
-        else
-        {
-            await _next(context);
-        }
+        await _next(context);
     }
 
 
