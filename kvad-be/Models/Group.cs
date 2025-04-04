@@ -8,4 +8,6 @@ public class Group
 
     [JsonIgnore]
     public User? PrivateOwner { get; set; }
+    [JsonIgnore]
+    public List<Dashboard> Dashboards { get; set; } = [];
 }
