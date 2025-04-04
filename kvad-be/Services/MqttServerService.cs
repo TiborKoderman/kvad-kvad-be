@@ -10,7 +10,7 @@ public class MqttServerService : BackgroundService
     private readonly int _mqttPort;
     private readonly int _encryptedMqttPort;
 
-        public MqttServerService(IConfiguration configuration)
+    public MqttServerService(IConfiguration configuration)
     {
         _certPath = configuration["MqttServer:CertPath"] ?? "server-cert.pfx";
         _certPassword = configuration["MqttServer:CertPassword"] ?? "your_password";
@@ -65,7 +65,7 @@ public class MqttServerService : BackgroundService
 
         foreach (var client in clients)
         {
-             Console.WriteLine($"Client ID: {client.Id}");
+            Console.WriteLine($"Client ID: {client.Id}");
         }
 
         return clients.ToList();
@@ -93,11 +93,11 @@ public class MqttServerService : BackgroundService
     // {
     //     var certificateLoader = new X509CertificateLoader();
     //     return certificateLoader.LoadCertificate(_certPath, _certPassword);
-        
+
 
     // }
 
-    
+
 }
 
 public class ConsoleLogger : IMqttNetLogger

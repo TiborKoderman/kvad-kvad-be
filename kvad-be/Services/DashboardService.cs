@@ -1,14 +1,17 @@
 using System.Diagnostics;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 public class DashboardService
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<DashboardService> _logger;
 
-    public DashboardService(AppDbContext context)
+    public DashboardService(AppDbContext context, ILogger<DashboardService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<List<Dashboard>> GetDashboards(User user)
@@ -20,8 +23,20 @@ public class DashboardService
 
     public async Task<Dashboard> SaveDashboard(User user, DashboardDTO dashboardDTO)
     {
+        if (dashboardDTO == null)
+        {
+            _logger.LogError("DashboardDTO is null.");
+            throw new ArgumentNullException(nameof(dashboardDTO), "DashboardDTO cannot be null.");
+        }
+
+        if (string.IsNullOrEmpty(dashboardDTO.Name))
+        {
+            _logger.LogError("DashboardDTO Name is null or empty.");
+            throw new ArgumentException("DashboardDTO Name cannot be null or empty.", nameof(dashboardDTO.Name));
+        }
+
         Dashboard dashboard;
-        if(dashboardDTO.Id == null)
+        if (dashboardDTO.Id == null)
         {
             dashboard = new Dashboard
             {
@@ -30,7 +45,7 @@ public class DashboardService
                 Name = dashboardDTO.Name,
                 Description = dashboardDTO.Description,
                 Scrollable = dashboardDTO.Scrollable,
-                Groups = user.PrivateGroup != null ? new List<Group> { user.PrivateGroup } : new List<Group>(),
+                Groups = [user.PrivateGroup],
                 Icon = dashboardDTO.Icon,
                 Color = dashboardDTO.Color,
             };
@@ -41,8 +56,18 @@ public class DashboardService
                 DashboardId = dashboard.Id,
                 Direction = enumDirection.row,
             };
-            _context.Dashboards.Add(dashboard);
-            await _context.SaveChangesAsync();
+
+            try
+            {
+                _context.Dashboards.Add(dashboard);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving new dashboard.");
+                throw;
+            }
+
             return dashboard;
         }
 
@@ -51,19 +76,29 @@ public class DashboardService
         {
             throw new InvalidOperationException("Dashboard not found or access denied.");
         }
+
         dashboard.Name = dashboardDTO.Name;
         dashboard.Description = dashboardDTO.Description;
         dashboard.Scrollable = dashboardDTO.Scrollable;
         dashboard.Icon = dashboardDTO.Icon;
         dashboard.Color = dashboardDTO.Color;
-        await _context.SaveChangesAsync();
+
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating dashboard.");
+            throw;
+        }
+
         return dashboard;
     }
 
     public async Task<Dashboard> AddLayout(User user, Guid DashboardId, enumDirection direction, int parentId)
     {
-
-    var dashboard = await GetDashboard(user, DashboardId);
+        var dashboard = await GetDashboard(user, DashboardId);
         if (dashboard == null)
         {
             throw new InvalidOperationException("Dashboard not found or access denied.");
@@ -88,6 +123,7 @@ public class DashboardService
         await _context.SaveChangesAsync();
         return dashboard;
     }
+
     public async Task DeleteDashboard(User user, Guid id)
     {
         var dashboard = await GetDashboard(user, id);
@@ -95,9 +131,11 @@ public class DashboardService
         {
             throw new InvalidOperationException("Dashboard not found or access denied.");
         }
+
         _context.Dashboards.Remove(dashboard);
         await _context.SaveChangesAsync();
     }
+
     public async Task<Dashboard> GetDashboard(User user, Guid id)
     {
         var dashboard = await _context.Dashboards

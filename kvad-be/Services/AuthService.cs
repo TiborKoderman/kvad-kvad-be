@@ -70,7 +70,9 @@ public class AuthService
         if (!Guid.TryParse(id, out var guidId))
             return null;
 
-        return await _context.Users.FirstOrDefaultAsync(u => u.Id == guidId);
+        return await _context.Users.Include(u => u.Roles)
+            .Include(u => u.Groups)
+            .ThenInclude(g => g.Users).FirstOrDefaultAsync(u => u.Id == guidId);
     }
 
     public async Task<List<User>?> GetUsers()
