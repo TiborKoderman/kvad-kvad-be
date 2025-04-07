@@ -51,7 +51,6 @@ public class MqttServerService : BackgroundService
         }
     }
 
-
     public async Task<List<MqttClientStatus>> GetAllActiveClients()
     {
         if (_mqttServer == null)
@@ -87,6 +86,16 @@ public class MqttServerService : BackgroundService
 
         return sessions.ToList();
     }
+
+
+    // //load certificate
+    // private X509Certificate2 LoadCertificate()
+    // {
+    //     var certificateLoader = new X509CertificateLoader();
+    //     return certificateLoader.LoadCertificate(_certPath, _certPassword);
+
+
+    // }
 
 
 }
