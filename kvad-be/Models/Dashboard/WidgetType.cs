@@ -1,5 +1,3 @@
-using System.Text.Json.Nodes;
-
 public class WidgetType
 {
     public required string Id { get; set; }
