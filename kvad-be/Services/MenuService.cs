@@ -9,5 +9,4 @@ public class MenuService
         _logger = logger;
     }
 
-
 }

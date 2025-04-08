@@ -1,6 +1,8 @@
 using MQTTnet.Server;
 using MQTTnet.Diagnostics.Logger;
 using System.Security.Cryptography.X509Certificates;
+using System.IO;
+using System.Security.Cryptography;
 
 public class MqttServerService : BackgroundService
 {
@@ -18,7 +20,6 @@ public class MqttServerService : BackgroundService
         _encryptedMqttPort = int.Parse(configuration["MqttServer:EncryptedMqttPort"] ?? "8884");
     }
 
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         // EnsureCertificateExists();
@@ -28,17 +29,58 @@ public class MqttServerService : BackgroundService
         stoppingToken.Register(async () => await StopMqttServer());
     }
 
+    private X509Certificate2 LoadOrGenerateCertificate()
+    {
+        if (File.Exists(_certPath))
+        {
+            Console.WriteLine("Loading existing certificate...");
+            return X509CertificateLoader.LoadPkcs12(File.ReadAllBytes(_certPath), _certPassword);
+        }
+
+        Console.WriteLine("Certificate not found. Generating a new self-signed certificate...");
+        using var rsa = RSA.Create(2048);
+        var certificateRequest = new CertificateRequest(
+            "CN=MQTT Server",
+            rsa,
+            HashAlgorithmName.SHA256,
+            RSASignaturePadding.Pkcs1);
+
+        certificateRequest.CertificateExtensions.Add(
+            new X509BasicConstraintsExtension(false, false, 0, false));
+        certificateRequest.CertificateExtensions.Add(
+            new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, false));
+        certificateRequest.CertificateExtensions.Add(
+            new X509SubjectKeyIdentifierExtension(certificateRequest.PublicKey, false));
+
+        // Replace obsolete CreateSelfSigned with the active equivalent
+        var certificate = certificateRequest.CreateSelfSigned(
+            DateTimeOffset.Now.AddDays(-1),
+            DateTimeOffset.Now.AddYears(5));
+
+        var exportData = certificate.Export(X509ContentType.Pfx, _certPassword);
+        File.WriteAllBytes(_certPath, exportData);
+
+        Console.WriteLine("Self-signed certificate generated and saved.");
+        return X509CertificateLoader.LoadPkcs12(exportData, _certPassword);
+    }
+
     private async Task<MqttServer> StartMqttServer()
     {
         var mqttServerFactory = new MqttServerFactory();
+        var certificate = LoadOrGenerateCertificate();
+
         var mqttServerOptions =
-        mqttServerFactory.CreateServerOptionsBuilder().
-        WithDefaultEndpoint().
-        WithDefaultEndpointPort(_mqttPort).
-        Build();
+            mqttServerFactory.CreateServerOptionsBuilder()
+                .WithEncryptedEndpoint()
+                .WithEncryptedEndpointPort(_encryptedMqttPort)
+                .WithEncryptionCertificate(certificate)
+                .WithDefaultEndpoint()
+                .WithDefaultEndpointPort(_mqttPort)
+                .Build();
+
         var server = mqttServerFactory.CreateMqttServer(mqttServerOptions);
         await server.StartAsync();
-        Console.WriteLine("MQTT server started.");
+        Console.WriteLine("MQTT server started with certificate.");
         return server;
     }
 
@@ -58,8 +100,6 @@ public class MqttServerService : BackgroundService
             return new List<MqttClientStatus>();
         }
         IList<MqttClientStatus> clients = await _mqttServer.GetClientsAsync();
-
-
 
         Console.WriteLine("Active clients:");
 
@@ -86,18 +126,6 @@ public class MqttServerService : BackgroundService
 
         return sessions.ToList();
     }
-
-
-    // //load certificate
-    // private X509Certificate2 LoadCertificate()
-    // {
-    //     var certificateLoader = new X509CertificateLoader();
-    //     return certificateLoader.LoadCertificate(_certPath, _certPassword);
-
-
-    // }
-
-
 }
 
 public class ConsoleLogger : IMqttNetLogger
