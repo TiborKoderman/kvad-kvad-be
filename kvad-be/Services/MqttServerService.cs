@@ -16,8 +16,8 @@ public class MqttServerService : BackgroundService
     {
         _certPath = configuration["MqttServer:CertPath"] ?? "server-cert.pfx";
         _certPassword = configuration["MqttServer:CertPassword"] ?? "your_password";
-        _mqttPort = int.Parse(configuration["MqttServer:MqttPort"] ?? "8883");
-        _encryptedMqttPort = int.Parse(configuration["MqttServer:EncryptedMqttPort"] ?? "8884");
+        _mqttPort = int.Parse(configuration["MqttServer:MqttPort"] ?? "1883");
+        _encryptedMqttPort = int.Parse(configuration["MqttServer:EncryptedMqttPort"] ?? "8883");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
