@@ -3,6 +3,7 @@ public record DashboardDTO(
     string Name,
     string? Description,
     bool Scrollable,
+    string? Type,
     string? Icon,
     string? Color
     );

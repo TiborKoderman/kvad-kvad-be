@@ -22,8 +22,8 @@ public class ChatService
         {
             Id = Guid.NewGuid(),
             Name = chatRoomName,
-            Users = new List<User>(),
-            Messages = new List<ChatMessage>(),
+            Users = [],
+            Messages = [],
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
