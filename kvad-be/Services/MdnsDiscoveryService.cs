@@ -50,6 +50,6 @@ public class MdnsDiscoveryService(ILogger<MdnsDiscoveryService> logger) : Backgr
 
     public IReadOnlyList<IZeroconfHost> ListMdnsDevices()
     {
-        return _discoveredDevices.Values.ToList();
+        return [.. _discoveredDevices.Values];
     }
 }
