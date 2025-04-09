@@ -11,7 +11,12 @@ public class FileSystemService
 
     public string GetFilePath(string fileName)
     {
-        var filePath = Path.Combine(_configuration["FileStorage:BasePath"], fileName);
+        var basePath = _configuration["FileStorage:BasePath"];
+        if (string.IsNullOrEmpty(basePath))
+        {
+            throw new InvalidOperationException("Base path configuration is missing or null.");
+        }
+        var filePath = Path.Combine(basePath, fileName);
         return filePath;
     }
 }
