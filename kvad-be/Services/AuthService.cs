@@ -31,7 +31,7 @@ public class AuthService
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.Name, user.Id.ToString())
+            new(ClaimTypes.Name, user.Id.ToString())
         };
 
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));

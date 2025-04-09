@@ -23,4 +23,9 @@ public class GroupService(AppDbContext context, ILogger<GroupService> logger)
             .Where(g => g.Users.Contains(user))
             .ToListAsync();
     }
+
+    internal bool IsMemberOfAnyGroup(User user, Group[] groups)
+    {
+        throw new NotImplementedException();
+    }
 }

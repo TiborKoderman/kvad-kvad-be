@@ -66,6 +66,9 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<DashboardService>();
+builder.Services.AddScoped<GroupService>();
+builder.Services.AddScoped<DeviceService>();
+
 builder.Services.AddSingleton<MqttServerService>(); // Ensures single instance
 builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttServerService>()); // Use the same instance
 builder.Services.AddSingleton<MdnsDiscoveryService>();
