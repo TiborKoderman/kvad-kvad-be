@@ -13,17 +13,14 @@ public class DashboardService
         _context = context;
         _logger = logger;
     }
-    public async Task<List<Dashboard>> GetDashboards(User user)
+    public Task<List<Dashboard>> GetDashboards(User user)
     {
-        var userId = user.Id;
-
-        // Fetch dashboards directly with a single query
-        var dashboards = await _context.Dashboards
-            .Where(d => d.Owner.Id == userId || d.Groups.Any(g => g.Users.Any(u => u.Id == userId)))
+        var dashboards = user.Groups
+            .SelectMany(g => g.Dashboards)
             .Distinct()
-            .ToListAsync();
+            .ToList();
 
-        return dashboards;
+        return Task.FromResult(dashboards);
     }
 
     public async Task<Dashboard> SaveDashboard(User user, DashboardDTO dashboardDTO)
