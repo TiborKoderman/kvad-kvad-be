@@ -29,7 +29,7 @@ public class ChatService
         };
 
         chatRoom.Users.Add(user);
-        ChatRoomDTO chatRoomDTO = new ChatRoomDTO(chatRoom.Id, chatRoom.Name, chatRoom.Users , chatRoom.CreatedAt, chatRoom.UpdatedAt);
+        ChatRoomDTO chatRoomDTO = new(chatRoom.Id, chatRoom.Name, chatRoom.Users , chatRoom.CreatedAt, chatRoom.UpdatedAt);
 
 
         _context.ChatRooms.Add(chatRoom);
