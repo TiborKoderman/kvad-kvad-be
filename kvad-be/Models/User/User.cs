@@ -21,6 +21,7 @@ public class User
     public List<Group> Groups { get; set; } = [];
     [JsonIgnore]
     public List<ChatRoom> ChatRooms { get; set; } = [];
+    
 }
 
 public class UserProfile : Profile
