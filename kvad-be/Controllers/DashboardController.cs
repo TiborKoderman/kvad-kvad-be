@@ -62,8 +62,8 @@ public class DashboardController : ControllerBase
     }
 
     [HttpGet("types")]
-    public Task<IActionResult> GetDashboardTypes()
+    public async Task<IActionResult> GetDashboardTypes()
     {
-        return Task.FromResult<IActionResult>(Ok(_dashboardService.GetDashboardTypes()));
+        return Ok(await _dashboardService.GetDashboardTypes());
     }
 }

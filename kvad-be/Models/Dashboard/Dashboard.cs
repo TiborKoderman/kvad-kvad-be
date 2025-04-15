@@ -10,9 +10,8 @@ public class Dashboard
     public List<Group> Groups { get; set; } = [];
     public required string Name { get; set; }
     public string? Description { get; set; }
-
-    [ForeignKey(nameof(DashboardType))]
     public required string TypeId { get; set; } //masonry, grid, scada, custom
+    public DashboardType DashboardType { get; set; } = null!;
     public bool Scrollable { get; set; } = false;
     public string? Icon { get; set; }
     public string? Color { get; set; }
