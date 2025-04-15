@@ -50,6 +50,7 @@ public class DashboardService
                 Groups = [user.PrivateGroup],
                 Icon = dashboardDTO.Icon,
                 Color = dashboardDTO.Color,
+                TypeId = dashboardDTO.Type,
             };
             dashboard.Layout = new Layout
             {
@@ -150,5 +151,11 @@ public class DashboardService
         }
 
         return dashboard;
+    }
+
+    public async Task<List<DashboardType>> GetDashboardTypes()
+    {
+        return await _context.DashboardTypes
+            .ToListAsync();
     }
 }

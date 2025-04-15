@@ -1,9 +1,9 @@
 public record DashboardDTO(
     Guid? Id,
     string Name,
-    string? Description,
+    String Type,
     bool Scrollable,
-    string? Type,
+    string? Description,
     string? Icon,
     string? Color
     );

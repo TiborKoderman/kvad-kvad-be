@@ -31,6 +31,10 @@ public class AppDbContext : DbContext
     public DbSet<Dashboard> Dashboards { get; set; }
     public DbSet<Layout> Layouts { get; set; }
 
+    public DbSet<Widget> Widgets { get; set; }
+    public DbSet<WidgetType> WidgetTypes { get; set; }
+    public DbSet<DashboardType> DashboardTypes { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -89,6 +93,37 @@ public class AppDbContext : DbContext
             {
                 Id = 3,
                 Name = "User",
+            }
+        );
+
+        modelBuilder.Entity<DashboardType>().HasData(
+            new DashboardType
+            {
+                Id = "custom",
+                Name = "Custom",
+                Description = "Custom dashboard type",
+                VueComponent = "CustomDashboard.vue"
+            },
+            new DashboardType
+            {
+                Id = "masonry",
+                Name = "Masonry",
+                Description = "Masonry dashboard type",
+                VueComponent = "MasonryDashboard.vue"
+            },
+            new DashboardType
+            {
+                Id = "grid",
+                Name = "Grid",
+                Description = "Grid dashboard type",
+                VueComponent = "GridDashboard.vue"
+            },
+            new DashboardType
+            {
+                Id = "scada",
+                Name = "Scada",
+                Description = "Scada dashboard type",
+                VueComponent = "ScadaDashboard.vue"
             }
         );
 
