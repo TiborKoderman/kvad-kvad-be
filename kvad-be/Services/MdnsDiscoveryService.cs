@@ -1,11 +1,10 @@
 using Zeroconf;
-using System.Collections.Concurrent;
 
-public class MdnsDiscoveryService(ILogger<MdnsDiscoveryService> logger) : BackgroundService
+public class MdnsDiscoveryService(ILogger<MdnsDiscoveryService> logger, MdnsService mdnsService) : BackgroundService
 {
     private readonly ILogger<MdnsDiscoveryService> _logger = logger;
     private readonly TimeSpan _interval = TimeSpan.FromSeconds(30); // Discovery interval
-    public ConcurrentDictionary<string, IZeroconfHost> discoveredDevices = new();
+    private readonly MdnsService _mdnsService = mdnsService;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -22,7 +21,7 @@ public class MdnsDiscoveryService(ILogger<MdnsDiscoveryService> logger) : Backgr
 
                     foreach (var host in results)
                     {
-                        discoveredDevices[host.DisplayName] = host; // Store discovered devices
+                        _mdnsService.discoveredDevices[host.DisplayName] = host; // Store discovered devices
                         _logger.LogInformation("Discovered {Host} ({IP})", host.DisplayName, host.IPAddress);
                         foreach (var service in host.Services)
                         {

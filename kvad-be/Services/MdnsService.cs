@@ -1,16 +1,12 @@
+using System.Collections.Concurrent;
 using Zeroconf;
 
 public class MdnsService
 {
+    public ConcurrentDictionary<string, IZeroconfHost> discoveredDevices = new();
 
-    private readonly MdnsDiscoveryService _mdnsDiscoveryService;
-
-    public MdnsService(MdnsDiscoveryService mdnsDiscoveryService)
-    {
-        _mdnsDiscoveryService = mdnsDiscoveryService;
-    }
     public IReadOnlyList<IZeroconfHost> ListMdnsDevices()
     {
-        return [.. _mdnsDiscoveryService.discoveredDevices.Values];
+        return [.. discoveredDevices.Values];
     }
 }
