@@ -5,17 +5,17 @@ using Zeroconf;
 [Route("api/[controller]")]
 public class MdnsController : ControllerBase
 {
-    private readonly MdnsDiscoveryService _mdnsDiscoveryService;
+    private readonly MdnsService _mdnsService;
 
-    public MdnsController(MdnsDiscoveryService mdnsDiscoveryService)
+    public MdnsController(MdnsService mdnsService)
     {
-        _mdnsDiscoveryService = mdnsDiscoveryService;
+        _mdnsService = mdnsService;
     }
 
     [HttpGet("devices")]
     public ActionResult<IReadOnlyList<IZeroconfHost>> GetMdnsDevices()
     {
-        var devices = _mdnsDiscoveryService.ListMdnsDevices();
+        var devices = _mdnsService.ListMdnsDevices();
         return Ok(devices);
     }
 }

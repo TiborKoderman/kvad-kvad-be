@@ -71,10 +71,13 @@ builder.Services.AddScoped<DeviceService>();
 
 builder.Services.AddSingleton<MqttServerService>(); // Ensures single instance
 builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttServerService>()); // Use the same instance
-builder.Services.AddSingleton<MdnsDiscoveryService>();
-builder.Services.AddHostedService(
-    provider => new MdnsDiscoveryService(provider.GetRequiredService<ILogger<MdnsDiscoveryService>>())
-);
+// builder.Services.AddSingleton<MdnsDiscoveryService>();
+// builder.Services.AddHostedService(
+//     provider => new MdnsDiscoveryService(provider.GetRequiredService<ILogger<MdnsDiscoveryService>>(), )
+// );
+builder.Services.AddSingleton<MdnsService>();
+builder.Services.AddHostedService<MdnsDiscoveryService>();
+
 
 // Configure the SQLite connection
 builder.Services.AddDbContext<AppDbContext>();
