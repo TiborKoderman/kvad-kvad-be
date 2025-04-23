@@ -6,10 +6,13 @@ public class Device {
     public PhysicalAddress? Mac { get; set; } = null!;
     public required string Name { get; set; }
     public string Description { get; set; } = null!;
+    public bool Virtual { get; set; } = false;
     public string Location { get; set; } = null!;
     public string Type { get; set; } = null!;
     [JsonIgnore]
     public Group[] Groups { get; set; } = [];
     [JsonIgnore]
     public required User Owner { get; set; }
+
+    public required DeviceState State { get; set; }
 }
