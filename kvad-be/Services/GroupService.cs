@@ -24,7 +24,7 @@ public class GroupService(AppDbContext context, ILogger<GroupService> logger)
             .ToListAsync();
     }
 
-    internal bool IsMemberOfAnyGroup(User user, Group[] groups)
+    public bool IsMemberOfAnyGroup(User user, Group[] groups)
     {
         foreach (var group in groups)
         {

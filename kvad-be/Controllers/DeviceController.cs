@@ -11,7 +11,7 @@ public class DeviceController : ControllerBase
         _deviceService = deviceService;
     }
 
-    [HttpGet("/all")]
+    [HttpGet("all")]
     public async Task<IActionResult> GetAllDevices()
     {
         var devices = await _deviceService.GetAllDevices();
