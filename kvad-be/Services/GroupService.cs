@@ -26,6 +26,13 @@ public class GroupService(AppDbContext context, ILogger<GroupService> logger)
 
     internal bool IsMemberOfAnyGroup(User user, Group[] groups)
     {
-        throw new NotImplementedException();
+        foreach (var group in groups)
+        {
+            if (group.Users.Contains(user))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }
