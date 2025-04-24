@@ -14,7 +14,7 @@ public class User
     public List<Role> Roles { get; set; } = [];
 
     [JsonIgnore]
-    public  Group? PrivateGroup { get; set; }
+    public required Group PrivateGroup { get; set; }
     public Guid PrivateGroupId { get; set; }
 
     [JsonIgnore]

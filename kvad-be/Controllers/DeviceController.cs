@@ -49,6 +49,29 @@ public class DeviceController : ControllerBase
         return CreatedAtAction(nameof(GetDeviceById), new { id = device.Id }, device);
     }
 
+    [HttpPut("virtual")]
+    public async Task<IActionResult> EditVirtualDevice(VirtualDeviceDTO deviceDTO)
+    {
+        if (HttpContext.Items["User"] is not User user)
+        {
+            return NotFound("User not found.");
+        }
+
+        var device = new Device
+        {
+            Id = deviceDTO.Id ?? Guid.NewGuid(),
+            Name = deviceDTO.Name,
+            Description = deviceDTO.Description ?? string.Empty,
+            Virtual = true,
+            Owner = user,
+            Groups = user.PrivateGroup != null ? [user.PrivateGroup] : Array.Empty<Group>(),
+            State = new DeviceState(),
+        };
+
+        await _deviceService.AddDevice(device);
+        return CreatedAtAction(nameof(GetDeviceById), new { id = device.Id }, device);
+    }
+
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateDevice(Guid id, [FromBody] Device device)
     {

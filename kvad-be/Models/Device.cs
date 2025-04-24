@@ -13,6 +13,6 @@ public class Device {
     public Group[] Groups { get; set; } = [];
     [JsonIgnore]
     public required User Owner { get; set; }
-
     public required DeviceState State { get; set; }
+
 }
