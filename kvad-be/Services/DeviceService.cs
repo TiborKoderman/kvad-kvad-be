@@ -21,7 +21,14 @@ public class DeviceService {
     public async Task<List<Device>> GetAllDevicesOfUser(User user)
     {
         return await _context.Devices
-            .Where(d => _groupService.IsMemberOfAnyGroup(user, d.Groups))
+            .Where(d => d.Groups.Any(g => g.Users.Any(u => u.Id == user.Id)))
+            .ToListAsync();
+    }
+
+    public async Task<List<Device>> GetAllDevicesOfGroup(Group group)
+    {
+        return await _context.Devices
+            .Where(d => d.Groups.Any(g => g.Id == group.Id))
             .ToListAsync();
     }
 
