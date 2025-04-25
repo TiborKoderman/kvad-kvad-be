@@ -223,9 +223,6 @@ namespace kvad_be.Migrations
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
-                    b.Property<int>("StateDeviceId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
@@ -236,8 +233,6 @@ namespace kvad_be.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerId");
-
-                    b.HasIndex("StateDeviceId");
 
                     b.ToTable("Devices");
                 });
@@ -259,11 +254,8 @@ namespace kvad_be.Migrations
 
             modelBuilder.Entity("DeviceState", b =>
                 {
-                    b.Property<int>("DeviceId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("DeviceId"));
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("Connected")
                         .HasColumnType("boolean");
@@ -1144,15 +1136,7 @@ namespace kvad_be.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DeviceState", "State")
-                        .WithMany()
-                        .HasForeignKey("StateDeviceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Owner");
-
-                    b.Navigation("State");
                 });
 
             modelBuilder.Entity("DeviceGroup", b =>
@@ -1166,6 +1150,15 @@ namespace kvad_be.Migrations
                     b.HasOne("Group", null)
                         .WithMany()
                         .HasForeignKey("GroupsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("DeviceState", b =>
+                {
+                    b.HasOne("Device", null)
+                        .WithOne("State")
+                        .HasForeignKey("DeviceState", "DeviceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -1294,6 +1287,12 @@ namespace kvad_be.Migrations
                     b.Navigation("Layout");
 
                     b.Navigation("Widgets");
+                });
+
+            modelBuilder.Entity("Device", b =>
+                {
+                    b.Navigation("State")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Group", b =>

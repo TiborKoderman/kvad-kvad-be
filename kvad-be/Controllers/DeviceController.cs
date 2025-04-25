@@ -64,7 +64,7 @@ public class DeviceController : ControllerBase
             Description = deviceDTO.Description ?? string.Empty,
             Virtual = true,
             Owner = user,
-            Groups = user.PrivateGroup != null ? new List<Group> { user.PrivateGroup } : new List<Group>(), // Use List<Group>
+            Groups = user.PrivateGroup != null ? [user.PrivateGroup] : [], // Use List<Group>
             State = new DeviceState(),
         };
 

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 public class DeviceState
 {
     [Key, ForeignKey(nameof(Device))]
-    public int DeviceId { get; set; }
+    public Guid DeviceId { get; set; }
 
     public bool Online { get; set; } = false;
     public bool Connected { get; set; } = false;

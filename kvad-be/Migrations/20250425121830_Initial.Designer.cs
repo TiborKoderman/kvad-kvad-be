@@ -14,8 +14,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250415110633_FixDashbordTypes")]
-    partial class FixDashbordTypes
+    [Migration("20250425121830_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -230,6 +230,9 @@ namespace kvad_be.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("Virtual")
+                        .HasColumnType("boolean");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerId");
@@ -250,6 +253,25 @@ namespace kvad_be.Migrations
                     b.HasIndex("GroupsId");
 
                     b.ToTable("DeviceGroup");
+                });
+
+            modelBuilder.Entity("DeviceState", b =>
+                {
+                    b.Property<Guid>("DeviceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("Connected")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastSeen")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Online")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("DeviceId");
+
+                    b.ToTable("DeviceState");
                 });
 
             modelBuilder.Entity("Group", b =>
@@ -585,8 +607,17 @@ namespace kvad_be.Migrations
                     b.Property<string>("Id")
                         .HasColumnType("text");
 
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("Historicize")
+                        .HasColumnType("boolean");
+
                     b.Property<int>("UnitId")
                         .HasColumnType("integer");
+
+                    b.Property<bool>("Virtual")
+                        .HasColumnType("boolean");
 
                     b.HasKey("DeviceId", "Id");
 
@@ -1126,6 +1157,15 @@ namespace kvad_be.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("DeviceState", b =>
+                {
+                    b.HasOne("Device", null)
+                        .WithOne("State")
+                        .HasForeignKey("DeviceState", "DeviceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("GroupUser", b =>
                 {
                     b.HasOne("Group", null)
@@ -1250,6 +1290,12 @@ namespace kvad_be.Migrations
                     b.Navigation("Layout");
 
                     b.Navigation("Widgets");
+                });
+
+            modelBuilder.Entity("Device", b =>
+                {
+                    b.Navigation("State")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Group", b =>
