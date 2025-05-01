@@ -58,4 +58,9 @@ public class DeviceService {
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<List<TagSource>> GetAllTagSources()
+    {
+        return await _context.TagSources.ToListAsync();
+    }
 }

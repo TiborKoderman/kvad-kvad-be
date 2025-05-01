@@ -35,6 +35,8 @@ public class AppDbContext : DbContext
     public DbSet<WidgetType> WidgetTypes { get; set; }
     public DbSet<DashboardType> DashboardTypes { get; set; }
 
+    public DbSet<TagSource> TagSources { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -124,6 +126,44 @@ public class AppDbContext : DbContext
                 Name = "Scada",
                 Description = "Scada dashboard type",
                 VueComponent = "ScadaDashboard.vue"
+            }
+        );
+
+        modelBuilder.Entity<TagSource>().HasData(
+            new TagSource
+            {
+                Id = 1,
+                Name = "Constant",
+            }, 
+            new TagSource
+            {
+                Id = 2,
+                Name = "Computed",
+            },
+            new TagSource
+            {
+                Id = 3,
+                Name = "MQTT",
+            },
+            new TagSource
+            {
+                Id = 4,
+                Name = "Modbus",
+            },
+            new TagSource
+            {
+                Id = 5,
+                Name = "OPC UA",
+            },
+            new TagSource
+            {
+                Id = 6,
+                Name = "HTTP",
+            },
+            new TagSource
+            {
+                Id = 7,
+                Name = "WebSocket",
             }
         );
 

@@ -96,4 +96,11 @@ public class DeviceController : ControllerBase
         await _deviceService.DeleteDevice(id);
         return NoContent();
     }
+
+    [HttpGet("tagSources")]
+    public async Task<IActionResult> GetTagSources()
+    {
+        var tagSources = await _deviceService.GetAllTagSources();
+        return Ok(tagSources);
+    }
 }

@@ -10,7 +10,6 @@ public class Device {
     public string Location { get; set; } = "";
     public string Type { get; set; } = "";
     public List<Group> Groups { get; set; } = [];
-
     public required User Owner { get; set; }
     public required DeviceState State { get; set; }
     public List<Tag> Tags { get; set; } = [];

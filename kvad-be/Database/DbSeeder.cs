@@ -32,6 +32,7 @@ public static class DbSeeder
                 PrivateGroup = group,
                 Groups = [group],
                 Roles = [.. db.Roles.Where(r => r.Name == "Admin")],
+                Icon = "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png"
             };
 
             group.Users.Add(user);

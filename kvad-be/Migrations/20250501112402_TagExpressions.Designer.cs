@@ -5,6 +5,7 @@ using System.Net.NetworkInformation;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250501112402_TagExpressions")]
+    partial class TagExpressions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -614,8 +617,9 @@ namespace kvad_be.Migrations
                     b.Property<bool>("Historicize")
                         .HasColumnType("boolean");
 
-                    b.Property<int>("SourceId")
-                        .HasColumnType("integer");
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("UnitId")
                         .HasColumnType("integer");
@@ -624,8 +628,6 @@ namespace kvad_be.Migrations
                         .HasColumnType("boolean");
 
                     b.HasKey("DeviceId", "Id");
-
-                    b.HasIndex("SourceId");
 
                     b.HasIndex("UnitId");
 
@@ -653,60 +655,6 @@ namespace kvad_be.Migrations
                         .IsDescending(false, true);
 
                     b.ToTable("TagHists");
-                });
-
-            modelBuilder.Entity("TagSource", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TagSources");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Constant"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Name = "Computed"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Name = "MQTT"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Name = "Modbus"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Name = "OPC UA"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Name = "HTTP"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Name = "WebSocket"
-                        });
                 });
 
             modelBuilder.Entity("Unit", b =>
@@ -1294,12 +1242,6 @@ namespace kvad_be.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("TagSource", "Source")
-                        .WithMany()
-                        .HasForeignKey("SourceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Unit", "Unit")
                         .WithMany()
                         .HasForeignKey("UnitId")
@@ -1307,8 +1249,6 @@ namespace kvad_be.Migrations
                         .IsRequired();
 
                     b.Navigation("Device");
-
-                    b.Navigation("Source");
 
                     b.Navigation("Unit");
                 });
