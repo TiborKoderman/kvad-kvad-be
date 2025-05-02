@@ -37,6 +37,8 @@ public class AppDbContext : DbContext
 
     public DbSet<TagSource> TagSources { get; set; }
 
+    public DbSet<HistoricizationInterval> HistoricizationIntervals { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -134,36 +136,123 @@ public class AppDbContext : DbContext
             {
                 Id = 1,
                 Name = "Constant",
+                Virtual = true
             }, 
             new TagSource
             {
                 Id = 2,
                 Name = "Computed",
+                Virtual = true
             },
             new TagSource
             {
                 Id = 3,
                 Name = "MQTT",
+                Virtual = false
             },
             new TagSource
             {
                 Id = 4,
                 Name = "Modbus",
+                Virtual = false
             },
             new TagSource
             {
                 Id = 5,
                 Name = "OPC UA",
+                Virtual = false
             },
             new TagSource
             {
                 Id = 6,
                 Name = "HTTP",
+                Virtual = false
             },
             new TagSource
             {
                 Id = 7,
                 Name = "WebSocket",
+                Virtual = false
+            }
+        );
+
+        modelBuilder.Entity<HistoricizationInterval>().HasData(
+            new HistoricizationInterval
+            {
+            Id = 1,
+            Name = "Immediate",
+            Interval = null
+            },
+            new HistoricizationInterval
+            {
+            Id = 2,
+            Name = "1s",
+            Interval = TimeSpan.FromSeconds(1)
+            },
+            new HistoricizationInterval
+            {
+            Id = 3,
+            Name = "10s",
+            Interval = TimeSpan.FromSeconds(10)
+            },
+            new HistoricizationInterval
+            {
+            Id = 4,
+            Name = "1m",
+            Interval = TimeSpan.FromMinutes(1)
+            },
+            new HistoricizationInterval
+            {
+            Id = 5,
+            Name = "5m",
+            Interval = TimeSpan.FromMinutes(5)
+            },
+            new HistoricizationInterval
+            {
+            Id = 6,
+            Name = "10m",
+            Interval = TimeSpan.FromMinutes(10)
+            },
+            new HistoricizationInterval{
+            Id = 7,
+            Name = "15m",
+            Interval = TimeSpan.FromMinutes(15)
+            },
+            new HistoricizationInterval
+            {
+            Id = 8,
+            Name = "30m",
+            Interval = TimeSpan.FromMinutes(30)
+            },
+            new HistoricizationInterval
+            {
+            Id = 9,
+            Name = "1h",
+            Interval = TimeSpan.FromHours(1)
+            },
+            new HistoricizationInterval
+            {
+            Id = 10,
+            Name = "6h",
+            Interval = TimeSpan.FromHours(6)
+            },
+            new HistoricizationInterval
+            {
+            Id = 11,
+            Name = "12h",
+            Interval = TimeSpan.FromHours(12)
+            },
+            new HistoricizationInterval
+            {
+            Id = 12,
+            Name = "Daily",
+            Interval = TimeSpan.FromDays(1)
+            },
+            new HistoricizationInterval
+            {
+            Id = 13,
+            Name = "Weekly",
+            Interval = TimeSpan.FromDays(7)
             }
         );
 

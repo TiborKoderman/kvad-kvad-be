@@ -46,6 +46,7 @@ public class DeviceService {
     public async Task UpdateDevice(Device device)
     {
         _context.Devices.Update(device);
+
         await _context.SaveChangesAsync();
     }
 
@@ -62,5 +63,10 @@ public class DeviceService {
     public async Task<List<TagSource>> GetAllTagSources()
     {
         return await _context.TagSources.ToListAsync();
+    }
+
+    public async Task<List<HistoricizationInterval>> GetHistoricizationIntervals()
+    {
+        return await _context.HistoricizationIntervals.ToListAsync();
     }
 }

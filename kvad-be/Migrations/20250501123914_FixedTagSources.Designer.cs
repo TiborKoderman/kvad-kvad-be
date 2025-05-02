@@ -5,6 +5,7 @@ using System.Net.NetworkInformation;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -13,9 +14,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250501123914_FixedTagSources")]
+    partial class FixedTagSources
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -299,105 +302,6 @@ namespace kvad_be.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("GroupUser");
-                });
-
-            modelBuilder.Entity("HistoricizationInterval", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<TimeSpan?>("Interval")
-                        .HasColumnType("interval");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("HistoricizationIntervals");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "Immediate"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Interval = new TimeSpan(0, 0, 0, 1, 0),
-                            Name = "1s"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Interval = new TimeSpan(0, 0, 0, 10, 0),
-                            Name = "10s"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Interval = new TimeSpan(0, 0, 1, 0, 0),
-                            Name = "1m"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Interval = new TimeSpan(0, 0, 5, 0, 0),
-                            Name = "5m"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Interval = new TimeSpan(0, 0, 10, 0, 0),
-                            Name = "10m"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Interval = new TimeSpan(0, 0, 15, 0, 0),
-                            Name = "15m"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Interval = new TimeSpan(0, 0, 30, 0, 0),
-                            Name = "30m"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Interval = new TimeSpan(0, 1, 0, 0, 0),
-                            Name = "1h"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Interval = new TimeSpan(0, 6, 0, 0, 0),
-                            Name = "6h"
-                        },
-                        new
-                        {
-                            Id = 11,
-                            Interval = new TimeSpan(0, 12, 0, 0, 0),
-                            Name = "12h"
-                        },
-                        new
-                        {
-                            Id = 12,
-                            Interval = new TimeSpan(1, 0, 0, 0, 0),
-                            Name = "Daily"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            Interval = new TimeSpan(7, 0, 0, 0, 0),
-                            Name = "Weekly"
-                        });
                 });
 
             modelBuilder.Entity("KeyValue", b =>
