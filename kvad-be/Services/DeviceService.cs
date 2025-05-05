@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
-public class DeviceService {
+public class DeviceService
+{
     private readonly AppDbContext _context;
     private readonly ILogger<DeviceService> _logger;
 
@@ -50,6 +51,22 @@ public class DeviceService {
         await _context.SaveChangesAsync();
     }
 
+    public async Task UpdateDevice(DeviceDTO deviceDTO)
+    {
+        var device = await GetDeviceById(deviceDTO.Id);
+        if (device != null)
+        {
+            device.Name = deviceDTO.Name;
+            device.Description = deviceDTO.Description ?? "";
+            device.Location = deviceDTO.Location ?? "";
+            device.Type = deviceDTO.Type;
+            device.Virtual = deviceDTO.Virtual;
+            device.State = deviceDTO.State;
+
+            await UpdateDevice(device);
+        }
+    }
+
     public async Task DeleteDevice(Guid id)
     {
         var device = await GetDeviceById(id);
@@ -68,5 +85,10 @@ public class DeviceService {
     public async Task<List<HistoricizationInterval>> GetHistoricizationIntervals()
     {
         return await _context.HistoricizationIntervals.ToListAsync();
+    }
+
+    public async Task<List<UnitDTO>> GetUnits()
+    {
+        return await _context.Units.Select(u => new UnitDTO(u.Id, u.Symbol)).ToListAsync();
     }
 }

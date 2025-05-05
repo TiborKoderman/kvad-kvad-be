@@ -22,14 +22,14 @@ public class MdnsDiscoveryService(ILogger<MdnsDiscoveryService> logger, MdnsServ
                     foreach (var host in results)
                     {
                         _mdnsService.discoveredDevices[host.DisplayName] = host; // Store discovered devices
-                        _logger.LogInformation("Discovered {Host} ({IP})", host.DisplayName, host.IPAddress);
+                        // _logger.LogInformation("Discovered {Host} ({IP})", host.DisplayName, host.IPAddress);
                         foreach (var service in host.Services)
                         {
                             if (service.Value.Properties != null)
                             {
                                 foreach (var txt in service.Value.Properties)
                                 {
-                                    _logger.LogInformation("TXT: {Key} = {Value}", txt.Keys, txt.Values);
+                                    // _logger.LogInformation("TXT: {Key} = {Value}", txt.Keys, txt.Values);
                                 }
                             }
                         }

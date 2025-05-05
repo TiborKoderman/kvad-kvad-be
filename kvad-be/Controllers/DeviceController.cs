@@ -104,4 +104,18 @@ public class DeviceController : ControllerBase
         var tagSources = await _deviceService.GetAllTagSources();
         return Ok(tagSources);
     }
+
+    [HttpGet("historicizationIntervals")]
+    public async Task<IActionResult> GetHistoricizationIntervals()
+    {
+        var intervals = await _deviceService.GetHistoricizationIntervals();
+        return Ok(intervals);
+    }
+
+    [HttpGet("units")]
+    public async Task<IActionResult> GetUnits()
+    {
+        var units = await _deviceService.GetUnits();
+        return Ok(units);
+    }
 }
