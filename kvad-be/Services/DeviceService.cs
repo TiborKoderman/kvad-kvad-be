@@ -57,12 +57,10 @@ public class DeviceService
         if (device != null)
         {
             device.Name = deviceDTO.Name;
-            device.Description = deviceDTO.Description ?? "";
-            device.Location = deviceDTO.Location ?? "";
-            device.Type = deviceDTO.Type;
+            device.Description = deviceDTO.Description ?? string.Empty;
+            device.Location = deviceDTO.Location ?? string.Empty;
+            device.Type = deviceDTO.Type ?? string.Empty;
             device.Virtual = deviceDTO.Virtual;
-            device.State = deviceDTO.State;
-
             await UpdateDevice(device);
         }
     }

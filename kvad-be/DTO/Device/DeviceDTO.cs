@@ -6,6 +6,7 @@ public record DeviceDTO(
     string? Mac,
     string? Location,
     string? Type,
+    bool Virtual,
     HistoricizationInterval? HistoricizationInterval,
     List<TagDTO> Tags
 );
