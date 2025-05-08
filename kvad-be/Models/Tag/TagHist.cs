@@ -11,7 +11,7 @@ public class TagHist
     public required string TagId { get; set; } 
     public required Tag Tag { get; set; }
     public required DateTime Timestamp { get; set; }
-
+    
     [Column(TypeName = "jsonb")]
     public required JsonValue Value { get; set; }
 }
