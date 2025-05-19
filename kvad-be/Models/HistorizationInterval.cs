@@ -1,4 +1,4 @@
-public class HistoricizationInterval{
+public class HistorizationInterval{
     public required int Id { get; set; }
     public required string Name { get; set; } = "";
     public TimeSpan? Interval { get; set; }

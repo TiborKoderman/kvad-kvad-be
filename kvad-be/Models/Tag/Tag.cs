@@ -1,4 +1,3 @@
-using System.Net.NetworkInformation;
 using Microsoft.EntityFrameworkCore;
 
 [PrimaryKey(nameof(DeviceId), nameof(Id))]
@@ -12,5 +11,5 @@ public class Tag
     public required TagSource Source { get; set; }
     public required string Expression { get; set; } = ""; //Expression to compute the value
     public required bool Enabled { get; set; } = true;
-    public required bool Historicize { get; set; } = false;
+    public required bool Historize { get; set; } = false;
 }

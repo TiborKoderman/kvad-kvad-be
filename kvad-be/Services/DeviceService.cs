@@ -80,9 +80,9 @@ public class DeviceService
         return await _context.TagSources.ToListAsync();
     }
 
-    public async Task<List<HistoricizationInterval>> GetHistoricizationIntervals()
+    public async Task<List<HistorizationInterval>> GetHistorizationIntervals()
     {
-        return await _context.HistoricizationIntervals.ToListAsync();
+        return await _context.HistorizationIntervals.ToListAsync();
     }
 
     public async Task<List<UnitDTO>> GetUnits()

@@ -68,6 +68,7 @@ builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<DeviceService>();
+builder.Services.AddScoped<ScadaService>();
 
 builder.Services.AddSingleton<MqttServerService>(); // Ensures single instance
 builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttServerService>()); // Use the same instance

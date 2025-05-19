@@ -7,6 +7,6 @@ public record DeviceDTO(
     string? Location,
     string? Type,
     bool Virtual,
-    HistoricizationInterval? HistoricizationInterval,
+    HistorizationInterval? HistorizationInterval,
     List<TagDTO> Tags
 );

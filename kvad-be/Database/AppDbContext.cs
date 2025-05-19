@@ -37,7 +37,8 @@ public class AppDbContext : DbContext
 
     public DbSet<TagSource> TagSources { get; set; }
 
-    public DbSet<HistoricizationInterval> HistoricizationIntervals { get; set; }
+    public DbSet<HistorizationInterval> HistorizationIntervals { get; set; }
+    public DbSet<ScadaObjectTemplate> ScadaObjectTemplates { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -176,79 +177,79 @@ public class AppDbContext : DbContext
             }
         );
 
-        modelBuilder.Entity<HistoricizationInterval>().HasData(
-            new HistoricizationInterval
+        modelBuilder.Entity<HistorizationInterval>().HasData(
+            new HistorizationInterval
             {
             Id = 1,
             Name = "Immediate",
             Interval = null
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 2,
             Name = "1s",
             Interval = TimeSpan.FromSeconds(1)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 3,
             Name = "10s",
             Interval = TimeSpan.FromSeconds(10)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 4,
             Name = "1m",
             Interval = TimeSpan.FromMinutes(1)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 5,
             Name = "5m",
             Interval = TimeSpan.FromMinutes(5)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 6,
             Name = "10m",
             Interval = TimeSpan.FromMinutes(10)
             },
-            new HistoricizationInterval{
+            new HistorizationInterval{
             Id = 7,
             Name = "15m",
             Interval = TimeSpan.FromMinutes(15)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 8,
             Name = "30m",
             Interval = TimeSpan.FromMinutes(30)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 9,
             Name = "1h",
             Interval = TimeSpan.FromHours(1)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 10,
             Name = "6h",
             Interval = TimeSpan.FromHours(6)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 11,
             Name = "12h",
             Interval = TimeSpan.FromHours(12)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 12,
             Name = "Daily",
             Interval = TimeSpan.FromDays(1)
             },
-            new HistoricizationInterval
+            new HistorizationInterval
             {
             Id = 13,
             Name = "Weekly",

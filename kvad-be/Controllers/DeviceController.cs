@@ -105,10 +105,10 @@ public class DeviceController : ControllerBase
         return Ok(tagSources);
     }
 
-    [HttpGet("historicizationIntervals")]
+    [HttpGet("historizationIntervals")]
     public async Task<IActionResult> GetHistoricizationIntervals()
     {
-        var intervals = await _deviceService.GetHistoricizationIntervals();
+        var intervals = await _deviceService.GetHistorizationIntervals();
         return Ok(intervals);
     }
 
