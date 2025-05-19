@@ -14,8 +14,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250429055435_what")]
-    partial class what
+    [Migration("20250519194245_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -302,6 +302,108 @@ namespace kvad_be.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("GroupUser");
+                });
+
+            modelBuilder.Entity("HistorizationInterval", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CronExpression")
+                        .HasColumnType("text");
+
+                    b.Property<TimeSpan?>("Interval")
+                        .HasColumnType("interval");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HistorizationIntervals");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Immediate"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Interval = new TimeSpan(0, 0, 0, 1, 0),
+                            Name = "1s"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Interval = new TimeSpan(0, 0, 0, 10, 0),
+                            Name = "10s"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Interval = new TimeSpan(0, 0, 1, 0, 0),
+                            Name = "1m"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Interval = new TimeSpan(0, 0, 5, 0, 0),
+                            Name = "5m"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Interval = new TimeSpan(0, 0, 10, 0, 0),
+                            Name = "10m"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Interval = new TimeSpan(0, 0, 15, 0, 0),
+                            Name = "15m"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Interval = new TimeSpan(0, 0, 30, 0, 0),
+                            Name = "30m"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Interval = new TimeSpan(0, 1, 0, 0, 0),
+                            Name = "1h"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Interval = new TimeSpan(0, 6, 0, 0, 0),
+                            Name = "6h"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Interval = new TimeSpan(0, 12, 0, 0, 0),
+                            Name = "12h"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Interval = new TimeSpan(1, 0, 0, 0, 0),
+                            Name = "Daily"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Interval = new TimeSpan(7, 0, 0, 0, 0),
+                            Name = "Weekly"
+                        });
                 });
 
             modelBuilder.Entity("KeyValue", b =>
@@ -599,6 +701,25 @@ namespace kvad_be.Migrations
                         });
                 });
 
+            modelBuilder.Entity("ScadaObjectTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<JsonObject>("Data")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ScadaObjectTemplates");
+                });
+
             modelBuilder.Entity("Tag", b =>
                 {
                     b.Property<Guid>("DeviceId")
@@ -610,20 +731,22 @@ namespace kvad_be.Migrations
                     b.Property<bool>("Enabled")
                         .HasColumnType("boolean");
 
-                    b.Property<bool>("Historicize")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Source")
+                    b.Property<string>("Expression")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("UnitId")
-                        .HasColumnType("integer");
-
-                    b.Property<bool>("Virtual")
+                    b.Property<bool>("Historize")
                         .HasColumnType("boolean");
 
+                    b.Property<int>("SourceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("UnitId")
+                        .HasColumnType("integer");
+
                     b.HasKey("DeviceId", "Id");
+
+                    b.HasIndex("SourceId");
 
                     b.HasIndex("UnitId");
 
@@ -651,6 +774,70 @@ namespace kvad_be.Migrations
                         .IsDescending(false, true);
 
                     b.ToTable("TagHists");
+                });
+
+            modelBuilder.Entity("TagSource", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("Virtual")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("TagSources");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Constant",
+                            Virtual = true
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Computed",
+                            Virtual = true
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "MQTT",
+                            Virtual = false
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Modbus",
+                            Virtual = false
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "OPC UA",
+                            Virtual = false
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "HTTP",
+                            Virtual = false
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "WebSocket",
+                            Virtual = false
+                        });
                 });
 
             modelBuilder.Entity("Unit", b =>
@@ -1238,13 +1425,19 @@ namespace kvad_be.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Unit", "Unit")
+                    b.HasOne("TagSource", "Source")
                         .WithMany()
-                        .HasForeignKey("UnitId")
+                        .HasForeignKey("SourceId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Unit", "Unit")
+                        .WithMany()
+                        .HasForeignKey("UnitId");
+
                     b.Navigation("Device");
+
+                    b.Navigation("Source");
 
                     b.Navigation("Unit");
                 });

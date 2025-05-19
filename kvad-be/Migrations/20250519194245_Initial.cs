@@ -58,6 +58,21 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "HistorizationIntervals",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Interval = table.Column<TimeSpan>(type: "interval", nullable: true),
+                    CronExpression = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HistorizationIntervals", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "KeyValues",
                 columns: table => new
                 {
@@ -94,6 +109,33 @@ namespace kvad_be.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Roles", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ScadaObjectTemplates",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Data = table.Column<JsonObject>(type: "jsonb", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ScadaObjectTemplates", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TagSources",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Virtual = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TagSources", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -428,10 +470,11 @@ namespace kvad_be.Migrations
                 {
                     DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
                     Id = table.Column<string>(type: "text", nullable: false),
-                    UnitId = table.Column<int>(type: "integer", nullable: false),
-                    Virtual = table.Column<bool>(type: "boolean", nullable: false),
+                    UnitId = table.Column<int>(type: "integer", nullable: true),
+                    SourceId = table.Column<int>(type: "integer", nullable: false),
+                    Expression = table.Column<string>(type: "text", nullable: false),
                     Enabled = table.Column<bool>(type: "boolean", nullable: false),
-                    Historicize = table.Column<bool>(type: "boolean", nullable: false)
+                    Historize = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -443,11 +486,16 @@ namespace kvad_be.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
+                        name: "FK_Tags_TagSources_SourceId",
+                        column: x => x.SourceId,
+                        principalTable: "TagSources",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
                         name: "FK_Tags_Units_UnitId",
                         column: x => x.UnitId,
                         principalTable: "Units",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -516,6 +564,26 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "HistorizationIntervals",
+                columns: new[] { "Id", "CronExpression", "Interval", "Name" },
+                values: new object[,]
+                {
+                    { 1, null, null, "Immediate" },
+                    { 2, null, new TimeSpan(0, 0, 0, 1, 0), "1s" },
+                    { 3, null, new TimeSpan(0, 0, 0, 10, 0), "10s" },
+                    { 4, null, new TimeSpan(0, 0, 1, 0, 0), "1m" },
+                    { 5, null, new TimeSpan(0, 0, 5, 0, 0), "5m" },
+                    { 6, null, new TimeSpan(0, 0, 10, 0, 0), "10m" },
+                    { 7, null, new TimeSpan(0, 0, 15, 0, 0), "15m" },
+                    { 8, null, new TimeSpan(0, 0, 30, 0, 0), "30m" },
+                    { 9, null, new TimeSpan(0, 1, 0, 0, 0), "1h" },
+                    { 10, null, new TimeSpan(0, 6, 0, 0, 0), "6h" },
+                    { 11, null, new TimeSpan(0, 12, 0, 0, 0), "12h" },
+                    { 12, null, new TimeSpan(1, 0, 0, 0, 0), "Daily" },
+                    { 13, null, new TimeSpan(7, 0, 0, 0, 0), "Weekly" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "Name" },
                 values: new object[,]
@@ -550,6 +618,20 @@ namespace kvad_be.Migrations
                     { 18, 1.0000000000000001E-18, "Atto", "a", null },
                     { 19, 9.9999999999999991E-22, "Zepto", "z", null },
                     { 20, 9.9999999999999992E-25, "Yocto", "y", null }
+                });
+
+            migrationBuilder.InsertData(
+                table: "TagSources",
+                columns: new[] { "Id", "Name", "Virtual" },
+                values: new object[,]
+                {
+                    { 1, "Constant", true },
+                    { 2, "Computed", true },
+                    { 3, "MQTT", false },
+                    { 4, "Modbus", false },
+                    { 5, "OPC UA", false },
+                    { 6, "HTTP", false },
+                    { 7, "WebSocket", false }
                 });
 
             migrationBuilder.InsertData(
@@ -661,6 +743,11 @@ namespace kvad_be.Migrations
                 descending: new[] { false, true });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Tags_SourceId",
+                table: "Tags",
+                column: "SourceId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tags_UnitId",
                 table: "Tags",
                 column: "UnitId");
@@ -704,6 +791,9 @@ namespace kvad_be.Migrations
                 name: "GroupUser");
 
             migrationBuilder.DropTable(
+                name: "HistorizationIntervals");
+
+            migrationBuilder.DropTable(
                 name: "KeyValues");
 
             migrationBuilder.DropTable(
@@ -714,6 +804,9 @@ namespace kvad_be.Migrations
 
             migrationBuilder.DropTable(
                 name: "RoleUser");
+
+            migrationBuilder.DropTable(
+                name: "ScadaObjectTemplates");
 
             migrationBuilder.DropTable(
                 name: "SIPrefixes");
@@ -741,6 +834,9 @@ namespace kvad_be.Migrations
 
             migrationBuilder.DropTable(
                 name: "Devices");
+
+            migrationBuilder.DropTable(
+                name: "TagSources");
 
             migrationBuilder.DropTable(
                 name: "Units");
