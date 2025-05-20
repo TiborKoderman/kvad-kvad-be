@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,7 +34,7 @@ public class ScadaService
     public async Task<ScadaObjectTemplate> UpsertScadaObjectTemplate(ScadaObjectTemplateDTO dto)
     {
         var template = dto.Id == null
-            ? new ScadaObjectTemplate { Id = Guid.NewGuid(), Name = dto.Name, Data = dto.Data ?? [] }
+            ? new ScadaObjectTemplate { Id = Guid.NewGuid(), Name = dto.Name, Data = dto.Data ?? JsonDocument.Parse("{}") }
             : await GetScadaObjectTemplateById(dto.Id.Value) ?? throw new Exception("ScadaObjectTemplate not found");
 
         template.Name = dto.Name ?? template.Name;
