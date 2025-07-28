@@ -53,7 +53,9 @@ public class UserService{
     }
 
     public Task<UserConfigDTO?> getUserConfig(Guid userId){
-        var configuration = new MapperConfiguration(cfg => cfg.CreateMap<User, UserConfigDTO>());
+        var configuration = new MapperConfiguration((IMapperConfigurationExpression cfg) => {
+            cfg.CreateMap<User, UserConfigDTO>();
+        }, loggerFactory: null);
         var mapper = configuration.CreateMapper();
 
         var user = _context.Users.Include(u => u.Roles).Include(u => u.Groups).FirstOrDefault(u => u.Id == userId);
