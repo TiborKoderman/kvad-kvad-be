@@ -22,6 +22,15 @@
             }
         },
         {
+            "name": ".NET Core Attach (Debug)",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}",
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            }
+        },
+        {
             "name": ".NET Core Launch (https)",
             "type": "coreclr",
             "request": "launch",
