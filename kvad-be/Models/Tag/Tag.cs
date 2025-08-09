@@ -12,4 +12,5 @@ public class Tag
     public required string Expression { get; set; } = ""; //Expression to compute the value
     public required bool Enabled { get; set; } = true;
     public required bool Historize { get; set; } = false;
+    public required TagCurr Curr { get; set; } = null!;
 }
