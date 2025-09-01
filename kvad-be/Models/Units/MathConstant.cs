@@ -1,5 +1,3 @@
-using Utils.Math.Types;
-
 public abstract class MathConstant
 {
   public required string Symbol { get; set; }

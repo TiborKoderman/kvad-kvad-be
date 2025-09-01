@@ -1,9 +1,5 @@
-using System.Text.Json.Nodes;
-using System.Text.Json.Serialization;
 using System.ComponentModel.DataAnnotations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
-using Utils.Math.Types;
-using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
 
 public interface IUnitFactory
@@ -20,8 +16,12 @@ public abstract class Unit
     public Dim7 Dimension { get; set; } = new Dim7();
     public bool Prefixable { get; set; } = true;
     public string? Definition { get; set; } = null;
-    public UnitHasCanonicalPart[] CanonicalParts { get; set; } = Array.Empty<UnitHasCanonicalPart>();
 
+    [InverseProperty(nameof(UnitCanonicalPart.Unit))]
+    public UnitCanonicalPart[] CanonicalParts { get; set; } = [];
+
+    [InverseProperty(nameof(UnitCanonicalPart.Part))]
+    public UnitCanonicalPart[] PartOfUnits { get; set; } = [];
 
     public static Unit CreateUnit(string Symbol, string Name, string? Definition, string Quantity, Dim7 Dimension)
     {
@@ -35,7 +35,6 @@ public abstract class Unit
             Factor = new Rational(1, 1) // Set default Factor value
         };
     }
-
 }
 
 public class LinearUnit : Unit

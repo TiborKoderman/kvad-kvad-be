@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Utils.Math.Types;
 
 public class UnitPrefix
 {

@@ -36,6 +36,14 @@ public class AppDbContext : DbContext
     public DbSet<HistorizationInterval> HistorizationIntervals { get; set; }
     public DbSet<ScadaObjectTemplate> ScadaObjectTemplates { get; set; }
 
+    protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+    {
+
+    configurationBuilder.Properties<Rational>()
+     .HaveConversion<Rational.BytesConverter>()
+     .HaveColumnType("bytea");
+
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
