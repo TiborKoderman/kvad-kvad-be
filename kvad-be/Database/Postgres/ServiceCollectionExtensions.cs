@@ -18,11 +18,8 @@ public static class ServiceCollectionExtensions
         {
             var dsb = new NpgsqlDataSourceBuilder(cs);
             PostgresTypeMappings.Apply(dsb);
-            MapAllPgComposites(dsb);
             return dsb.Build(); // DO NOT dispose; DI owns it
         });
-
-        services.AddSingleton<IRelationalTypeMappingSourcePlugin, PgCompositeTypeMappingPlugin>();
 
         services.AddDbContext<AppDbContext>((sp, opt) =>
         {
@@ -32,18 +29,4 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    public static void MapAllPgComposites(NpgsqlDataSourceBuilder dsb)
-    {
-        var mapComposite = typeof(NpgsqlDataSourceBuilder).GetMethods()
-            .First(m => m.Name == "MapComposite" && m.IsGenericMethod && m.GetParameters()[0].ParameterType == typeof(string));
-
-        foreach (var t in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.DefinedTypes))
-        {
-            var attr = t.GetCustomAttribute<PgCompositeAttribute>();
-            if (attr is null) continue;
-
-            // Invoke dsb.MapComposite<T>(attr.TypeName) via reflection
-            mapComposite.MakeGenericMethod(t.AsType()).Invoke(dsb, new object?[] { attr.TypeName });
-        }
-    }
 }

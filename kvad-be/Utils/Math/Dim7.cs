@@ -1,17 +1,32 @@
 
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NpgsqlTypes;
+using kvad_be.Extensions.PostgresComposite;
 
-[PgComposite("dim7")]
+[PgCompositeType("dim7")]
 public sealed class Dim7
 {
-    [PgName("L")] public short L { get; }
-    [PgName("M")] public short M { get; }
-    [PgName("T")] public short T { get; }
-    [PgName("I")] public short I { get; }
-    [PgName("Th")] public short Th { get; }
-    [PgName("N")] public short N { get; }
-    [PgName("J")] public short J { get; }
+    // Auto-inferred: field name = "L", type = "SMALLINT"
+    public short L { get; }
+    
+    // Auto-inferred: field name = "M", type = "SMALLINT"
+    public short M { get; }
+    
+    // Auto-inferred: field name = "T", type = "SMALLINT"
+    public short T { get; }
+    
+    // Auto-inferred: field name = "I", type = "SMALLINT"
+    public short I { get; }
+    
+    // Explicit override example - field name "Th", type "SMALLINT"
+    [PgCompositeField("Th", PgType = "SMALLINT")]
+    public short Th { get; }
+    
+    // Auto-inferred: field name = "N", type = "SMALLINT"
+    public short N { get; }
+    
+    // Auto-inferred: field name = "J", type = "SMALLINT"
+    public short J { get; }
 
     public Dim7(short L, short M, short T, short I, short Th, short N, short J)
     {

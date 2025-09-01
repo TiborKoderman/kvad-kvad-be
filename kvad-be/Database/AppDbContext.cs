@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using kvad_be.Extensions.PostgresComposite;
+
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
@@ -38,15 +40,17 @@ public class AppDbContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
+        // Use our new extension to automatically configure all composite types
+        configurationBuilder.MapAllCompositeTypes();
 
-        configurationBuilder.Properties<Rational>()
-        //  .HaveConversion<Rational.BytesConverter>()
-         .HaveColumnType("rational");
+        // Legacy manual configuration (can be removed)
+        // configurationBuilder.Properties<Rational>()
+        // //  .HaveConversion<Rational.BytesConverter>()
+        //  .HaveColumnType("rational");
 
-        configurationBuilder.Properties<Dim7>()
-        //  .HaveConversion<Dim7.BytesConverter>()
-         .HaveColumnType("dim7");
-
+        // configurationBuilder.Properties<Dim7>()
+        // //  .HaveConversion<Dim7.BytesConverter>()
+        //  .HaveColumnType("dim7");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

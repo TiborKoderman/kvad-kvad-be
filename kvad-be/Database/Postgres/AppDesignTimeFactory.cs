@@ -12,7 +12,6 @@ public sealed class AppDesignTimeFactory : IDesignTimeDbContextFactory<AppDbCont
 
     var dsb = new NpgsqlDataSourceBuilder(cs);
     PostgresTypeMappings.Apply(dsb); // same mappings as runtime
-    MapAllPgComposites(dsb);
     var ds = dsb.Build();
 
     var opts = new DbContextOptionsBuilder<AppDbContext>()
@@ -22,18 +21,5 @@ public sealed class AppDesignTimeFactory : IDesignTimeDbContextFactory<AppDbCont
     return new AppDbContext(opts);
   }
 
-  public static void MapAllPgComposites(NpgsqlDataSourceBuilder dsb)
-  {
-    var mapComposite = typeof(NpgsqlDataSourceBuilder).GetMethods()
-        .First(m => m.Name == "MapComposite" && m.IsGenericMethod && m.GetParameters()[0].ParameterType == typeof(string));
 
-    foreach (var t in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.DefinedTypes))
-    {
-      var attr = t.GetCustomAttribute<PgCompositeAttribute>();
-      if (attr is null) continue;
-
-      // Invoke dsb.MapComposite<T>(attr.TypeName) via reflection
-      mapComposite.MakeGenericMethod(t.AsType()).Invoke(dsb, new object?[] { attr.TypeName });
-    }
-  }
 }

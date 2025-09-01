@@ -1,10 +1,14 @@
 using System.Numerics;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using kvad_be.Extensions.PostgresComposite;
 
-[PgComposite("rational")]
+[PgCompositeType("rational")]
 public readonly struct Rational
 {
+    // Auto-inferred: field name = "Numerator", type = "BIGINT"
     public long Numerator { get; }
+    
+    // Auto-inferred: field name = "Denominator", type = "BIGINT"
     public long Denominator { get; }
 
     public static readonly Rational One = new(1, 1);
