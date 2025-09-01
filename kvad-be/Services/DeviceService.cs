@@ -85,8 +85,4 @@ public class DeviceService
         return await _context.HistorizationIntervals.ToListAsync();
     }
 
-    public async Task<List<UnitDTO>> GetUnits()
-    {
-        return await _context.Units.Select(u => new UnitDTO(u.Id, u.Symbol)).ToListAsync();
-    }
 }

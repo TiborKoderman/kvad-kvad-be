@@ -112,10 +112,4 @@ public class DeviceController : ControllerBase
         return Ok(intervals);
     }
 
-    [HttpGet("units")]
-    public async Task<IActionResult> GetUnits()
-    {
-        var units = await _deviceService.GetUnits();
-        return Ok(units);
-    }
 }

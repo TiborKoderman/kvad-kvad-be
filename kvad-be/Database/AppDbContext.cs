@@ -44,6 +44,7 @@ public class AppDbContext : DbContext
         .HasAlternateKey(u => u.Username);
 
 
+
         modelBuilder.Entity<ChatMessage>()
             .HasKey(cm => new { cm.ChatRoomId, cm.Id });
 
@@ -67,6 +68,17 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<TagHist>()
             .HasIndex(th => new { th.TagId, th.Timestamp })
             .IsDescending(false, true);
+
+
+        modelBuilder.Entity<Unit>(u =>
+        {
+            u.Property(x => x.Dimension)
+            .HasConversion(
+                v => Dim7.ToBytes(v),
+                v => Dim7.FromBytes(v)
+            );
+        });
+
 
 
         SeedData(modelBuilder);
@@ -129,7 +141,7 @@ public class AppDbContext : DbContext
                 Id = 1,
                 Name = "Constant",
                 Virtual = true
-            }, 
+            },
             new TagSource
             {
                 Id = 2,
@@ -171,140 +183,125 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<HistorizationInterval>().HasData(
             new HistorizationInterval
             {
-            Id = 1,
-            Name = "Immediate",
-            Interval = null
+                Id = 1,
+                Name = "Immediate",
+                Interval = null
             },
             new HistorizationInterval
             {
-            Id = 2,
-            Name = "1s",
-            Interval = TimeSpan.FromSeconds(1)
+                Id = 2,
+                Name = "1s",
+                Interval = TimeSpan.FromSeconds(1)
             },
             new HistorizationInterval
             {
-            Id = 3,
-            Name = "10s",
-            Interval = TimeSpan.FromSeconds(10)
+                Id = 3,
+                Name = "10s",
+                Interval = TimeSpan.FromSeconds(10)
             },
             new HistorizationInterval
             {
-            Id = 4,
-            Name = "1m",
-            Interval = TimeSpan.FromMinutes(1)
+                Id = 4,
+                Name = "1m",
+                Interval = TimeSpan.FromMinutes(1)
             },
             new HistorizationInterval
             {
-            Id = 5,
-            Name = "5m",
-            Interval = TimeSpan.FromMinutes(5)
+                Id = 5,
+                Name = "5m",
+                Interval = TimeSpan.FromMinutes(5)
             },
             new HistorizationInterval
             {
-            Id = 6,
-            Name = "10m",
-            Interval = TimeSpan.FromMinutes(10)
-            },
-            new HistorizationInterval{
-            Id = 7,
-            Name = "15m",
-            Interval = TimeSpan.FromMinutes(15)
+                Id = 6,
+                Name = "10m",
+                Interval = TimeSpan.FromMinutes(10)
             },
             new HistorizationInterval
             {
-            Id = 8,
-            Name = "30m",
-            Interval = TimeSpan.FromMinutes(30)
+                Id = 7,
+                Name = "15m",
+                Interval = TimeSpan.FromMinutes(15)
             },
             new HistorizationInterval
             {
-            Id = 9,
-            Name = "1h",
-            Interval = TimeSpan.FromHours(1)
+                Id = 8,
+                Name = "30m",
+                Interval = TimeSpan.FromMinutes(30)
             },
             new HistorizationInterval
             {
-            Id = 10,
-            Name = "6h",
-            Interval = TimeSpan.FromHours(6)
+                Id = 9,
+                Name = "1h",
+                Interval = TimeSpan.FromHours(1)
             },
             new HistorizationInterval
             {
-            Id = 11,
-            Name = "12h",
-            Interval = TimeSpan.FromHours(12)
+                Id = 10,
+                Name = "6h",
+                Interval = TimeSpan.FromHours(6)
             },
             new HistorizationInterval
             {
-            Id = 12,
-            Name = "Daily",
-            Interval = TimeSpan.FromDays(1)
+                Id = 11,
+                Name = "12h",
+                Interval = TimeSpan.FromHours(12)
             },
             new HistorizationInterval
             {
-            Id = 13,
-            Name = "Weekly",
-            Interval = TimeSpan.FromDays(7)
+                Id = 12,
+                Name = "Daily",
+                Interval = TimeSpan.FromDays(1)
+            },
+            new HistorizationInterval
+            {
+                Id = 13,
+                Name = "Weekly",
+                Interval = TimeSpan.FromDays(7)
             }
         );
 
         //populate SI Prefixes
-        // modelBuilder.Entity<SIPrefix>().HasData(
-        //     new SIPrefix { Id = 1, Name = "Yotta", Symbol = "Y", Factor = 1e24 },
-        //     new SIPrefix { Id = 2, Name = "Zetta", Symbol = "Z", Factor = 1e21 },
-        //     new SIPrefix { Id = 3, Name = "Exa", Symbol = "E", Factor = 1e18 },
-        //     new SIPrefix { Id = 4, Name = "Peta", Symbol = "P", Factor = 1e15 },
-        //     new SIPrefix { Id = 5, Name = "Tera", Symbol = "T", Factor = 1e12 },
-        //     new SIPrefix { Id = 6, Name = "Giga", Symbol = "G", Factor = 1e9 },
-        //     new SIPrefix { Id = 7, Name = "Mega", Symbol = "M", Factor = 1e6 },
-        //     new SIPrefix { Id = 8, Name = "Kilo", Symbol = "k", Factor = 1e3 },
-        //     new SIPrefix { Id = 9, Name = "Hecto", Symbol = "h", Factor = 1e2 },
-        //     new SIPrefix { Id = 10, Name = "Deca", Symbol = "da", Factor = 1e1 },
-        //     new SIPrefix { Id = 11, Name = "Deci", Symbol = "d", Factor = 1e-1 },
-        //     new SIPrefix { Id = 12, Name = "Centi", Symbol = "c", Factor = 1e-2 },
-        //     new SIPrefix { Id = 13, Name = "Milli", Symbol = "m", Factor = 1e-3 },
-        //     new SIPrefix { Id = 14, Name = "Micro", Symbol = "μ", Factor = 1e-6 },
-        //     new SIPrefix { Id = 15, Name = "Nano", Symbol = "n", Factor = 1e-9 },
-        //     new SIPrefix { Id = 16, Name = "Pico", Symbol = "p", Factor = 1e-12 },
-        //     new SIPrefix { Id = 17, Name = "Femto", Symbol = "f", Factor = 1e-15 },
-        //     new SIPrefix { Id = 18, Name = "Atto", Symbol = "a", Factor = 1e-18 },
-        //     new SIPrefix { Id = 19, Name = "Zepto", Symbol = "z", Factor = 1e-21 },
-        //     new SIPrefix { Id = 20, Name = "Yocto", Symbol = "y", Factor = 1e-24 }
-        // );
+        modelBuilder.Entity<UnitPrefix>().HasData(
+            new UnitPrefix { Name = "Quetta", Symbol = "Q", Base = 10, Exponent = 30 },
+            new UnitPrefix { Name = "Ronna", Symbol = "R", Base = 10, Exponent = 27 },
+            new UnitPrefix { Name = "Yotta", Symbol = "Y", Base = 10, Exponent = 24 },
+            new UnitPrefix { Name = "Zetta", Symbol = "Z", Base = 10, Exponent = 21 },
+            new UnitPrefix { Name = "Exa", Symbol = "E", Base = 10, Exponent = 18 },
+            new UnitPrefix { Name = "Peta", Symbol = "P", Base = 10, Exponent = 15 },
+            new UnitPrefix { Name = "Tera", Symbol = "T", Base = 10, Exponent = 12 },
+            new UnitPrefix { Name = "Giga", Symbol = "G", Base = 10, Exponent = 9 },
+            new UnitPrefix { Name = "Mega", Symbol = "M", Base = 10, Exponent = 6 },
+            new UnitPrefix { Name = "Kilo", Symbol = "k", Base = 10, Exponent = 3 },
+            new UnitPrefix { Name = "Hecto", Symbol = "h", Base = 10, Exponent = 2 },
+            new UnitPrefix { Name = "Deca", Symbol = "da", Base = 10, Exponent = 1 },
+            new UnitPrefix { Name = "Deci", Symbol = "d", Base = 10, Exponent = -1 },
+            new UnitPrefix { Name = "Centi", Symbol = "c", Base = 10, Exponent = -2 },
+            new UnitPrefix { Name = "Milli", Symbol = "m", Base = 10, Exponent = -3 },
+            new UnitPrefix { Name = "Micro", Symbol = "μ", Base = 10, Exponent = -6 },
+            new UnitPrefix { Name = "Nano", Symbol = "n", Base = 10, Exponent = -9 },
+            new UnitPrefix { Name = "Pico", Symbol = "p", Base = 10, Exponent = -12 },
+            new UnitPrefix { Name = "Femto", Symbol = "f", Base = 10, Exponent = -15 },
+            new UnitPrefix { Name = "Atto", Symbol = "a", Base = 10, Exponent = -18 },
+            new UnitPrefix { Name = "Zepto", Symbol = "z", Base = 10, Exponent = -21 },
+            new UnitPrefix { Name = "Yocto", Symbol = "y", Base = 10, Exponent = -24 },
+            new UnitPrefix { Name = "Ronto", Symbol = "r", Base = 10, Exponent = -27 },
+            new UnitPrefix { Name = "Quecto", Symbol = "q", Base = 10, Exponent = -30 },
 
-        //populate Units
-        // modelBuilder.Entity<Unit>()
-        //     .HasData(
-        //     new Unit { Id = 1, Name = "Meter", Symbol = "m", Parameter = "Length", Type = UnitType.Base, Dimension = "L", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 2, Name = "Kilogram", Symbol = "kg", Parameter = "Mass", Type = UnitType.Base, Dimension = "M", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 3, Name = "Second", Symbol = "s", Parameter = "Time", Type = UnitType.Base, Dimension = "T", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 4, Name = "Ampere", Symbol = "A", Parameter = "Electric Current", Type = UnitType.Base, Dimension = "I", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 5, Name = "Kelvin", Symbol = "K", Parameter = "Temperature", Type = UnitType.Base, Dimension = "Θ", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 6, Name = "Mole", Symbol = "mol", Parameter = "Amount of Substance", Type = UnitType.Base, Dimension = "N", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 7, Name = "Candela", Symbol = "cd", Parameter = "Luminous Intensity", Type = UnitType.Base, Dimension = "J", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 8, Name = "Hertz", Symbol = "Hz", Parameter = "Frequency", Type = UnitType.Derived, Dimension = "T^-1", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 9, Name = "Newton", Symbol = "N", Parameter = "Force", Type = UnitType.Derived, Dimension = "M L T^-2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 10, Name = "Pascal", Symbol = "Pa", Parameter = "Pressure", Type = UnitType.Derived, Dimension = "M L^-1 T^-2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 11, Name = "Joule", Symbol = "J", Parameter = "Energy", Type = UnitType.Derived, Dimension = "M L^2 T^-2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 12, Name = "Watt", Symbol = "W", Parameter = "Power", Type = UnitType.Derived, Dimension = "M L^2 T^-3", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 13, Name = "Coulomb", Symbol = "C", Parameter = "Electric Charge", Type = UnitType.Derived, Dimension = "I T", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 14, Name = "Volt", Symbol = "V", Parameter = "Electric Potential", Type = UnitType.Derived, Dimension = "M L^2 T^-3 I^-1", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 15, Name = "Farad", Symbol = "F", Parameter = "Capacitance", Type = UnitType.Derived, Dimension = "M^-1 L^-2 T^4 I^2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 16, Name = "Ohm", Symbol = "Ω", Parameter = "Resistance", Type = UnitType.Derived, Dimension = "M L^2 T^-3 I^-2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 17, Name = "Siemens", Symbol = "S", Parameter = "Conductance", Type = UnitType.Derived, Dimension = "M^-1 L^-2 T^3 I^2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 18, Name = "Weber", Symbol = "Wb", Parameter = "Magnetic Flux", Type = UnitType.Derived, Dimension = "M L^2 T^-2 I^-1", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 19, Name = "Tesla", Symbol = "T", Parameter = "Magnetic Flux Density", Type = UnitType.Derived, Dimension = "M L^-1 T^-2 I^-1", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 20, Name = "Henry", Symbol = "H", Parameter = "Inductance", Type = UnitType.Derived, Dimension = "M L^2 T^-2 I^-2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 21, Name = "Lumen", Symbol = "lm", Parameter = "Luminous Flux", Type = UnitType.Derived, Dimension = "J", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 22, Name = "Lux", Symbol = "lx", Parameter = "Illuminance", Type = UnitType.Derived, Dimension = "J L^-2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 23, Name = "Becquerel", Symbol = "Bq", Parameter = "Radioactivity", Type = UnitType.Derived, Dimension = "T^-1", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 24, Name = "Gray", Symbol = "Gy", Parameter = "Absorbed Dose", Type = UnitType.Derived, Dimension = "L^2 T^-2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 25, Name = "Sievert", Symbol = "Sv", Parameter = "Equivalent Dose", Type = UnitType.Derived, Dimension = "L^2 T^-2", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 26, Name = "Katal", Symbol = "kat", Parameter = "Catalytic Activity", Type = UnitType.Derived, Dimension = "N T^-1", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 27, Name = "Apparent Power", Symbol = "VA", Parameter = "Apparent Power", Type = UnitType.Derived, Dimension = "M L^2 T^-3", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 28, Name = "Reactive Power", Symbol = "var", Parameter = "Reactive Power", Type = UnitType.Derived, Dimension = "M L^2 T^-3", Prefixable = true, BaseUnitRelation = null },
-        //     new Unit { Id = 29, Name = "Active Power", Symbol = "W", Parameter = "Active Power", Type = UnitType.Derived, Dimension = "M L^2 T^-3", Prefixable = true, BaseUnitRelation = null }
-        //     );
+            //binary
+            new UnitPrefix { Name = "Kibi", Symbol = "Ki", Base = 2, Exponent = 10 },
+            new UnitPrefix { Name = "Mebi", Symbol = "Mi", Base = 2, Exponent = 20 },
+            new UnitPrefix { Name = "Gibi", Symbol = "Gi", Base = 2, Exponent = 30 },
+            new UnitPrefix { Name = "Tebi", Symbol = "Ti", Base = 2, Exponent = 40 },
+            new UnitPrefix { Name = "Pebi", Symbol = "Pi", Base = 2, Exponent = 50 },
+            new UnitPrefix { Name = "Exbi", Symbol = "Ei", Base = 2, Exponent = 60 },
+            new UnitPrefix { Name = "Zebi", Symbol = "Zi", Base = 2, Exponent = 70 },
+            new UnitPrefix { Name = "Yobi", Symbol = "Yi", Base = 2, Exponent = 80 },
+            new UnitPrefix { Name = "Roni", Symbol = "Ri", Base = 2, Exponent = 90 },
+            new UnitPrefix { Name = "Quin", Symbol = "Qi", Base = 2, Exponent = 100 }
+
+        );
+
     }
 
 
