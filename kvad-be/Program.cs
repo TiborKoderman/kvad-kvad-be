@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics;
+using Npgsql;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -80,14 +81,9 @@ builder.Services.AddSingleton<MdnsService>();
 builder.Services.AddHostedService<MdnsDiscoveryService>();
 
 
-// Configure the PostgreSQL connection with Npgsql data source
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var dsb = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
-dsb.MapComposite<Dim7>("dim7");           // works with record struct
-var dataSource = dsb.Build();
 
-builder.Services.AddDbContext<AppDbContext>(options => 
-    options.UseNpgsql(dataSource));
+// Configure the PostgreSQL connection with Npgsql data source
+builder.Services.AddPostgresInfrastructure(builder.Configuration);
 
 // JWT
 var jwtIssuer = builder.Configuration["Authentication:Schemes:Bearer:Issuer"];
@@ -124,6 +120,12 @@ builder.Services.AddAuthorization(options =>
 
 // APP
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();   // auto-applies CreatePgTypes + others
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

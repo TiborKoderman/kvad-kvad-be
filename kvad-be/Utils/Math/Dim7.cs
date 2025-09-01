@@ -1,5 +1,7 @@
 
-public readonly record struct Dim7(short L, short M, short T, short I, short Th, short N, short J)
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+public readonly record struct Dim7( short L, short M, short T, short I, short Th, short N, short J)
 {
     public static readonly Dim7 Zero = new(0, 0, 0, 0, 0, 0, 0);
 
@@ -18,32 +20,42 @@ public readonly record struct Dim7(short L, short M, short T, short I, short Th,
     public override string ToString()
         => $"[{L},{M},{T},{I},{Th},{N},{J}]";
 
-    public static byte[] ToBytes(Dim7 d)
+    public sealed class BytesConverter : ValueConverter<Dim7, byte[]>
     {
-        Span<byte> bytes = stackalloc byte[14];
-        BitConverter.TryWriteBytes(bytes.Slice(0, 2), d.L);
-        BitConverter.TryWriteBytes(bytes.Slice(2, 2), d.M);
-        BitConverter.TryWriteBytes(bytes.Slice(4, 2), d.T);
-        BitConverter.TryWriteBytes(bytes.Slice(6, 2), d.I);
-        BitConverter.TryWriteBytes(bytes.Slice(8, 2), d.Th);
-        BitConverter.TryWriteBytes(bytes.Slice(10, 2), d.N);
-        BitConverter.TryWriteBytes(bytes.Slice(12, 2), d.J);
-        return bytes.ToArray();
-    }
-    
-    public static Dim7 FromBytes(byte[] bytes)
-    {
-        if (bytes.Length != 14)
-            throw new ArgumentException("Byte array must be exactly 14 bytes long.", nameof(bytes));
+        public BytesConverter() : base(
+            v => ToBytes(v),
+            v => FromBytes(v))
+        {
+        }
 
-        return new Dim7(
-            BitConverter.ToInt16(bytes, 0),
-            BitConverter.ToInt16(bytes, 2),
-            BitConverter.ToInt16(bytes, 4),
-            BitConverter.ToInt16(bytes, 6),
-            BitConverter.ToInt16(bytes, 8),
-            BitConverter.ToInt16(bytes, 10),
-            BitConverter.ToInt16(bytes, 12)
-        );
+        public static byte[] ToBytes(Dim7 d)
+        {
+            Span<byte> bytes = stackalloc byte[14];
+            BitConverter.TryWriteBytes(bytes.Slice(0, 2), d.L);
+            BitConverter.TryWriteBytes(bytes.Slice(2, 2), d.M);
+            BitConverter.TryWriteBytes(bytes.Slice(4, 2), d.T);
+            BitConverter.TryWriteBytes(bytes.Slice(6, 2), d.I);
+            BitConverter.TryWriteBytes(bytes.Slice(8, 2), d.Th);
+            BitConverter.TryWriteBytes(bytes.Slice(10, 2), d.N);
+            BitConverter.TryWriteBytes(bytes.Slice(12, 2), d.J);
+            return bytes.ToArray();
+        }
+
+        public static Dim7 FromBytes(byte[] bytes)
+        {
+            if (bytes.Length != 14)
+                throw new ArgumentException("Byte array must be exactly 14 bytes long.", nameof(bytes));
+
+            return new Dim7(
+                BitConverter.ToInt16(bytes, 0),
+                BitConverter.ToInt16(bytes, 2),
+                BitConverter.ToInt16(bytes, 4),
+                BitConverter.ToInt16(bytes, 6),
+                BitConverter.ToInt16(bytes, 8),
+                BitConverter.ToInt16(bytes, 10),
+                BitConverter.ToInt16(bytes, 12)
+            );
+        }
+
     }
 }

@@ -38,16 +38,17 @@ public class AppDbContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
+        // Configure Rational and Dim7 to use PostgreSQL composite types
+        // These types are mapped via Npgsql's composite type mapping in PostgresTypeMappings.cs
+        configurationBuilder.Properties<Rational>()
+            .HaveColumnType("rational");
 
-    configurationBuilder.Properties<Rational>()
-     .HaveConversion<Rational.BytesConverter>()
-     .HaveColumnType("bytea");
-
+        configurationBuilder.Properties<Dim7>()
+            .HaveColumnType("dim7");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-
         modelBuilder.Entity<User>()
         .HasAlternateKey(u => u.Username);
 
@@ -78,13 +79,14 @@ public class AppDbContext : DbContext
             .IsDescending(false, true);
 
 
-        modelBuilder.Entity<Unit>(u =>
+        modelBuilder.Entity<Unit>(e =>
         {
-            u.Property(x => x.Dimension)
-            .HasConversion(
-                v => Dim7.ToBytes(v),
-                v => Dim7.FromBytes(v)
-            );
+            e.HasKey(x => x.Symbol);
+
+            e.HasDiscriminator<string>("UnitKind")
+             .HasValue<LinearUnit>("linear")
+             .HasValue<AffineUnit>("affine")
+             .HasValue<LogarithmicUnit>("log");
         });
 
 
@@ -94,6 +96,7 @@ public class AppDbContext : DbContext
 
     private void SeedData(ModelBuilder modelBuilder)
     {
+
         modelBuilder.Entity<Role>().HasData(
             new Role
             {
@@ -310,6 +313,15 @@ public class AppDbContext : DbContext
 
         );
 
+        modelBuilder.Entity<LinearUnit>().HasData(
+            IUnitFactory.CreateUnit("m", "Meter", "Length", new Dim7(1, 0, 0, 0, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("kg", "Kilogram", "Mass", new Dim7(0, 1, 0, 0, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("s", "Second", "Time", new Dim7(0, 0, 1, 0, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("A", "Ampere", "Electric Current", new Dim7(0, 0, 0, 1, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("K", "Kelvin", "Temperature", new Dim7(0, 0, 0, 0, 1, 0, 0), null),
+            IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", new Dim7(0, 0, 0, 0, 0, 1, 0), null),
+            IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", new Dim7(0, 0, 0, 0, 0, 0, 1), null)
+        );
     }
 
 

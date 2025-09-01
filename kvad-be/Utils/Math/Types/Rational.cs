@@ -2,7 +2,7 @@ using System.Numerics;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-public readonly struct Rational
+public readonly record struct Rational
 {
     public long Numerator { get; }
     public long Denominator { get; }
