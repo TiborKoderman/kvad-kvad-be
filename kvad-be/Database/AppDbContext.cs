@@ -38,13 +38,15 @@ public class AppDbContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        // Configure Rational and Dim7 to use PostgreSQL composite types
-        // These types are mapped via Npgsql's composite type mapping in PostgresTypeMappings.cs
+
         configurationBuilder.Properties<Rational>()
-            .HaveColumnType("rational");
+        //  .HaveConversion<Rational.BytesConverter>()
+         .HaveColumnType("rational");
 
         configurationBuilder.Properties<Dim7>()
-            .HaveColumnType("dim7");
+        //  .HaveConversion<Dim7.BytesConverter>()
+         .HaveColumnType("dim7");
+
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

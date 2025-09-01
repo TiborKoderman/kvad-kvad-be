@@ -1,8 +1,30 @@
 
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NpgsqlTypes;
 
-public readonly record struct Dim7( short L, short M, short T, short I, short Th, short N, short J)
+[PgComposite("dim7")]
+public sealed class Dim7
 {
+    [PgName("L")] public short L { get; }
+    [PgName("M")] public short M { get; }
+    [PgName("T")] public short T { get; }
+    [PgName("I")] public short I { get; }
+    [PgName("Th")] public short Th { get; }
+    [PgName("N")] public short N { get; }
+    [PgName("J")] public short J { get; }
+
+    public Dim7(short L, short M, short T, short I, short Th, short N, short J)
+    {
+        this.L = L;
+        this.M = M;
+        this.T = T;
+        this.I = I;
+        this.Th = Th;
+        this.N = N;
+        this.J = J;
+    }
+
+
     public static readonly Dim7 Zero = new(0, 0, 0, 0, 0, 0, 0);
 
     public static Dim7 operator +(Dim7 a, Dim7 b)
@@ -25,8 +47,7 @@ public readonly record struct Dim7( short L, short M, short T, short I, short Th
         public BytesConverter() : base(
             v => ToBytes(v),
             v => FromBytes(v))
-        {
-        }
+        { }
 
         public static byte[] ToBytes(Dim7 d)
         {
@@ -56,6 +77,7 @@ public readonly record struct Dim7( short L, short M, short T, short I, short Th
                 BitConverter.ToInt16(bytes, 12)
             );
         }
+
 
     }
 }

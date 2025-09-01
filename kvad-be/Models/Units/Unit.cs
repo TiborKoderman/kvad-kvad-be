@@ -37,7 +37,7 @@ public abstract class Unit
     public required string Symbol { get; set; }
     public required string Name { get; set; }
     public string Quantity { get; set; } = "";
-    public Dim7 Dimension { get; set; } = new Dim7();
+    public Dim7 Dimension { get; set; } = Dim7.Zero;
     public bool Prefixable { get; set; } = true;
     public string? Definition { get; set; } = null;
     public required Rational Factor { get; set; } = Rational.One;

@@ -1,8 +1,8 @@
 using System.Numerics;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-public readonly record struct Rational
+[PgComposite("rational")]
+public readonly struct Rational
 {
     public long Numerator { get; }
     public long Denominator { get; }
@@ -60,6 +60,9 @@ public readonly record struct Rational
         if (n < 0) return Pow(new Rational(a.Denominator, a.Numerator), -n);
         return new Rational(BigInteger.Pow(a.Numerator, n), BigInteger.Pow(a.Denominator, n)).Normalize();
     }
+
+    //value compare
+
 
     public override string ToString() => $"{Numerator}/{Denominator}";
 
