@@ -80,8 +80,14 @@ builder.Services.AddSingleton<MdnsService>();
 builder.Services.AddHostedService<MdnsDiscoveryService>();
 
 
-// Configure the SQLite connection
-builder.Services.AddDbContext<AppDbContext>();
+// Configure the PostgreSQL connection with Npgsql data source
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var dsb = new Npgsql.NpgsqlDataSourceBuilder(connectionString);
+dsb.MapComposite<Dim7>("dim7");           // works with record struct
+var dataSource = dsb.Build();
+
+builder.Services.AddDbContext<AppDbContext>(options => 
+    options.UseNpgsql(dataSource));
 
 // JWT
 var jwtIssuer = builder.Configuration["Authentication:Schemes:Bearer:Issuer"];

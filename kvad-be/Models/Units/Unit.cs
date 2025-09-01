@@ -1,0 +1,59 @@
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
+using Utils.Math.Types;
+using Microsoft.EntityFrameworkCore;
+
+
+public interface IUnitFactory
+{
+    Unit CreateUnit(string symbol, string name, string? definition, string quantity, Dim7 dimension);
+}
+
+public abstract class Unit
+{
+    [Key]
+    public required string Symbol { get; set; }
+    public required string Name { get; set; }
+    public string Quantity { get; set; } = "";
+    public Dim7 Dimension { get; set; } = new Dim7();
+    public bool Prefixable { get; set; } = true;
+    public string? Definition { get; set; } = null;
+    public UnitHasCanonicalPart[] CanonicalParts { get; set; } = Array.Empty<UnitHasCanonicalPart>();
+
+
+    public static Unit CreateUnit(string Symbol, string Name, string? Definition, string Quantity, Dim7 Dimension)
+    {
+        return new LinearUnit
+        {
+            Symbol = Symbol,
+            Name = Name,
+            Definition = Definition,
+            Quantity = Quantity,
+            Dimension = Dimension,
+            Factor = new Rational(1, 1) // Set default Factor value
+        };
+    }
+
+}
+
+public class LinearUnit : Unit
+{
+    public required Rational Factor { get; set; } = Rational.One;
+}
+
+public class AffineUnit : Unit
+{
+    public required Rational Factor { get; set; } = Rational.One;
+    public required decimal Offset { get; set; }
+}
+
+public class LogarithmicUnit : Unit
+{
+    public required Rational LogK { get; set; } = Rational.One;
+    public required Rational LogRef { get; set; } = Rational.One;
+    public required string LogBase { get; set; } = "";
+}
+
+
