@@ -1,6 +1,7 @@
 
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using kvad_be.Database;
 
 public class UserService{
 

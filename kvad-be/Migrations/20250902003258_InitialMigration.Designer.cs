@@ -9,14 +9,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using kvad_be.Database;
 
 #nullable disable
 
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250901221540_Initial")]
-    partial class Initial
+    [Migration("20250902003258_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -701,14 +702,6 @@ namespace kvad_be.Migrations
                     b.Property<string>("Definition")
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("Dimension")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.Property<byte[]>("Factor")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -741,10 +734,6 @@ namespace kvad_be.Migrations
 
                     b.Property<string>("PartSymbol")
                         .HasColumnType("text");
-
-                    b.Property<byte[]>("Exponent")
-                        .IsRequired()
-                        .HasColumnType("bytea");
 
                     b.HasKey("UnitSymbol", "PartSymbol");
 
@@ -1122,8 +1111,6 @@ namespace kvad_be.Migrations
                         new
                         {
                             Symbol = "m",
-                            Dimension = new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                            Factor = new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
                             Name = "Meter",
                             Prefixable = true,
                             Quantity = "Length"
@@ -1131,8 +1118,6 @@ namespace kvad_be.Migrations
                         new
                         {
                             Symbol = "kg",
-                            Dimension = new byte[] { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                            Factor = new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
                             Name = "Kilogram",
                             Prefixable = true,
                             Quantity = "Mass"
@@ -1140,8 +1125,6 @@ namespace kvad_be.Migrations
                         new
                         {
                             Symbol = "s",
-                            Dimension = new byte[] { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-                            Factor = new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
                             Name = "Second",
                             Prefixable = true,
                             Quantity = "Time"
@@ -1149,8 +1132,6 @@ namespace kvad_be.Migrations
                         new
                         {
                             Symbol = "A",
-                            Dimension = new byte[] { 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
-                            Factor = new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
                             Name = "Ampere",
                             Prefixable = true,
                             Quantity = "Electric Current"
@@ -1158,8 +1139,6 @@ namespace kvad_be.Migrations
                         new
                         {
                             Symbol = "K",
-                            Dimension = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
-                            Factor = new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
                             Name = "Kelvin",
                             Prefixable = true,
                             Quantity = "Temperature"
@@ -1167,8 +1146,6 @@ namespace kvad_be.Migrations
                         new
                         {
                             Symbol = "mol",
-                            Dimension = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0 },
-                            Factor = new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
                             Name = "Mole",
                             Prefixable = true,
                             Quantity = "Amount of Substance"
@@ -1176,8 +1153,6 @@ namespace kvad_be.Migrations
                         new
                         {
                             Symbol = "cd",
-                            Dimension = new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0 },
-                            Factor = new byte[] { 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0 },
                             Name = "Candela",
                             Prefixable = true,
                             Quantity = "Luminous Intensity"
@@ -1191,14 +1166,6 @@ namespace kvad_be.Migrations
                     b.Property<string>("LogBase")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<byte[]>("LogK")
-                        .IsRequired()
-                        .HasColumnType("bytea");
-
-                    b.Property<byte[]>("LogRef")
-                        .IsRequired()
-                        .HasColumnType("bytea");
 
                     b.HasDiscriminator().HasValue("log");
                 });

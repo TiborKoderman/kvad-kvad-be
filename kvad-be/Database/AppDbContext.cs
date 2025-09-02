@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using kvad_be.Extensions.PostgresComposite;
 
+namespace kvad_be.Database;
+
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)

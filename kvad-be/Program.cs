@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics;
 using Npgsql;
+using kvad_be.Database;
 
 
 var builder = WebApplication.CreateBuilder(args);

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using kvad_be.Database;
 
 public class GroupService(AppDbContext context, ILogger<GroupService> logger)
 {

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using kvad_be.Database;
 
 [DbContext(typeof(AppDbContext))]
 [Migration("00000000000000_CreatePgTypes")]

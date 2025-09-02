@@ -1,3 +1,5 @@
+using kvad_be.Database;
+
 public class MenuService
 {
     private readonly AppDbContext _context;
