@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
-[Authorize (Roles = "Admin")]
+[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
 public class HelloWorldController : Controller
 {
@@ -11,5 +11,5 @@ public class HelloWorldController : Controller
     {
         return Task.FromResult<IActionResult>(Ok("Hello, World!"));
     }
-    
+
 }

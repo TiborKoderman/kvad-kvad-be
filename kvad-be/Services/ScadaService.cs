@@ -21,7 +21,7 @@ public class ScadaService
     {
         return await _context.ScadaObjectTemplates.FindAsync(id);
     }
-    
+
     public async Task DeleteScadaObjectTemplate(Guid id)
     {
         var template = await GetScadaObjectTemplateById(id);

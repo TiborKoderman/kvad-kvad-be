@@ -8,7 +8,7 @@ public class TagCurr
 {
     public required Guid DeviceId { get; set; }
     public required string TagId { get; set; }
-    
+
     [ForeignKey("DeviceId,TagId")]
     public required Tag Tag { get; set; }
     public required DateTime Timestamp { get; set; }

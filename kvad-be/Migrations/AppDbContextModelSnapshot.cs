@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Net.NetworkInformation;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using ;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -700,12 +699,13 @@ namespace kvad_be.Migrations
                     b.Property<string>("Definition")
                         .HasColumnType("text");
 
-                    b.Property<Dim7>("Dimension")
+                    b.Property<byte[]>("Dimension")
                         .IsRequired()
-                        .HasColumnType("jsonb");
+                        .HasColumnType("bytea");
 
-                    b.Property<Rational>("Factor")
-                        .HasColumnType("jsonb");
+                    b.Property<byte[]>("Factor")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -740,8 +740,9 @@ namespace kvad_be.Migrations
                     b.Property<string>("PartSymbol")
                         .HasColumnType("text");
 
-                    b.Property<Rational>("Exponent")
-                        .HasColumnType("jsonb");
+                    b.Property<byte[]>("Exponent")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.HasKey("UnitSymbol", "PartSymbol");
 
@@ -1124,11 +1125,13 @@ namespace kvad_be.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Rational>("LogK")
-                        .HasColumnType("jsonb");
+                    b.Property<byte[]>("LogK")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
-                    b.Property<Rational>("LogRef")
-                        .HasColumnType("jsonb");
+                    b.Property<byte[]>("LogRef")
+                        .IsRequired()
+                        .HasColumnType("bytea");
 
                     b.HasDiscriminator().HasValue("log");
                 });

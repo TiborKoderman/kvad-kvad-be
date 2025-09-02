@@ -1,4 +1,5 @@
-public class Node {
+public class Node
+{
     public required Guid Id { get; set; }
     public required string Name { get; set; }
 

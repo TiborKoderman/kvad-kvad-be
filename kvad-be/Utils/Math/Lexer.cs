@@ -81,9 +81,9 @@ struct Lookup
     { "/", "/" }
 };
 
-  public Lookup()
-  {
-  }
+    public Lookup()
+    {
+    }
 }
 enum TokKind { Null, Delimiter, Number, Symbol, Unknown }
 

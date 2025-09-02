@@ -85,7 +85,7 @@ public class ChatController : ControllerBase
         await _chatService.AddChatMessage(chatMessage.ChatRoomId, user, chatMessage.Content);
         return Ok();
     }
-    
+
     [HttpDelete("deleteChatRoom/{id}")]
     public async Task<IActionResult> DeleteChatRoom(Guid id)
     {

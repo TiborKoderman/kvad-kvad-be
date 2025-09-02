@@ -1,9 +1,11 @@
 using System.Diagnostics;
 using System.Text.Json.Nodes;
 
-public class DockerService {
-    
-    public Task<JsonArray> listDockerContainers() {
+public class DockerService
+{
+
+    public Task<JsonArray> listDockerContainers()
+    {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -36,7 +38,8 @@ public class DockerService {
         return Task.FromResult(jsonArray);
     }
 
-    public Task<string> getContainerId(String containerName) {
+    public Task<string> getContainerId(String containerName)
+    {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -56,7 +59,8 @@ public class DockerService {
         return Task.FromResult(output.Trim());
     }
 
-    public Task<JsonNode> getContainerInfo(String containerId) {
+    public Task<JsonNode> getContainerInfo(String containerId)
+    {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -78,7 +82,8 @@ public class DockerService {
         return Task.FromResult<JsonNode>(jsonObject);
     }
 
-    public Task<JsonNode> getContainerLogs(String containerId) {
+    public Task<JsonNode> getContainerLogs(String containerId)
+    {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -103,7 +108,8 @@ public class DockerService {
         return Task.FromResult<JsonNode>(jsonObject);
     }
 
-    public Task<int> startContainer(String containerId) {
+    public Task<int> startContainer(String containerId)
+    {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -122,7 +128,8 @@ public class DockerService {
         return Task.FromResult(process.ExitCode);
     }
 
-    public Task<int> stopContainer(String containerId) {
+    public Task<int> stopContainer(String containerId)
+    {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -141,7 +148,8 @@ public class DockerService {
         return Task.FromResult(process.ExitCode);
     }
 
-    public Task<int> restartContainer(String containerId) {
+    public Task<int> restartContainer(String containerId)
+    {
         var process = new Process
         {
             StartInfo = new ProcessStartInfo

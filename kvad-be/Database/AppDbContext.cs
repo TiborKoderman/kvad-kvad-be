@@ -43,10 +43,12 @@ public class AppDbContext : DbContext
     {
         // Configure composite types explicitly for now
         configurationBuilder.Properties<Rational>()
-         .HaveColumnType("jsonb");
+        .HaveConversion<Rational.BytesConverter>()
+         .HaveColumnType("bytea");
 
         configurationBuilder.Properties<Dim7>()
-         .HaveColumnType("jsonb");
+        .HaveConversion<Dim7.BytesConverter>()
+         .HaveColumnType("bytea");
 
         // TODO: Use automatic mapping once design-time issues are resolved
         // configurationBuilder.MapAllCompositeTypes();

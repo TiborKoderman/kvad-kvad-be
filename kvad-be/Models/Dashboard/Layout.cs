@@ -17,7 +17,7 @@ public class Layout
     public int? ParentId { get; set; } = null;
     public Layout[]? Children { get; set; } = null;
     public Widget? Widget { get; set; } = null;
-}       
+}
 
 public enum enumDirection
 {

@@ -5,22 +5,22 @@ public sealed class Dim7
 {
     // Auto-inferred: field name = "L", type = "SMALLINT"
     public short L { get; }
-    
+
     // Auto-inferred: field name = "M", type = "SMALLINT"
     public short M { get; }
-    
+
     // Auto-inferred: field name = "T", type = "SMALLINT"
     public short T { get; }
-    
+
     // Auto-inferred: field name = "I", type = "SMALLINT"
     public short I { get; }
-    
+
     // Explicit override example - field name "Th", type "SMALLINT"
     public short Th { get; }
-    
+
     // Auto-inferred: field name = "N", type = "SMALLINT"
     public short N { get; }
-    
+
     // Auto-inferred: field name = "J", type = "SMALLINT"
     public short J { get; }
 

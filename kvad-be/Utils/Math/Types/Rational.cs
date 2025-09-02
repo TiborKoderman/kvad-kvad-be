@@ -5,7 +5,7 @@ public readonly struct Rational
 {
     // Auto-inferred: field name = "Numerator", type = "BIGINT"
     public long Numerator { get; }
-    
+
     // Auto-inferred: field name = "Denominator", type = "BIGINT"
     public long Denominator { get; }
 

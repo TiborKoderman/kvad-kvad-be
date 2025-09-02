@@ -1,7 +1,8 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.NetworkInformation;
 using System.Text.Json.Serialization;
-public class Device {
+public class Device
+{
     public required Guid Id { get; set; }
     public PhysicalAddress? Mac { get; set; } = null!;
     public required string Name { get; set; }

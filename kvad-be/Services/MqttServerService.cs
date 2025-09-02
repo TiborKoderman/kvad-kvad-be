@@ -127,7 +127,7 @@ public class MqttServerService : BackgroundService
         return sessions.ToList();
     }
 
-    
+
 }
 
 public class ConsoleLogger : IMqttNetLogger

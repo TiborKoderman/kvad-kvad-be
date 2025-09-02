@@ -18,10 +18,11 @@ public class UserMiddleware
         {
             context.Items["User"] = await authService.GetUserById(userId);
         }
-        else{
+        else
+        {
             context.Items["User"] = null;
         }
-        
+
         await _next(context);
     }
 }

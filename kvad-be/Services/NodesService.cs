@@ -1,7 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using kvad_be.Database;
 
-public class NodesService{
+public class NodesService
+{
 
     private readonly AppDbContext _context;
 
@@ -86,5 +87,5 @@ public class NodesService{
 
 
 
-    
+
 }

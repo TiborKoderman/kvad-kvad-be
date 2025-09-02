@@ -16,7 +16,7 @@ public static class DbContextConfiguration
         // Use the same data source factory that runtime uses
         var dataSource = PostgresDataSourceFactory.Create(connectionString);
         optionsBuilder.UseNpgsql(dataSource);
-        
+
         // Add any other common configuration here
         // optionsBuilder.EnableSensitiveDataLogging(); // For development only
         // optionsBuilder.LogTo(Console.WriteLine); // For development only
@@ -63,7 +63,7 @@ public static class DbContextConfiguration
         {
             var dataSource = serviceProvider.GetRequiredService<NpgsqlDataSource>();
             options.UseNpgsql(dataSource);
-            
+
             // Add any environment-specific configuration
             var environment = serviceProvider.GetService<IWebHostEnvironment>();
             if (environment?.IsDevelopment() == true)
