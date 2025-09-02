@@ -1,6 +1,8 @@
 // Infrastructure/Postgres/PostgresDataSourceFactory.cs
 using Npgsql;
 
+namespace kvad_be.Database;
+
 public static class PostgresDataSourceFactory
 {
     public static NpgsqlDataSource Create(string connectionString)

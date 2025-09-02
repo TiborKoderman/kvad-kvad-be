@@ -325,6 +325,10 @@ public class AppDbContext : DbContext
 
         );
 
+        // TODO: Temporarily commented out for migration generation
+        // The LinearUnit seed data contains Dim7 objects which can't be serialized to migration code
+        // Re-enable this after setting up proper type mapping code generation
+        /*
         modelBuilder.Entity<LinearUnit>().HasData(
             IUnitFactory.CreateUnit("m", "Meter", "Length", new Dim7(1, 0, 0, 0, 0, 0, 0), null),
             IUnitFactory.CreateUnit("kg", "Kilogram", "Mass", new Dim7(0, 1, 0, 0, 0, 0, 0), null),
@@ -334,6 +338,7 @@ public class AppDbContext : DbContext
             IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", new Dim7(0, 0, 0, 0, 0, 1, 0), null),
             IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", new Dim7(0, 0, 0, 0, 0, 0, 1), null)
         );
+        */
     }
 
 

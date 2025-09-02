@@ -83,8 +83,8 @@ builder.Services.AddHostedService<MdnsDiscoveryService>();
 
 
 
-// Configure the PostgreSQL connection with Npgsql data source
-builder.Services.AddPostgresInfrastructure(builder.Configuration);
+// Configure the PostgreSQL connection with single source of truth
+builder.Services.AddAppDbContext(builder.Configuration);
 
 // JWT
 var jwtIssuer = builder.Configuration["Authentication:Schemes:Bearer:Issuer"];
