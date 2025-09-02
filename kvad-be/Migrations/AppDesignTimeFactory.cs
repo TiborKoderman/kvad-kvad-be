@@ -25,7 +25,9 @@ public sealed class AppDesignTimeFactory : IDesignTimeDbContextFactory<AppDbCont
     {
         var dsb = new NpgsqlDataSourceBuilder(cs);
         
-        // Apply composite type mappings for production
+        // Disable composite type mappings for design-time compatibility
+        // Enable PostgresTypeMappings.Apply(dsb) for production
+        /*
         try
         {
             PostgresTypeMappings.Apply(dsb);
@@ -34,6 +36,7 @@ public sealed class AppDesignTimeFactory : IDesignTimeDbContextFactory<AppDbCont
         {
             Console.WriteLine($"Warning: Could not apply composite type mappings: {ex.Message}");
         }
+        */
         
         var ds = dsb.Build();
 

@@ -14,5 +14,6 @@ public class UnitCanonicalPart
   public required string PartSymbol { get; set; }
   public Unit Part { get; set; } = default!;
 
+  [NotMapped] // For design-time compatibility - remove in production
   public required Rational Exponent { get; set; } = Rational.One;
 }
