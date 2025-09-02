@@ -699,13 +699,13 @@ namespace kvad_be.Migrations
                     b.Property<string>("Definition")
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("Dimension")
+                    b.PrimitiveCollection<short[]>("Dimension")
                         .IsRequired()
-                        .HasColumnType("bytea");
+                        .HasColumnType("smallint[]");
 
-                    b.Property<byte[]>("Factor")
+                    b.Property<long[]>("Factor")
                         .IsRequired()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bigint[]");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -740,9 +740,9 @@ namespace kvad_be.Migrations
                     b.Property<string>("PartSymbol")
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("Exponent")
+                    b.Property<long[]>("Exponent")
                         .IsRequired()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bigint[]");
 
                     b.HasKey("UnitSymbol", "PartSymbol");
 
@@ -1125,13 +1125,13 @@ namespace kvad_be.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<byte[]>("LogK")
+                    b.Property<long[]>("LogK")
                         .IsRequired()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bigint[]");
 
-                    b.Property<byte[]>("LogRef")
+                    b.Property<long[]>("LogRef")
                         .IsRequired()
-                        .HasColumnType("bytea");
+                        .HasColumnType("bigint[]");
 
                     b.HasDiscriminator().HasValue("log");
                 });

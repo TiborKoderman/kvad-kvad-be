@@ -69,30 +69,62 @@ public readonly struct Rational
     public override string ToString() => $"{Numerator}/{Denominator}";
 
 
-    public sealed class BytesConverter : ValueConverter<Rational, byte[]>
+    public sealed class LongArrayConverter : ValueConverter<Rational, long[]>
     {
-        public BytesConverter() : base(
-            v => ToBytes(v),
-            v => FromBytes(v)
+        public LongArrayConverter() : base(
+            v => ToLongArray(v),
+            v => FromLongArray(v)
         )
         { }
-        public static byte[] ToBytes(Rational v)
+
+        public static long[] ToLongArray(Rational v)
         {
-            var b = new byte[16];
-            System.Buffers.Binary.BinaryPrimitives.WriteInt64LittleEndian(b.AsSpan(0, 8), v.Numerator);
-            System.Buffers.Binary.BinaryPrimitives.WriteInt64LittleEndian(b.AsSpan(8, 8), v.Denominator);
-            return b;
+            return new long[] { v.Numerator, v.Denominator };
         }
 
-        public static Rational FromBytes(byte[] b)
+        public static Rational FromLongArray(long[] arr)
         {
-            var num = System.Buffers.Binary.BinaryPrimitives.ReadInt64LittleEndian(b.AsSpan(0, 8));
-            var den = System.Buffers.Binary.BinaryPrimitives.ReadInt64LittleEndian(b.AsSpan(8, 8));
-            if (den == 0) throw new DivideByZeroException();
-            return new(num, den);
+            if (arr == null || arr.Length != 2)
+                throw new ArgumentException("Array must contain exactly two elements.");
+            if (arr[1] == 0)
+                throw new DivideByZeroException();
+            return new Rational(arr[0], arr[1]);
         }
     }
 
+    public sealed class SerialConverter: ValueConverter<Rational, string>
+    {
+        public SerialConverter() : base(
+            v => ToString(v),
+            v => FromString(v))
+        { }
+
+        public static string ToString(Rational r)
+        {
+            return "ROW(" + r.Numerator + ", " + r.Denominator + ")";
+        }
+
+        public static Rational FromString(string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+                throw new ArgumentException("Input string cannot be null or empty.", nameof(s));
+
+            var parts = s.Split('/');
+            if (parts.Length != 2)
+                throw new FormatException("Input string must be in the format 'numerator/denominator'.");
+
+            if (!long.TryParse(parts[0], out long numerator))
+                throw new FormatException("Numerator is not a valid long integer.");
+
+            if (!long.TryParse(parts[1], out long denominator))
+                throw new FormatException("Denominator is not a valid long integer.");
+
+            if (denominator == 0)
+                throw new DivideByZeroException("Denominator cannot be zero.");
+
+            return new Rational(numerator, denominator);
+        }
+    }
 }
 
 

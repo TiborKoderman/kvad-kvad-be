@@ -41,17 +41,22 @@ public class AppDbContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        // Configure composite types explicitly for now
+        // Configure composite types to use JSONB for maximum compatibility
         configurationBuilder.Properties<Rational>()
-        .HaveConversion<Rational.BytesConverter>()
-         .HaveColumnType("bytea");
+            .HaveConversion<Rational.SerialConverter>()
+            .HaveColumnType("rational");
 
         configurationBuilder.Properties<Dim7>()
-        .HaveConversion<Dim7.BytesConverter>()
-         .HaveColumnType("bytea");
+            .HaveConversion<Dim7.ArrayConverter>()
+            .HaveColumnType("smallint[7]");
 
-        // TODO: Use automatic mapping once design-time issues are resolved
-        // configurationBuilder.MapAllCompositeTypes();
+        // Alternative: If you want binary storage instead of JSONB, use bytea:
+        // configurationBuilder.Properties<Rational>()
+        //     .HaveConversion<Rational.BytesConverter>()
+        //     .HaveColumnType("bytea");
+
+        // Note: PostgreSQL arrays (smallint[7]) are not directly supported by EF Core value converters
+        // Use JSONB for complex types instead - it's more flexible and widely supported
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -330,17 +335,17 @@ public class AppDbContext : DbContext
         // TODO: Temporarily commented out for migration generation
         // The LinearUnit seed data contains Dim7 objects which can't be serialized to migration code
         // Re-enable this after setting up proper type mapping code generation
-        /*
+        
         modelBuilder.Entity<LinearUnit>().HasData(
-            IUnitFactory.CreateUnit("m", "Meter", "Length", new Dim7(1, 0, 0, 0, 0, 0, 0), null),
-            IUnitFactory.CreateUnit("kg", "Kilogram", "Mass", new Dim7(0, 1, 0, 0, 0, 0, 0), null),
-            IUnitFactory.CreateUnit("s", "Second", "Time", new Dim7(0, 0, 1, 0, 0, 0, 0), null),
-            IUnitFactory.CreateUnit("A", "Ampere", "Electric Current", new Dim7(0, 0, 0, 1, 0, 0, 0), null),
-            IUnitFactory.CreateUnit("K", "Kelvin", "Temperature", new Dim7(0, 0, 0, 0, 1, 0, 0), null),
-            IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", new Dim7(0, 0, 0, 0, 0, 1, 0), null),
-            IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", new Dim7(0, 0, 0, 0, 0, 0, 1), null)
+            IUnitFactory.CreateUnit("m", "Meter", "Length", [1, 0, 0, 0, 0, 0, 0], null),
+            IUnitFactory.CreateUnit("kg", "Kilogram", "Mass", [0, 1, 0, 0, 0, 0, 0], null),
+            IUnitFactory.CreateUnit("s", "Second", "Time", [0, 0, 1, 0, 0, 0, 0], null),
+            IUnitFactory.CreateUnit("A", "Ampere", "Electric Current", [0, 0, 0, 1, 0, 0, 0], null),
+            IUnitFactory.CreateUnit("K", "Kelvin", "Temperature", [0, 0, 0, 0, 1, 0, 0], null),
+            IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", [0, 0, 0, 0, 0, 1, 0], null),
+            IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", [0, 0, 0, 0, 0, 0, 1], null)
         );
-        */
+        
     }
 
 

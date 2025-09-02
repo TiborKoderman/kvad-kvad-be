@@ -160,14 +160,14 @@ namespace kvad_be.Migrations
                     Symbol = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Quantity = table.Column<string>(type: "text", nullable: false),
-                    Dimension = table.Column<byte[]>(type: "bytea", nullable: false),
+                    Dimension = table.Column<short[]>(type: "smallint[]", nullable: false),
                     Prefixable = table.Column<bool>(type: "boolean", nullable: false),
                     Definition = table.Column<string>(type: "text", nullable: true),
-                    Factor = table.Column<byte[]>(type: "bytea", nullable: false),
+                    Factor = table.Column<long[]>(type: "bigint[]", nullable: false),
                     UnitKind = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
                     Offset = table.Column<decimal>(type: "numeric", nullable: true),
-                    LogK = table.Column<byte[]>(type: "bytea", nullable: true),
-                    LogRef = table.Column<byte[]>(type: "bytea", nullable: true),
+                    LogK = table.Column<long[]>(type: "bigint[]", nullable: true),
+                    LogRef = table.Column<long[]>(type: "bigint[]", nullable: true),
                     LogBase = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
@@ -217,7 +217,7 @@ namespace kvad_be.Migrations
                 {
                     UnitSymbol = table.Column<string>(type: "text", nullable: false),
                     PartSymbol = table.Column<string>(type: "text", nullable: false),
-                    Exponent = table.Column<byte[]>(type: "bytea", nullable: false)
+                    Exponent = table.Column<long[]>(type: "bigint[]", nullable: false)
                 },
                 constraints: table =>
                 {

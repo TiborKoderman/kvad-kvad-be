@@ -12,11 +12,11 @@ public interface IUnitFactory
             Name = Name,
             Definition = Definition,
             Quantity = Quantity,
-            Dimension = new Dim7(0, 0, 0, 0, 0, 0, 0),
+            Dimension = [0, 0, 0, 0, 0, 0, 0],
             Factor = new Rational(1, 1) // Set default Factor value
         };
     }
-    public static Unit CreateUnit(string Symbol, string Name, string Quantity, Dim7 Dimension, string? Definition, bool Prefixable = true)
+    public static Unit CreateUnit(string Symbol, string Name, string Quantity, short[] Dimension, string? Definition, bool Prefixable = true)
     {
         return new LinearUnit
         {
@@ -38,7 +38,7 @@ public abstract class Unit
     public required string Name { get; set; }
     public string Quantity { get; set; } = "";
 
-    public Dim7 Dimension { get; set; } = new(0, 0, 0, 0, 0, 0, 0);
+    public short[] Dimension { get; set; } = new short[7];
     public bool Prefixable { get; set; } = true;
     public string? Definition { get; set; } = null;
 

@@ -10,7 +10,7 @@ public static class PostgresDataSourceFactory
         var dsb = new NpgsqlDataSourceBuilder(connectionString);
 
         // Your custom mappings in one place:
-        // PostgresTypeMappings.Apply(dsb);
+        PostgresTypeMappings.Apply(dsb);
 
         // ADO (Npgsql) dynamic JSON mapping:
         dsb.EnableDynamicJson();
