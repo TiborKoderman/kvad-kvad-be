@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using kvad_be.Extensions.PostgresComposite;
 
 namespace kvad_be.Database;
 
@@ -44,10 +43,10 @@ public class AppDbContext : DbContext
     {
         // Configure composite types explicitly for now
         configurationBuilder.Properties<Rational>()
-         .HaveColumnType("rational");
+         .HaveColumnType("jsonb");
 
         configurationBuilder.Properties<Dim7>()
-         .HaveColumnType("dim7");
+         .HaveColumnType("jsonb");
 
         // TODO: Use automatic mapping once design-time issues are resolved
         // configurationBuilder.MapAllCompositeTypes();

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 using kvad_be.Database;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 public static class ServiceCollectionExtensions
 {
@@ -15,17 +16,19 @@ public static class ServiceCollectionExtensions
         var cs = config.GetConnectionString("DefaultConnection")
                  ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+        services.TryAddEnumerable(
+        ServiceDescriptor.Singleton<IRelationalTypeMappingSourcePlugin, PgCompositeMappingPlugin>());
+
         services.AddSingleton(_ =>
         {
-            var dsb = new NpgsqlDataSourceBuilder(cs);
-            PostgresTypeMappings.Apply(dsb);
-            dsb.EnableDynamicJson();
-            return dsb.Build(); // DO NOT dispose; DI owns it
+            return PostgresDataSourceFactory.Create(cs);
         });
+
 
         services.AddDbContext<AppDbContext>((sp, opt) =>
         {
-            opt.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>());
+                        var dataSource = sp.GetRequiredService<NpgsqlDataSource>();
+            opt.UseNpgsql(dataSource); // <-- EF-sid
         });
 
         return services;

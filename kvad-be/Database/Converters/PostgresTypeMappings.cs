@@ -1,6 +1,5 @@
 // Infrastructure/Postgres/PostgresTypeMappings.cs
 using Npgsql;
-using kvad_be.Extensions.PostgresComposite;
 
 public static class PostgresTypeMappings
 {
