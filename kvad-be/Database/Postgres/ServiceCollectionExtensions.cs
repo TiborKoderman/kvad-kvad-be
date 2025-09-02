@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
         {
             var dsb = new NpgsqlDataSourceBuilder(cs);
             PostgresTypeMappings.Apply(dsb);
+            dsb.EnableDynamicJson();
             return dsb.Build(); // DO NOT dispose; DI owns it
         });
 

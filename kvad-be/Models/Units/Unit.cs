@@ -38,13 +38,11 @@ public abstract class Unit
     public required string Name { get; set; }
     public string Quantity { get; set; } = "";
     
-    [NotMapped] // For design-time compatibility - remove in production
-    public Dim7 Dimension { get; set; } = Dim7.Zero;
+    public Dim7 Dimension { get; set; } = new (0,0,0,0,0,0,0);
     public bool Prefixable { get; set; } = true;
     public string? Definition { get; set; } = null;
     
-    [NotMapped] // For design-time compatibility - remove in production
-    public required Rational Factor { get; set; } = Rational.One;
+    public required Rational Factor { get; set; } = new (1,1);
 
     [InverseProperty(nameof(UnitCanonicalPart.Unit))]
     public UnitCanonicalPart[] CanonicalParts { get; set; } = [];
@@ -67,11 +65,9 @@ public class AffineUnit : Unit
 
 public class LogarithmicUnit : Unit
 {
-    [NotMapped] // For design-time compatibility - remove in production
-    public required Rational LogK { get; set; } = Rational.One;
+    public required Rational LogK { get; set; } = new (1,1);
     
-    [NotMapped] // For design-time compatibility - remove in production
-    public required Rational LogRef { get; set; } = Rational.One;
+    public required Rational LogRef { get; set; } = new (1,1);
     public required string LogBase { get; set; } = "";
 }
 
