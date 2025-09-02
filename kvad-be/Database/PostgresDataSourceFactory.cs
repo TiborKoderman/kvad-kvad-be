@@ -9,9 +9,10 @@ public static class PostgresDataSourceFactory
     {
         var dsb = new NpgsqlDataSourceBuilder(connectionString);
 
-        // Your custom mappings in one place:
-        PostgresTypeMappings.Apply(dsb);
-
+        // Map composite types to match the PostgreSQL schema
+        dsb.MapComposite<Rational>("rational");
+        dsb.MapComposite<Dim7>("dim7");
+        
         // ADO (Npgsql) dynamic JSON mapping:
         dsb.EnableDynamicJson();
 

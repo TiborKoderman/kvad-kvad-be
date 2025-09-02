@@ -12,16 +12,13 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using kvad_be.Database;
 
 #nullable disable
-
-namespace kvad_be.Migrations
+[DbContext(typeof(AppDbContext))]
+[Migration("20250902132240_Initial")]
+partial class Initial
 {
-    [DbContext(typeof(AppDbContext))]
-    [Migration("20250902094319_Initial")]
-    partial class Initial
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.8")
@@ -706,9 +703,9 @@ namespace kvad_be.Migrations
                         .IsRequired()
                         .HasColumnType("smallint[]");
 
-                    b.Property<long[]>("Factor")
+                    b.Property<string>("Factor")
                         .IsRequired()
-                        .HasColumnType("bigint[]");
+                        .HasColumnType("rational");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -743,9 +740,9 @@ namespace kvad_be.Migrations
                     b.Property<string>("PartSymbol")
                         .HasColumnType("text");
 
-                    b.Property<long[]>("Exponent")
+                    b.Property<string>("Exponent")
                         .IsRequired()
-                        .HasColumnType("bigint[]");
+                        .HasColumnType("rational");
 
                     b.HasKey("UnitSymbol", "PartSymbol");
 
@@ -1118,6 +1115,71 @@ namespace kvad_be.Migrations
                     b.HasBaseType("Unit");
 
                     b.HasDiscriminator().HasValue("linear");
+
+                    b.HasData(
+                        new
+                        {
+                            Symbol = "m",
+                            Dimension = new[] { (short)1, (short)0, (short)0, (short)0, (short)0, (short)0, (short)0 },
+                            Factor = "ROW(1, 1)",
+                            Name = "Meter",
+                            Prefixable = true,
+                            Quantity = "Length"
+                        },
+                        new
+                        {
+                            Symbol = "kg",
+                            Dimension = new[] { (short)0, (short)1, (short)0, (short)0, (short)0, (short)0, (short)0 },
+                            Factor = "ROW(1, 1)",
+                            Name = "Kilogram",
+                            Prefixable = true,
+                            Quantity = "Mass"
+                        },
+                        new
+                        {
+                            Symbol = "s",
+                            Dimension = new[] { (short)0, (short)0, (short)1, (short)0, (short)0, (short)0, (short)0 },
+                            Factor = "ROW(1, 1)",
+                            Name = "Second",
+                            Prefixable = true,
+                            Quantity = "Time"
+                        },
+                        new
+                        {
+                            Symbol = "A",
+                            Dimension = new[] { (short)0, (short)0, (short)0, (short)1, (short)0, (short)0, (short)0 },
+                            Factor = "ROW(1, 1)",
+                            Name = "Ampere",
+                            Prefixable = true,
+                            Quantity = "Electric Current"
+                        },
+                        new
+                        {
+                            Symbol = "K",
+                            Dimension = new[] { (short)0, (short)0, (short)0, (short)0, (short)1, (short)0, (short)0 },
+                            Factor = "ROW(1, 1)",
+                            Name = "Kelvin",
+                            Prefixable = true,
+                            Quantity = "Temperature"
+                        },
+                        new
+                        {
+                            Symbol = "mol",
+                            Dimension = new[] { (short)0, (short)0, (short)0, (short)0, (short)0, (short)1, (short)0 },
+                            Factor = "ROW(1, 1)",
+                            Name = "Mole",
+                            Prefixable = true,
+                            Quantity = "Amount of Substance"
+                        },
+                        new
+                        {
+                            Symbol = "cd",
+                            Dimension = new[] { (short)0, (short)0, (short)0, (short)0, (short)0, (short)0, (short)1 },
+                            Factor = "ROW(1, 1)",
+                            Name = "Candela",
+                            Prefixable = true,
+                            Quantity = "Luminous Intensity"
+                        });
                 });
 
             modelBuilder.Entity("LogarithmicUnit", b =>
@@ -1128,13 +1190,13 @@ namespace kvad_be.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<long[]>("LogK")
+                    b.Property<string>("LogK")
                         .IsRequired()
-                        .HasColumnType("bigint[]");
+                        .HasColumnType("rational");
 
-                    b.Property<long[]>("LogRef")
+                    b.Property<string>("LogRef")
                         .IsRequired()
-                        .HasColumnType("bigint[]");
+                        .HasColumnType("rational");
 
                     b.HasDiscriminator().HasValue("log");
                 });
@@ -1426,4 +1488,3 @@ namespace kvad_be.Migrations
 #pragma warning restore 612, 618
         }
     }
-}

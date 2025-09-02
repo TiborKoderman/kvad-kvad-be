@@ -1,4 +1,5 @@
 using System.Numerics;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public readonly struct Rational

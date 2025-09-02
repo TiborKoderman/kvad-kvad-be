@@ -41,22 +41,20 @@ public class AppDbContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        // Configure composite types to use JSONB for maximum compatibility
+        // Configure composite types to use PostgreSQL composite types
+        // When using composite types, Npgsql handles the conversion automatically
+        // so we don't need value converters
         configurationBuilder.Properties<Rational>()
-            .HaveConversion<Rational.SerialConverter>()
             .HaveColumnType("rational");
 
         configurationBuilder.Properties<Dim7>()
-            .HaveConversion<Dim7.ArrayConverter>()
-            .HaveColumnType("smallint[7]");
+            .HaveColumnType("dim7");
 
-        // Alternative: If you want binary storage instead of JSONB, use bytea:
+        // Alternative: Use JSONB for maximum compatibility
         // configurationBuilder.Properties<Rational>()
-        //     .HaveConversion<Rational.BytesConverter>()
-        //     .HaveColumnType("bytea");
-
-        // Note: PostgreSQL arrays (smallint[7]) are not directly supported by EF Core value converters
-        // Use JSONB for complex types instead - it's more flexible and widely supported
+        //     .HaveColumnType("jsonb");
+        // configurationBuilder.Properties<Dim7>()
+        //     .HaveColumnType("jsonb");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
