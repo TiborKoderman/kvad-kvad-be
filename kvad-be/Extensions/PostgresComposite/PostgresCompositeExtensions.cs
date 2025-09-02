@@ -55,26 +55,42 @@ public static class PostgresCompositeExtensions
     /// </summary>
     public static NpgsqlDataSourceBuilder MapAllCompositeTypes(this NpgsqlDataSourceBuilder builder, Assembly? assembly = null)
     {
-        assembly ??= Assembly.GetCallingAssembly();
-        
-        var compositeTypes = assembly.GetTypes()
-            .Where(t => t.GetCustomAttribute<PgCompositeTypeAttribute>() != null);
-
-        foreach (var type in compositeTypes)
+        try
         {
-            var compositeInfo = PgCompositeRelationalTypeMapping.GetOrCreateCompositeInfo(type);
+            assembly ??= Assembly.GetCallingAssembly();
             
-            // Create a method info for the generic MapComposite method
-            var mapCompositeMethod = typeof(NpgsqlDataSourceBuilder)
-                .GetMethods()
-                .Where(m => m.Name == "MapComposite" && m.IsGenericMethodDefinition)
-                .FirstOrDefault(m => m.GetParameters().Length == 2);
+            var compositeTypes = assembly.GetTypes()
+                .Where(t => t.GetCustomAttribute<PgCompositeTypeAttribute>() != null);
 
-            if (mapCompositeMethod != null)
+            foreach (var type in compositeTypes)
             {
-                var genericMethod = mapCompositeMethod.MakeGenericMethod(type);
-                genericMethod.Invoke(builder, new object[] { compositeInfo.TypeName });
+                try
+                {
+                    var compositeInfo = PgCompositeRelationalTypeMapping.GetOrCreateCompositeInfo(type);
+                    
+                    // Create a method info for the generic MapComposite method
+                    var mapCompositeMethod = typeof(NpgsqlDataSourceBuilder)
+                        .GetMethods()
+                        .Where(m => m.Name == "MapComposite" && m.IsGenericMethodDefinition)
+                        .FirstOrDefault(m => m.GetParameters().Length == 2);
+
+                    if (mapCompositeMethod != null)
+                    {
+                        var genericMethod = mapCompositeMethod.MakeGenericMethod(type);
+                        genericMethod.Invoke(builder, new object[] { compositeInfo.TypeName });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log warning but don't fail the entire operation
+                    Console.WriteLine($"Warning: Failed to map composite type {type.Name}: {ex.Message}");
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            // Log warning but don't fail the entire operation
+            Console.WriteLine($"Warning: Failed to discover composite types: {ex.Message}");
         }
 
         return builder;
@@ -85,14 +101,30 @@ public static class PostgresCompositeExtensions
     /// </summary>
     public static ModelConfigurationBuilder MapAllCompositeTypes(this ModelConfigurationBuilder builder, Assembly? assembly = null)
     {
-        assembly ??= Assembly.GetCallingAssembly();
-        
-        var compositeTypes = assembly.GetTypes()
-            .Where(t => t.GetCustomAttribute<PgCompositeTypeAttribute>() != null);
-
-        foreach (var type in compositeTypes)
+        try
         {
-            MapCompositeType(builder, type);
+            assembly ??= Assembly.GetCallingAssembly();
+            
+            var compositeTypes = assembly.GetTypes()
+                .Where(t => t.GetCustomAttribute<PgCompositeTypeAttribute>() != null);
+
+            foreach (var type in compositeTypes)
+            {
+                try
+                {
+                    MapCompositeType(builder, type);
+                }
+                catch (Exception ex)
+                {
+                    // Log warning but don't fail the entire operation
+                    Console.WriteLine($"Warning: Failed to configure composite type {type.Name}: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log warning but don't fail the entire operation
+            Console.WriteLine($"Warning: Failed to discover composite types for EF configuration: {ex.Message}");
         }
 
         return builder;

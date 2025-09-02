@@ -6,11 +6,11 @@ public static class PostgresTypeMappings
 {
   public static void Apply(NpgsqlDataSourceBuilder dsb)
   {
-    // Use our new extension method to automatically map all composite types
-    dsb.MapAllCompositeTypes();
+    // Use explicit mapping for now to avoid design-time issues
+    dsb.MapComposite<Dim7>("dim7");
+    dsb.MapComposite<Rational>("rational");
     
-    // Or map individual types (legacy approach for compatibility)
-    // dsb.MapComposite<Dim7>("dim7");
-    // dsb.MapComposite<Rational>("rational");
+    // TODO: Use automatic mapping once design-time issues are resolved
+    // dsb.MapAllCompositeTypes();
   }
 }

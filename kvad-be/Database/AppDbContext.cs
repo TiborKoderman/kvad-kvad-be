@@ -40,17 +40,15 @@ public class AppDbContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        // Use our new extension to automatically configure all composite types
-        configurationBuilder.MapAllCompositeTypes();
+        // Configure composite types explicitly for now
+        configurationBuilder.Properties<Rational>()
+         .HaveColumnType("rational");
 
-        // Legacy manual configuration (can be removed)
-        // configurationBuilder.Properties<Rational>()
-        // //  .HaveConversion<Rational.BytesConverter>()
-        //  .HaveColumnType("rational");
+        configurationBuilder.Properties<Dim7>()
+         .HaveColumnType("dim7");
 
-        // configurationBuilder.Properties<Dim7>()
-        // //  .HaveConversion<Dim7.BytesConverter>()
-        //  .HaveColumnType("dim7");
+        // TODO: Use automatic mapping once design-time issues are resolved
+        // configurationBuilder.MapAllCompositeTypes();
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -58,10 +56,18 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
         .HasAlternateKey(u => u.Username);
 
-
-
         modelBuilder.Entity<ChatMessage>()
             .HasKey(cm => new { cm.ChatRoomId, cm.Id });
+
+        modelBuilder.Entity<Unit>(e =>
+        {
+            e.HasKey(x => x.Symbol);
+
+            e.HasDiscriminator<string>("UnitKind")
+             .HasValue<LinearUnit>("linear")
+             .HasValue<AffineUnit>("affine")
+             .HasValue<LogarithmicUnit>("log");
+        });
 
         modelBuilder.Entity<ChatMessage>()
             .Property(cm => cm.Id)
@@ -91,8 +97,7 @@ public class AppDbContext : DbContext
 
             e.HasDiscriminator<string>("UnitKind")
              .HasValue<LinearUnit>("linear")
-             .HasValue<AffineUnit>("affine")
-             .HasValue<LogarithmicUnit>("log");
+             .HasValue<AffineUnit>("affine");
         });
 
 

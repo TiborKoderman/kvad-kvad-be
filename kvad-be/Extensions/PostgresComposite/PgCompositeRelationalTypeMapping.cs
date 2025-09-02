@@ -90,47 +90,68 @@ public class PgCompositeRelationalTypeMapping : RelationalTypeMapping
 
     private static CompositeTypeInfo CreateCompositeInfo(Type clrType)
     {
-        var compositeAttr = clrType.GetCustomAttribute<PgCompositeTypeAttribute>()
-            ?? throw new InvalidOperationException($"Type {clrType.Name} must be decorated with [PgCompositeType] attribute");
-
-        var fields = new List<CompositeField>();
-        var properties = clrType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanRead && p.CanWrite);
-
-        foreach (var prop in properties)
+        try
         {
-            var fieldAttr = prop.GetCustomAttribute<PgCompositeFieldAttribute>();
-            var fieldName = fieldAttr?.FieldName ?? prop.Name; // Use property name if not explicitly set
-            var pgType = fieldAttr?.PgType ?? InferPostgresType(prop.PropertyType); // Auto-infer type if not set
-            
-            fields.Add(new CompositeField(fieldName, prop.PropertyType, pgType, prop));
+            var compositeAttr = clrType.GetCustomAttribute<PgCompositeTypeAttribute>()
+                ?? throw new InvalidOperationException($"Type {clrType.Name} must be decorated with [PgCompositeType] attribute");
+
+            var fields = new List<CompositeField>();
+            var properties = clrType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.CanRead && p.CanWrite);
+
+            foreach (var prop in properties)
+            {
+                try
+                {
+                    var fieldAttr = prop.GetCustomAttribute<PgCompositeFieldAttribute>();
+                    var fieldName = fieldAttr?.FieldName ?? prop.Name; // Use property name if not explicitly set
+                    var pgType = fieldAttr?.PgType ?? InferPostgresType(prop.PropertyType); // Auto-infer type if not set
+                    
+                    fields.Add(new CompositeField(fieldName, prop.PropertyType, pgType, prop));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: Failed to process property {prop.Name} in type {clrType.Name}: {ex.Message}");
+                }
+            }
+
+            // Also check for fields (for structs)
+            var structFields = clrType.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            foreach (var field in structFields)
+            {
+                try
+                {
+                    // Skip if we already have a property with the same name
+                    if (fields.Any(f => f.PropertyInfo.Name.Equals(field.Name, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+
+                    var fieldAttr = field.GetCustomAttribute<PgCompositeFieldAttribute>();
+                    var fieldName = fieldAttr?.FieldName ?? field.Name; // Use field name if not explicitly set
+                    var pgType = fieldAttr?.PgType ?? InferPostgresType(field.FieldType); // Auto-infer type if not set
+                    
+                    // Create a fake PropertyInfo for fields (structs)
+                    var propInfo = new FieldPropertyInfo(field);
+                    fields.Add(new CompositeField(fieldName, field.FieldType, pgType, propInfo));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Warning: Failed to process field {field.Name} in type {clrType.Name}: {ex.Message}");
+                }
+            }
+
+            return new CompositeTypeInfo
+            {
+                ClrType = clrType,
+                TypeName = compositeAttr.TypeName,
+                Schema = compositeAttr.Schema,
+                AutoCreateType = compositeAttr.AutoCreateType,
+                Fields = fields
+            };
         }
-
-        // Also check for fields (for structs)
-        var structFields = clrType.GetFields(BindingFlags.Public | BindingFlags.Instance);
-        foreach (var field in structFields)
+        catch (Exception ex)
         {
-            // Skip if we already have a property with the same name
-            if (fields.Any(f => f.PropertyInfo.Name.Equals(field.Name, StringComparison.OrdinalIgnoreCase)))
-                continue;
-
-            var fieldAttr = field.GetCustomAttribute<PgCompositeFieldAttribute>();
-            var fieldName = fieldAttr?.FieldName ?? field.Name; // Use field name if not explicitly set
-            var pgType = fieldAttr?.PgType ?? InferPostgresType(field.FieldType); // Auto-infer type if not set
-            
-            // Create a fake PropertyInfo for fields (structs)
-            var propInfo = new FieldPropertyInfo(field);
-            fields.Add(new CompositeField(fieldName, field.FieldType, pgType, propInfo));
+            throw new InvalidOperationException($"Failed to create composite type info for {clrType.Name}: {ex.Message}", ex);
         }
-
-        return new CompositeTypeInfo
-        {
-            ClrType = clrType,
-            TypeName = compositeAttr.TypeName,
-            Schema = compositeAttr.Schema,
-            AutoCreateType = compositeAttr.AutoCreateType,
-            Fields = fields
-        };
     }
 
     /// <summary>
