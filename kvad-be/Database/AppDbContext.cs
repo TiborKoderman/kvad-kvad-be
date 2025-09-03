@@ -41,20 +41,18 @@ public class AppDbContext : DbContext
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        // Configure composite types to use PostgreSQL composite types
-        // When using composite types, Npgsql handles the conversion automatically
-        // so we don't need value converters
+        // Use JSONB for maximum compatibility between design-time and runtime
+        // This avoids issues with composite type mapping during migrations
         configurationBuilder.Properties<Rational>()
-            .HaveColumnType("rational");
+            .HaveColumnType("jsonb");
 
         configurationBuilder.Properties<Dim7>()
-            .HaveColumnType("dim7");
+            .HaveColumnType("jsonb");
 
-        // Alternative: Use JSONB for maximum compatibility
-        // configurationBuilder.Properties<Rational>()
-        //     .HaveColumnType("jsonb");
-        // configurationBuilder.Properties<Dim7>()
-        //     .HaveColumnType("jsonb");
+        // Note: If you want to use PostgreSQL composite types instead:
+        // 1. Ensure composite types are created in database first
+        // 2. Use value converters for design-time compatibility
+        // 3. Register type mapping plugins properly
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

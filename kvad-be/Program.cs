@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics;
 using Npgsql;
 using kvad_be.Database;
+using Microsoft.EntityFrameworkCore.Storage;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -81,6 +82,8 @@ builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttSe
 builder.Services.AddSingleton<MdnsService>();
 builder.Services.AddHostedService<MdnsDiscoveryService>();
 
+
+builder.Services.AddSingleton<IRelationalTypeMappingSourcePlugin, RationalTypeMappingPlugin>();
 
 
 // Configure the PostgreSQL connection with single source of truth

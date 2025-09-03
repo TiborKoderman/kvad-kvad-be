@@ -9,14 +9,14 @@ public static class PostgresDataSourceFactory
     {
         var dsb = new NpgsqlDataSourceBuilder(connectionString);
 
-        // Map composite types to match the PostgreSQL schema
-        dsb.MapComposite<Rational>("rational");
-        dsb.MapComposite<Dim7>("dim7");
-        
-        // ADO (Npgsql) dynamic JSON mapping:
+        // Enable dynamic JSON mapping for JSONB columns
         dsb.EnableDynamicJson();
 
-        // (Any other dsb config goes here)
+        // Note: Composite type mappings are commented out since we're using JSONB
+        // If you want to use composite types, uncomment these and ensure the types exist in DB:
+        // dsb.MapComposite<Rational>("rational");
+        // dsb.MapComposite<Dim7>("dim7");
+
         return dsb.Build();
     }
 }

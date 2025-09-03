@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Npgsql;
 
 namespace kvad_be.Database;
@@ -62,6 +65,7 @@ public static class DbContextConfiguration
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             var dataSource = serviceProvider.GetRequiredService<NpgsqlDataSource>();
+
             options.UseNpgsql(dataSource);
 
             // Add any environment-specific configuration
