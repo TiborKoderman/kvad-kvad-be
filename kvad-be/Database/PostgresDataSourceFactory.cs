@@ -11,6 +11,7 @@ public static class PostgresDataSourceFactory
 
         // Enable dynamic JSON mapping for JSONB columns
         dsb.EnableDynamicJson();
+        dsb.UseNodaTime();
 
         // Note: Composite type mappings are commented out since we're using JSONB
         // If you want to use composite types, uncomment these and ensure the types exist in DB:
