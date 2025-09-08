@@ -37,7 +37,6 @@ public class AppDbContext : DbContext
 
     public DbSet<TagSource> TagSources { get; set; }
 
-    public DbSet<HistorizationInterval> HistorizationIntervals { get; set; }
     public DbSet<ScadaObjectTemplate> ScadaObjectTemplates { get; set; }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
@@ -54,6 +53,13 @@ public class AppDbContext : DbContext
 
         configurationBuilder.Properties<Instant>()
         .HaveColumnType("timestamptz");
+
+        configurationBuilder.Properties<TagQuality>()
+        .HaveConversion<short>()
+        .HaveColumnType("smallint");
+
+        configurationBuilder.Properties<IO>()
+            .HaveColumnType("bit(2)");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -93,9 +99,9 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<TagHist>(eb =>
         {
-            eb.HasKey(th => new { th.Timestamp, th.SeriesId });
+            eb.HasKey(th => new { th.Timestamp, th.TagId });
 
-            eb.HasIndex(x => new { x.SeriesId, x.Timestamp })
+            eb.HasIndex(x => new { x.TagId, x.Timestamp })
               .HasDatabaseName("ix_hist_series_time_desc");
 
             eb.ToTable(t => t.HasCheckConstraint("ck_hist_one_value_only",
@@ -174,133 +180,7 @@ public class AppDbContext : DbContext
             }
         );
 
-        modelBuilder.Entity<TagSource>().HasData(
-            new TagSource
-            {
-                Id = 1,
-                Name = "Constant",
-                Virtual = true
-            },
-            new TagSource
-            {
-                Id = 2,
-                Name = "Computed",
-                Virtual = true
-            },
-            new TagSource
-            {
-                Id = 3,
-                Name = "MQTT",
-                Virtual = false
-            },
-            new TagSource
-            {
-                Id = 4,
-                Name = "Modbus",
-                Virtual = false
-            },
-            new TagSource
-            {
-                Id = 5,
-                Name = "OPC UA",
-                Virtual = false
-            },
-            new TagSource
-            {
-                Id = 6,
-                Name = "HTTP",
-                Virtual = false
-            },
-            new TagSource
-            {
-                Id = 7,
-                Name = "WebSocket",
-                Virtual = false
-            }
-        );
 
-        modelBuilder.Entity<HistorizationInterval>().HasData(
-            new HistorizationInterval
-            {
-                Id = 1,
-                Name = "Immediate",
-                Interval = null
-            },
-            new HistorizationInterval
-            {
-                Id = 2,
-                Name = "1s",
-                Interval = TimeSpan.FromSeconds(1)
-            },
-            new HistorizationInterval
-            {
-                Id = 3,
-                Name = "10s",
-                Interval = TimeSpan.FromSeconds(10)
-            },
-            new HistorizationInterval
-            {
-                Id = 4,
-                Name = "1m",
-                Interval = TimeSpan.FromMinutes(1)
-            },
-            new HistorizationInterval
-            {
-                Id = 5,
-                Name = "5m",
-                Interval = TimeSpan.FromMinutes(5)
-            },
-            new HistorizationInterval
-            {
-                Id = 6,
-                Name = "10m",
-                Interval = TimeSpan.FromMinutes(10)
-            },
-            new HistorizationInterval
-            {
-                Id = 7,
-                Name = "15m",
-                Interval = TimeSpan.FromMinutes(15)
-            },
-            new HistorizationInterval
-            {
-                Id = 8,
-                Name = "30m",
-                Interval = TimeSpan.FromMinutes(30)
-            },
-            new HistorizationInterval
-            {
-                Id = 9,
-                Name = "1h",
-                Interval = TimeSpan.FromHours(1)
-            },
-            new HistorizationInterval
-            {
-                Id = 10,
-                Name = "6h",
-                Interval = TimeSpan.FromHours(6)
-            },
-            new HistorizationInterval
-            {
-                Id = 11,
-                Name = "12h",
-                Interval = TimeSpan.FromHours(12)
-            },
-            new HistorizationInterval
-            {
-                Id = 12,
-                Name = "Daily",
-                Interval = TimeSpan.FromDays(1)
-            },
-            new HistorizationInterval
-            {
-                Id = 13,
-                Name = "Weekly",
-                Interval = TimeSpan.FromDays(7)
-            }
-        );
-
-        //populate SI Prefixes
         modelBuilder.Entity<UnitPrefix>().HasData(
             new UnitPrefix { Name = "Quetta", Symbol = "Q", Base = 10, Exponent = 30 },
             new UnitPrefix { Name = "Ronna", Symbol = "R", Base = 10, Exponent = 27 },

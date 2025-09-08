@@ -4,13 +4,13 @@ using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
-[PrimaryKey(nameof(SeriesId), nameof(Timestamp))]
+[PrimaryKey(nameof(TagId), nameof(Timestamp))]
 public class TagHist
 {
     public required Instant Timestamp { get; set; }
 
     [ForeignKey(nameof(Tag))]
-    public required long SeriesId { get; set; }
+    public required int TagId { get; set; }
 
     public double? V_f64 { get; set; }
     public long? V_i64 { get; set; }

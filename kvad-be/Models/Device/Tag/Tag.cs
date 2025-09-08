@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
 [Index(nameof(DeviceId), nameof(Path), IsUnique = true)]
-public abstract class Tag
+public class Tag
 {
     [Key]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -28,7 +28,7 @@ public abstract class Tag
 
     public required ValueKind ValueKind { get; set; }
     public ICollection<TagHistPolicy> HistPolicies { get; set; } = [];
-
+    [NotMapped]     
     public ICollection<TagHist> History { get; set; } = [];
     public required TagCurr Curr { get; set; } = null!; // one-to-one
 }

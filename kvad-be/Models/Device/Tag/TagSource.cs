@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 
 public class TagSource
 {
@@ -6,7 +7,9 @@ public class TagSource
     [ForeignKey(nameof(TagId))]
     public required Tag Tag { get; set; }
     public required TagSourceKind Kind { get; set; }
-    public required string Name { get; set; } = "";
+    public required TagSourceMeta Meta { get; set; }
+    [Column(TypeName = "jsonb")]
+    public JsonDocument? Config { get; set; } // json config depending on Kind
 }
 
 
@@ -16,4 +19,13 @@ public enum TagSourceKind
     Mqtt,
     Http,
     Modbus
+}
+
+public enum TagSourceMeta
+{
+    AutoInfered,
+    UserDefined,
+    SystemDefined,
+    DeviceDefined,
+    AutoInferedConfirmed
 }
