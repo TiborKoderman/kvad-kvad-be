@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using NodaTime;
 
 namespace kvad_be.Database;
 
@@ -44,15 +45,15 @@ public class AppDbContext : DbContext
         // Use JSONB for maximum compatibility between design-time and runtime
         // This avoids issues with composite type mapping during migrations
         configurationBuilder.Properties<Rational>()
-            .HaveColumnType("jsonb");
+            .HaveConversion<Rational.LongArrayConverter>()
+            .HaveColumnType("long[2]");
 
         configurationBuilder.Properties<Dim7>()
-            .HaveColumnType("jsonb");
+            .HaveConversion<Dim7.ArrayConverter>()
+            .HaveColumnType("short[7]");
 
-        // Note: If you want to use PostgreSQL composite types instead:
-        // 1. Ensure composite types are created in database first
-        // 2. Use value converters for design-time compatibility
-        // 3. Register type mapping plugins properly
+        configurationBuilder.Properties<Instant>()
+        .HaveColumnType("timestamptz");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -90,9 +91,21 @@ public class AppDbContext : DbContext
             .HasForeignKey<User>(u => u.PrivateGroupId)
             .OnDelete(DeleteBehavior.Cascade); // optional, prevents cascade loops
 
-        modelBuilder.Entity<TagHist>()
-            .HasIndex(th => new { th.TagId, th.Timestamp })
-            .IsDescending(false, true);
+        modelBuilder.Entity<TagHist>(eb =>
+        {
+            eb.HasKey(th => new { th.Timestamp, th.SeriesId });
+
+            eb.HasIndex(x => new { x.SeriesId, x.Timestamp })
+              .HasDatabaseName("ix_hist_series_time_desc");
+
+            eb.ToTable(t => t.HasCheckConstraint("ck_hist_one_value_only",
+                    @"(CASE WHEN v_double IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN v_int    IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN v_bool   IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN v_enum   IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN v_string IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN v_json   IS NOT NULL THEN 1 ELSE 0 END) = 1"));
+        });
 
 
         modelBuilder.Entity<Unit>(e =>
@@ -331,7 +344,7 @@ public class AppDbContext : DbContext
         // TODO: Temporarily commented out for migration generation
         // The LinearUnit seed data contains Dim7 objects which can't be serialized to migration code
         // Re-enable this after setting up proper type mapping code generation
-        
+
         modelBuilder.Entity<LinearUnit>().HasData(
             IUnitFactory.CreateUnit("m", "Meter", "Length", [1, 0, 0, 0, 0, 0, 0], null),
             IUnitFactory.CreateUnit("kg", "Kilogram", "Mass", [0, 1, 0, 0, 0, 0, 0], null),
@@ -341,7 +354,7 @@ public class AppDbContext : DbContext
             IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", [0, 0, 0, 0, 0, 1, 0], null),
             IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", [0, 0, 0, 0, 0, 0, 1], null)
         );
-        
+
     }
 
 

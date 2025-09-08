@@ -80,7 +80,7 @@ public readonly struct Rational
 
         public static long[] ToLongArray(Rational v)
         {
-            return new long[] { v.Numerator, v.Denominator };
+            return [v.Numerator, v.Denominator];
         }
 
         public static Rational FromLongArray(long[] arr)
