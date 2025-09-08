@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 
-[PrimaryKey(nameof(Timestamp), nameof(SeriesId))]
+[PrimaryKey(nameof(SeriesId), nameof(Timestamp))]
 public class TagHist
 {
     public required Instant Timestamp { get; set; }
@@ -24,5 +24,6 @@ public class TagHist
     public JsonObject? V_json { get; set; }
     [Column(TypeName = "bytea")]
     public byte[]? V_bytea { get; set; }
+    public required TagQuality Quality { get; set; }
 
 }
