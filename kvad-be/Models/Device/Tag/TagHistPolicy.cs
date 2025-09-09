@@ -3,7 +3,7 @@ using NpgsqlTypes;
 public enum CaptureMode
 {
     OnChange,
-    OnInterval,
+    Periodic,
 }
 
 public class TagHistPolicy
@@ -24,5 +24,4 @@ public class TagHistPolicy
   // For CaptureMode.OnInterval
   public TimeSpan? SamplingInterval { get; set; } = null;
   public bool Aggregate { get; set; } = false;
-
 }

@@ -14,5 +14,6 @@ public class Device
     public User? Owner { get; set; } // Make Owner nullable
     public required Guid OwnerId { get; set; }
     public required DeviceState State { get; set; }
+    public required DeviceInfo Info { get; set; }
     public List<Tag> Tags { get; set; } = [];
 }

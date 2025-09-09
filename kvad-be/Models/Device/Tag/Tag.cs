@@ -61,7 +61,7 @@ public enum IO : byte
 [Flags]
 public enum TagQuality : ushort
 {
-    Good = 0,        // no issues
+    Ok = 0,        // no issues
     Bad = 1 << 0,   // generic bad (fallback)
     Uncertain = 1 << 1,   // not guaranteed accurate
     Stale = 1 << 2,   // exceeded freshness/heartbeat

@@ -10,11 +10,28 @@ public class Alarm
 
 }
 
-
 public enum AlarmKind
 {
   Device,
   System,
   Tag
 
+}
+
+public enum AlarmState
+{
+  Active,
+  Acknowledged,
+  Cleared,
+  Shelved,
+  Expired
+}
+
+public enum AlarmSeverity
+{
+  Info,
+  Warning,
+  Minor,
+  Major,
+  Critical
 }

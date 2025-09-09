@@ -3,11 +3,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 public class DeviceState
 {
-    [Key, ForeignKey(nameof(Device))]
-    public Guid DeviceId { get; set; }
-
-    public bool Online { get; set; } = false;
-    public bool Connected { get; set; } = false;
+    [Key, ForeignKey(nameof(Device))] public Guid DeviceId { get; set; }
+    public Device Device { get; set; } = null!;
     public DateTime? LastSeen { get; set; } = null;
 }
 
@@ -44,13 +41,5 @@ enum DeviceMode
     Maintenance,
     Emergency,
     Test,
-    Unknown
-}
-
-enum DeviceQuality
-{
-    Good,
-    Uncertain,
-    Bad,
     Unknown
 }
