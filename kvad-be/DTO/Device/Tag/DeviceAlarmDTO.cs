@@ -3,4 +3,4 @@ public sealed record DeviceAlarmDTO(
     string Message,
     DateTime Timestamp,
     TagQuality Quality
-);a
+);

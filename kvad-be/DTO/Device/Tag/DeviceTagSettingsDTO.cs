@@ -1,10 +1,9 @@
 public sealed record DeviceTagSettingsDTO(
   string Path,
   string ValueKind,
-  string? Unit,
   string IO = "Output",
+  string? Unit,
   DeviceTagHistorySettingsDTO? History
-
 );
 
 public sealed record DeviceTagHistorySettingsDTO(

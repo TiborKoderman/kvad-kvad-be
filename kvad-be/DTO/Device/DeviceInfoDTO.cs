@@ -6,11 +6,11 @@ public sealed record DeviceInfoDTO(
     string? Model,
     string? Manufacturer,
     string? SerialNumber,
-        string Fw,
-    string Hw,
+    string? Fw,
+    string? Hw,
     string? Ip,
-    int Rssi,
-    float BatteryPct,
-    float CpuLoadPct,
-    float TempC
+    int? Rssi,
+    float? BatteryPct,
+    float? CpuLoadPct,
+    float? TempC
 );
