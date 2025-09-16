@@ -1,8 +1,10 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 
 public class TagSource
 {
+    [Key]
     public required int TagId { get; set; } //one to one with Tag
     [ForeignKey(nameof(TagId))]
     public required Tag Tag { get; set; }

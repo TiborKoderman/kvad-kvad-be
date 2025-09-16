@@ -1,5 +1,6 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.Configuration;
 
 namespace kvad_be.Database;
 
@@ -22,8 +23,6 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             .AddCommandLine(args) // Support command line overrides
             .Build();
 
-    
-        var services = new ServiceCollection().AddSingleton<IRelationalTypeMappingSourcePlugin, RationalTypeMappingPlugin>();
         // Use the shared configuration - single source of truth
         return DbContextConfiguration.CreateForDesignTime(configuration);
     }

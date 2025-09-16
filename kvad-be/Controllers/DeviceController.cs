@@ -67,6 +67,7 @@ public class DeviceController : ControllerBase
             OwnerId = user.Id,
             Groups = user.PrivateGroup != null ? [user.PrivateGroup] : [], // Use List<Group>
             State = new DeviceState(),
+            Info = new DeviceInfo() // Set the required Info property
         };
 
         await _deviceService.AddDevice(device);
@@ -105,11 +106,5 @@ public class DeviceController : ControllerBase
         return Ok(tagSources);
     }
 
-    [HttpGet("historizationIntervals")]
-    public async Task<IActionResult> GetHistoricizationIntervals()
-    {
-        var intervals = await _deviceService.GetHistorizationIntervals();
-        return Ok(intervals);
-    }
 
 }

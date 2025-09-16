@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
+using kvad_be.Database.Converters;
 
 namespace kvad_be.Database;
 
@@ -43,23 +44,28 @@ public class AppDbContext : DbContext
     {
         // Use JSONB for maximum compatibility between design-time and runtime
         // This avoids issues with composite type mapping during migrations
-        configurationBuilder.Properties<Rational>()
-            .HaveConversion<Rational.LongArrayConverter>()
-            .HaveColumnType("long[2]");
+        // Use JSONB for complex types for maximum compatibility
 
-        configurationBuilder.Properties<Dim7>()
-            .HaveConversion<Dim7.ArrayConverter>()
-            .HaveColumnType("short[7]");
-
+        // NodaTime configuration - handled automatically with UseNodaTime()
         configurationBuilder.Properties<Instant>()
-        .HaveColumnType("timestamptz");
+            .HaveColumnType("timestamptz");
 
         configurationBuilder.Properties<TagQuality>()
         .HaveConversion<short>()
         .HaveColumnType("smallint");
 
         configurationBuilder.Properties<IO>()
-            .HaveColumnType("bit(2)");
+            .HaveConversion<byte>()
+            .HaveColumnType("smallint");
+
+        // Configure complex types to use JSONB storage
+        configurationBuilder.Properties<Rational>()
+            .HaveConversion<RationalConverter>()
+            .HaveColumnType("jsonb");
+
+        configurationBuilder.Properties<Dim7>()
+            .HaveConversion<Dim7Converter>()
+            .HaveColumnType("jsonb");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -105,12 +111,12 @@ public class AppDbContext : DbContext
               .HasDatabaseName("ix_hist_series_time_desc");
 
             eb.ToTable(t => t.HasCheckConstraint("ck_hist_one_value_only",
-                    @"(CASE WHEN v_double IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN v_int    IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN v_bool   IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN v_enum   IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN v_string IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN v_json   IS NOT NULL THEN 1 ELSE 0 END) = 1"));
+                    @"(CASE WHEN ""V_f64"" IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN ""V_i64""  IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN ""V_bool""   IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN ""V_enum""   IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN ""V_string"" IS NOT NULL THEN 1 ELSE 0 END) +
+          (CASE WHEN ""V_json""   IS NOT NULL THEN 1 ELSE 0 END) = 1"));
         });
 
 
@@ -221,10 +227,7 @@ public class AppDbContext : DbContext
 
         );
 
-        // TODO: Temporarily commented out for migration generation
-        // The LinearUnit seed data contains Dim7 objects which can't be serialized to migration code
-        // Re-enable this after setting up proper type mapping code generation
-
+        // Re-enable LinearUnit seed data now that type mapping is properly configured
         modelBuilder.Entity<LinearUnit>().HasData(
             IUnitFactory.CreateUnit("m", "Meter", "Length", [1, 0, 0, 0, 0, 0, 0], null),
             IUnitFactory.CreateUnit("kg", "Kilogram", "Mass", [0, 1, 0, 0, 0, 0, 0], null),

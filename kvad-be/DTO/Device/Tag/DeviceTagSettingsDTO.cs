@@ -1,7 +1,7 @@
 public sealed record DeviceTagSettingsDTO(
   string Path,
   string ValueKind,
-  string IO = "Output",
+  string IO,
   string? Unit,
   DeviceTagHistorySettingsDTO? History
 );

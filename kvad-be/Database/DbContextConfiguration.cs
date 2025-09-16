@@ -18,14 +18,16 @@ public static class DbContextConfiguration
     {
         // Use the same data source factory that runtime uses
         var dataSource = PostgresDataSourceFactory.Create(connectionString);
-        optionsBuilder.UseNpgsql(dataSource);
-
+        optionsBuilder.UseNpgsql(dataSource, options =>
+        {
+            // Enable NodaTime support for EF Core
+            options.UseNodaTime();
+        });
+        
         // Add any other common configuration here
         // optionsBuilder.EnableSensitiveDataLogging(); // For development only
         // optionsBuilder.LogTo(Console.WriteLine); // For development only
-    }
-
-    /// <summary>
+    }    /// <summary>
     /// Get connection string from configuration with validation
     /// </summary>
     public static string GetConnectionString(IConfiguration configuration)
@@ -65,8 +67,11 @@ public static class DbContextConfiguration
         services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             var dataSource = serviceProvider.GetRequiredService<NpgsqlDataSource>();
-
-            options.UseNpgsql(dataSource);
+            options.UseNpgsql(dataSource, npgsqlOptions =>
+            {
+                // Enable NodaTime support for EF Core
+                npgsqlOptions.UseNodaTime();
+            });
 
             // Add any environment-specific configuration
             var environment = serviceProvider.GetService<IWebHostEnvironment>();
