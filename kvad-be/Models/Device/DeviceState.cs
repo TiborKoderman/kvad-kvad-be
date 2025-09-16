@@ -1,11 +1,13 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using NodaTime;
 
 public class DeviceState
 {
     [Key, ForeignKey(nameof(Device))] public Guid DeviceId { get; set; }
+    [JsonIgnore]
     public Device Device { get; set; } = null!;
     public Instant? LastHeartbeat { get; set; } = null;
     public string? BootId { get; set; } = null;
@@ -30,7 +32,7 @@ public class DeviceState
     public DeviceHealth Health { get; set; } = DeviceHealth.Unknown;
 
     [Column(TypeName = "jsonb")] public JsonDocument? Flags { get; set; }   // e.g., ["ok","throttled"]
-    [Column(TypeName = "jsonb")] public JsonDocument? Extra { get; set; } 
+    [Column(TypeName = "jsonb")] public JsonDocument? Extra { get; set; }
 
     public Instant UpdatedAt { get; set; } = SystemClock.Instance.GetCurrentInstant();
 }

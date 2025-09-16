@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,14 +14,13 @@ using NpgsqlTypes;
 using kvad_be.Database;
 
 #nullable disable
-
-namespace kvad_be.Migrations
+[DbContext(typeof(AppDbContext))]
+[Migration("20250916174703_FixSeedTimestamps")]
+partial class FixSeedTimestamps
 {
-    [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.8")
@@ -1540,4 +1540,3 @@ namespace kvad_be.Migrations
 #pragma warning restore 612, 618
         }
     }
-}

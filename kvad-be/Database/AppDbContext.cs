@@ -132,6 +132,19 @@ public class AppDbContext : DbContext
 
 
 
+        // Configure Device relationships first
+        modelBuilder.Entity<Device>()
+            .HasOne(d => d.State)
+            .WithOne(s => s.Device)
+            .HasForeignKey<DeviceState>(s => s.DeviceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Device>()
+            .HasOne(d => d.Info)
+            .WithOne(i => i.Device)
+            .HasForeignKey<DeviceInfo>(i => i.DeviceId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         SeedData(modelBuilder);
     }
 
@@ -239,6 +252,7 @@ public class AppDbContext : DbContext
             IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", [0, 0, 0, 0, 0, 0, 1], null)
         );
 
+        // Seed Device first
         modelBuilder.Entity<Device>().HasData(
             new Device
             {
@@ -248,18 +262,31 @@ public class AppDbContext : DbContext
                 Location = "Lab",
                 Type = "Virtual",
                 Virtual = true,
-                OwnerId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
-                State = new DeviceState
-                {
-                    DeviceId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    LastHeartbeat = null,
-                    BootId = null,
-                    Seq = 0,
-                    UptimeSec = 0,
-                    HbIntervalSec = 10,
-                    HbJitterPct = 20
-                },
-                Info = new DeviceInfo { }
+                OwnerId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
+            }
+        );
+
+        // Seed DeviceState with foreign key reference and static timestamp
+        modelBuilder.Entity<DeviceState>().HasData(
+            new DeviceState
+            {
+                DeviceId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                LastHeartbeat = null,
+                BootId = null,
+                Seq = 0,
+                UptimeSec = 0,
+                HbIntervalSec = 10,
+                HbJitterPct = 20,
+                UpdatedAt = Instant.FromUnixTimeSeconds(1726511400) // Static timestamp: Sept 16, 2025
+            }
+        );
+
+        // Seed DeviceInfo with foreign key reference and static timestamp
+        modelBuilder.Entity<DeviceInfo>().HasData(
+            new DeviceInfo
+            {
+                DeviceId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                UpdatedAt = Instant.FromUnixTimeSeconds(1726511400) // Static timestamp: Sept 16, 2025
             }
         );
 
