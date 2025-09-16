@@ -239,6 +239,30 @@ public class AppDbContext : DbContext
             IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", [0, 0, 0, 0, 0, 0, 1], null)
         );
 
+        modelBuilder.Entity<Device>().HasData(
+            new Device
+            {
+                Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                Name = "Virtual Device 1",
+                Description = "This is a virtual device for testing purposes.",
+                Location = "Lab",
+                Type = "Virtual",
+                Virtual = true,
+                OwnerId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                State = new DeviceState
+                {
+                    DeviceId = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    LastHeartbeat = null,
+                    BootId = null,
+                    Seq = 0,
+                    UptimeSec = 0,
+                    HbIntervalSec = 10,
+                    HbJitterPct = 20
+                },
+                Info = new DeviceInfo { }
+            }
+        );
+
     }
 
 

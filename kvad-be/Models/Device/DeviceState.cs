@@ -9,8 +9,8 @@ public class DeviceState
     public Device Device { get; set; } = null!;
     public Instant? LastHeartbeat { get; set; } = null;
     public string? BootId { get; set; } = null;
-    public long Seq { get; set; } = 0;
-    public int UptimeSec { get; set; } = 0;
+    public long? Seq { get; set; } = 0;
+    public int? UptimeSec { get; set; } = 0;
 
     public int? HbIntervalSec { get; set; } = null;
     public short? HbJitterPct { get; set; } = null;
