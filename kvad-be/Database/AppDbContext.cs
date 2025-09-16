@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using kvad_be.Database.Converters;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace kvad_be.Database;
 
@@ -51,8 +52,9 @@ public class AppDbContext : DbContext
             .HaveColumnType("timestamptz");
 
         configurationBuilder.Properties<TagQuality>()
-        .HaveConversion<short>()
+        .HaveConversion<EnumToNumberConverter<TagQuality, ushort>>()
         .HaveColumnType("smallint");
+
 
         configurationBuilder.Properties<IO>()
             .HaveConversion<byte>()
@@ -63,9 +65,6 @@ public class AppDbContext : DbContext
             .HaveConversion<RationalConverter>()
             .HaveColumnType("jsonb");
 
-        configurationBuilder.Properties<Dim7>()
-            .HaveConversion<Dim7Converter>()
-            .HaveColumnType("jsonb");
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -105,18 +104,19 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<TagHist>(eb =>
         {
-            eb.HasKey(th => new { th.Timestamp, th.TagId });
+            eb.HasKey(th => new { th.TagId, th.Ts });
 
-            eb.HasIndex(x => new { x.TagId, x.Timestamp })
-              .HasDatabaseName("ix_hist_series_time_desc");
-
-            eb.ToTable(t => t.HasCheckConstraint("ck_hist_one_value_only",
-                    @"(CASE WHEN ""V_f64"" IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN ""V_i64""  IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN ""V_bool""   IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN ""V_enum""   IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN ""V_string"" IS NOT NULL THEN 1 ELSE 0 END) +
-          (CASE WHEN ""V_json""   IS NOT NULL THEN 1 ELSE 0 END) = 1"));
+            eb.ToTable(t => t.HasCheckConstraint(
+            "ck_hist_max_one_value",
+            @"((CASE WHEN ""V_decimal"" IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN ""V_f64""    IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN ""V_i64""    IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN ""V_enum""   IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN ""V_bool""   IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN ""V_string"" IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN ""V_json""   IS NOT NULL THEN 1 ELSE 0 END) +
+                (CASE WHEN ""V_bytea""  IS NOT NULL THEN 1 ELSE 0 END)) <= 1"
+            ));
         });
 
 
