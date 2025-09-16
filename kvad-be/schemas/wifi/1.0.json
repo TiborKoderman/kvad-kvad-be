@@ -1,0 +1,19 @@
+{
+    "$schema": "./1.0.json",
+    "title": "WiFi Settings",
+    "type": "object",
+    "properties": {
+        "mode": {
+            "type": "string",
+            "enum": ["ap", "sta", "apsta", "off"],
+            "default": "off",
+            "description": "The WiFi mode of the device."
+        },
+        "ap": {
+            "$ref": "./ap/1.0.json"
+        },
+        "station": {
+            "$ref": "./station/1.0.json"
+        }
+    }
+}

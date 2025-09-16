@@ -1,0 +1,22 @@
+{
+    "$schema": "./1.0.json",
+    "$id": "https://kvad.be/schemas/wifi/client/1.0.json",
+    "title": "WiFi Station Settings",
+    "type": "object",
+    "properties": {
+        "ssid": {
+            "type": "string",
+            "description": "The SSID of the WiFi network to connect to."
+        },
+        "password": {
+            "type": ["string", "null"],
+            "description": "The password for the WiFi network, if required."
+        },
+        "security": {
+            "type": "string",
+            "enum": ["WPA2", "WPA3", "Open"],
+            "default": "WPA2",
+            "description": "The security type of the WiFi network."
+        }
+    }
+}

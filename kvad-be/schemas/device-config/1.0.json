@@ -1,0 +1,14 @@
+{
+    "$schema": "./1.0.json",
+    "$id": "https://kvad.be/schemas/device-config/1.0.json",
+    "title": "Device Configuration",
+    "type": "object",
+    "properties": {
+        "device": {
+            "$ref": "../device-capabilities/1.0.json"
+        },
+        "network": {
+            "$ref": "../wifi/1.0.json"
+        }
+    }
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "./1.0.json",
+  "$id": "https://kvad.be/schemas/wifi/ap/1.0.json",
+  "title": "WiFi Access Point Settings",
+  "type": "object",
+  "properties": {
+    "enabled": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the WiFi Access Point is enabled."
+    },
+    "ssid": {
+      "type": "string",
+      "description": "The SSID of the WiFi Access Point."
+    },
+    "password": {
+      "type": ["string", "null"],
+      "description": "The password for the WiFi Access Point, if required."
+    },
+    "channel": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 11,
+      "default": 6,
+      "description": "The WiFi channel for the Access Point."
+    },
+    "auth_mode": {
+      "type": "string",
+      "enum": ["open", "wpa2", "wpa3"],
+      "default": "open",
+      "description": "The authentication mode for the Access Point."
+  }
+}

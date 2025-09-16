@@ -86,60 +86,11 @@
                 }
             }
         },
-        "WiFiSettings": {
-            "type": "object",
-            "required": ["ssid"],
-            "properties": {
-                "ssid": {
-                    "type": "string",
-                    "description": "The SSID of the WiFi network."
-                },
-                "password": {
-                    "type": ["string", "null"],
-                    "description": "The password for the WiFi network, if required."
-                },
-                "mode": {
-                    "type": "string",
-                    "enum": ["Client", "AP", "Both"],
-                    "default": "Client",
-                    "description": "The WiFi mode of the device."
-                }
-            }
-        },
-        "HostnameSettings": {
-            "type": "object",
-            "properties": {
-                "hostname": {
-                    "type": "string",
-                    "description": "The hostname of the device."
-                }
-            }
-        },
-        "NetworkSettings": {
-            "type": "object",
-            "properties": {
-                "dhcp": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Indicates whether DHCP is enabled."
-                },
-                "ipAddress": {
-                    "type": ["string", "null"],
-                    "description": "Static IP address of the device, if applicable."
-                },
-                "subnetMask": {
-                    "type": ["string", "null"],
-                    "description": "Subnet mask for the device, if applicable."
-                },
-                "gateway": {
-                    "type": ["string", "null"],
-                    "description": "Gateway address for the device, if applicable."
-                },
-                "dnsServers": {
-                    "type": "array",
-                    "items": { "type": "string" },
-                    "description": "List of DNS servers for the device."
-                }
+        "capabilities": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": ["wifi", "bluetooth", "modbus", "i2c", "spi", "uart"]
             }
         }
     }
