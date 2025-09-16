@@ -14,13 +14,16 @@ using NpgsqlTypes;
 using kvad_be.Database;
 
 #nullable disable
-[DbContext(typeof(AppDbContext))]
-[Migration("20250916174357_SeedVirtualDevice")]
-partial class SeedVirtualDevice
+
+namespace kvad_be.Migrations
 {
-    /// <inheritdoc />
-    protected override void BuildTargetModel(ModelBuilder modelBuilder)
+    [DbContext(typeof(AppDbContext))]
+    [Migration("20250916190736_Initial")]
+    partial class Initial
     {
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.8")
@@ -213,6 +216,9 @@ partial class SeedVirtualDevice
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Lifecycle")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
@@ -245,6 +251,7 @@ partial class SeedVirtualDevice
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             Description = "This is a virtual device for testing purposes.",
+                            Lifecycle = 0,
                             Location = "Lab",
                             Name = "Virtual Device 1",
                             OwnerId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
@@ -272,9 +279,6 @@ partial class SeedVirtualDevice
                 {
                     b.Property<Guid>("DeviceId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("BootId")
-                        .HasColumnType("text");
 
                     b.Property<JsonDocument>("Capabilities")
                         .HasColumnType("jsonb");
@@ -305,7 +309,7 @@ partial class SeedVirtualDevice
                         new
                         {
                             DeviceId = new Guid("00000000-0000-0000-0000-000000000001"),
-                            UpdatedAt = NodaTime.Instant.FromUnixTimeTicks(17580446370754774L)
+                            UpdatedAt = NodaTime.Instant.FromUnixTimeTicks(17265114000000000L)
                         });
                 });
 
@@ -347,9 +351,6 @@ partial class SeedVirtualDevice
                     b.Property<string>("LastIp")
                         .HasColumnType("text");
 
-                    b.Property<int>("Lifecycle")
-                        .HasColumnType("integer");
-
                     b.Property<short?>("LoadPct")
                         .HasColumnType("smallint");
 
@@ -364,9 +365,6 @@ partial class SeedVirtualDevice
 
                     b.Property<float?>("TempC")
                         .HasColumnType("real");
-
-                    b.Property<Instant>("UpdatedAt")
-                        .HasColumnType("timestamptz");
 
                     b.Property<int?>("UptimeSec")
                         .HasColumnType("integer");
@@ -383,10 +381,8 @@ partial class SeedVirtualDevice
                             HbIntervalSec = 10,
                             HbJitterPct = (short)20,
                             Health = 3,
-                            Lifecycle = 0,
                             Mode = 4,
                             Seq = 0L,
-                            UpdatedAt = NodaTime.Instant.FromUnixTimeTicks(17580446370749758L),
                             UptimeSec = 0
                         });
                 });
@@ -404,6 +400,13 @@ partial class SeedVirtualDevice
                     b.HasKey("Id");
 
                     b.ToTable("Groups");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            Name = "admin"
+                        });
                 });
 
             modelBuilder.Entity("GroupUser", b =>
@@ -419,6 +422,13 @@ partial class SeedVirtualDevice
                     b.HasIndex("UsersId");
 
                     b.ToTable("GroupUser");
+
+                    b.HasData(
+                        new
+                        {
+                            GroupsId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            UsersId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
+                        });
                 });
 
             modelBuilder.Entity("KeyValue", b =>
@@ -543,6 +553,13 @@ partial class SeedVirtualDevice
                     b.HasIndex("UsersId");
 
                     b.ToTable("RoleUser");
+
+                    b.HasData(
+                        new
+                        {
+                            RolesId = 1,
+                            UsersId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
+                        });
                 });
 
             modelBuilder.Entity("ScadaObjectTemplate", b =>
@@ -1077,6 +1094,16 @@ partial class SeedVirtualDevice
                         .IsUnique();
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            Icon = "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png",
+                            Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU",
+                            PrivateGroupId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("Widget", b =>
@@ -1311,6 +1338,30 @@ partial class SeedVirtualDevice
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.OwnsOne("DeviceHeartbeatSettings", "HeartbeatSettings", b1 =>
+                        {
+                            b1.Property<Guid>("DeviceId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("ExpectedInterval")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("HbIntervalThreshold")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("HbMissedThreshold")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("DeviceId");
+
+                            b1.ToTable("Devices");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DeviceId");
+                        });
+
+                    b.Navigation("HeartbeatSettings");
+
                     b.Navigation("Owner");
                 });
 
@@ -1540,3 +1591,4 @@ partial class SeedVirtualDevice
 #pragma warning restore 612, 618
         }
     }
+}

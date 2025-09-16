@@ -26,7 +26,6 @@ public class DeviceState
     public short? LoadPct { get; set; }
     public float? TempC { get; set; }
 
-    public DeviceLifecycle Lifecycle { get; set; } = DeviceLifecycle.Unknown;
     public DeviceMode Mode { get; set; } = DeviceMode.Unknown;
     public DeviceConnectivity Connectivity { get; set; } = DeviceConnectivity.Unknown;
     public DeviceHealth Health { get; set; } = DeviceHealth.Unknown;
@@ -34,19 +33,10 @@ public class DeviceState
     [Column(TypeName = "jsonb")] public JsonDocument? Flags { get; set; }   // e.g., ["ok","throttled"]
     [Column(TypeName = "jsonb")] public JsonDocument? Extra { get; set; }
 
-    public Instant UpdatedAt { get; set; } = SystemClock.Instance.GetCurrentInstant();
 }
 
-public enum DeviceLifecycle
-{
-    Unknown,
-    Discovered,
-    Commissioning,
-    InService,
-    OutOfService,
-    Decommissioned,
-    Retired,
-}
+
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum DeviceConnectivity
 {
     Online,
@@ -55,7 +45,7 @@ public enum DeviceConnectivity
     Unreachable,
     Unknown
 }
-
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum DeviceHealth
 {
     Healthy,
@@ -63,7 +53,7 @@ public enum DeviceHealth
     Critical,
     Unknown
 }
-
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum DeviceMode
 {
     Normal,

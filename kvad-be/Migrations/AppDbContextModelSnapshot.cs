@@ -213,6 +213,9 @@ namespace kvad_be.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<int>("Lifecycle")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
@@ -245,6 +248,7 @@ namespace kvad_be.Migrations
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
                             Description = "This is a virtual device for testing purposes.",
+                            Lifecycle = 0,
                             Location = "Lab",
                             Name = "Virtual Device 1",
                             OwnerId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
@@ -272,9 +276,6 @@ namespace kvad_be.Migrations
                 {
                     b.Property<Guid>("DeviceId")
                         .HasColumnType("uuid");
-
-                    b.Property<string>("BootId")
-                        .HasColumnType("text");
 
                     b.Property<JsonDocument>("Capabilities")
                         .HasColumnType("jsonb");
@@ -347,9 +348,6 @@ namespace kvad_be.Migrations
                     b.Property<string>("LastIp")
                         .HasColumnType("text");
 
-                    b.Property<int>("Lifecycle")
-                        .HasColumnType("integer");
-
                     b.Property<short?>("LoadPct")
                         .HasColumnType("smallint");
 
@@ -364,9 +362,6 @@ namespace kvad_be.Migrations
 
                     b.Property<float?>("TempC")
                         .HasColumnType("real");
-
-                    b.Property<Instant>("UpdatedAt")
-                        .HasColumnType("timestamptz");
 
                     b.Property<int?>("UptimeSec")
                         .HasColumnType("integer");
@@ -383,10 +378,8 @@ namespace kvad_be.Migrations
                             HbIntervalSec = 10,
                             HbJitterPct = (short)20,
                             Health = 3,
-                            Lifecycle = 0,
                             Mode = 4,
                             Seq = 0L,
-                            UpdatedAt = NodaTime.Instant.FromUnixTimeTicks(17265114000000000L),
                             UptimeSec = 0
                         });
                 });
@@ -404,6 +397,13 @@ namespace kvad_be.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Groups");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            Name = "admin"
+                        });
                 });
 
             modelBuilder.Entity("GroupUser", b =>
@@ -419,6 +419,13 @@ namespace kvad_be.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("GroupUser");
+
+                    b.HasData(
+                        new
+                        {
+                            GroupsId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            UsersId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
+                        });
                 });
 
             modelBuilder.Entity("KeyValue", b =>
@@ -543,6 +550,13 @@ namespace kvad_be.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("RoleUser");
+
+                    b.HasData(
+                        new
+                        {
+                            RolesId = 1,
+                            UsersId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
+                        });
                 });
 
             modelBuilder.Entity("ScadaObjectTemplate", b =>
@@ -1077,6 +1091,16 @@ namespace kvad_be.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            Icon = "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png",
+                            Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU",
+                            PrivateGroupId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                            Username = "admin"
+                        });
                 });
 
             modelBuilder.Entity("Widget", b =>
@@ -1310,6 +1334,30 @@ namespace kvad_be.Migrations
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.OwnsOne("DeviceHeartbeatSettings", "HeartbeatSettings", b1 =>
+                        {
+                            b1.Property<Guid>("DeviceId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("ExpectedInterval")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("HbIntervalThreshold")
+                                .HasColumnType("integer");
+
+                            b1.Property<int>("HbMissedThreshold")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("DeviceId");
+
+                            b1.ToTable("Devices");
+
+                            b1.WithOwner()
+                                .HasForeignKey("DeviceId");
+                        });
+
+                    b.Navigation("HeartbeatSettings");
 
                     b.Navigation("Owner");
                 });

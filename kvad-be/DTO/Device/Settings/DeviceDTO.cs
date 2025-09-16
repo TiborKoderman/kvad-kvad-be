@@ -3,9 +3,9 @@ public record DeviceDTO(
     string Name,
     string? Description,
     Guid? OwnerId,
-    string? Mac,
     string? Location,
     string? Type,
     bool Virtual,
-    List<TagDTO> Tags
+    List<TagDTO> Tags,
+    DeviceStateDTO? State
 );

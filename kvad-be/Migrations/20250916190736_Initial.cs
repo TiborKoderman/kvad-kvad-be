@@ -325,7 +325,11 @@ namespace kvad_be.Migrations
                     Virtual = table.Column<bool>(type: "boolean", nullable: false),
                     Location = table.Column<string>(type: "text", nullable: false),
                     Type = table.Column<string>(type: "text", nullable: false),
-                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false)
+                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
+                    HeartbeatSettings_ExpectedInterval = table.Column<int>(type: "integer", nullable: true),
+                    HeartbeatSettings_HbIntervalThreshold = table.Column<int>(type: "integer", nullable: true),
+                    HeartbeatSettings_HbMissedThreshold = table.Column<int>(type: "integer", nullable: true),
+                    Lifecycle = table.Column<int>(type: "integer", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -470,7 +474,6 @@ namespace kvad_be.Migrations
                     Model = table.Column<string>(type: "text", nullable: true),
                     Hw = table.Column<string>(type: "text", nullable: true),
                     Fw = table.Column<string>(type: "text", nullable: true),
-                    BootId = table.Column<string>(type: "text", nullable: true),
                     Capabilities = table.Column<JsonDocument>(type: "jsonb", nullable: true),
                     Settings = table.Column<JsonDocument>(type: "jsonb", nullable: true),
                     ConfigHash = table.Column<string>(type: "text", nullable: true)
@@ -493,8 +496,8 @@ namespace kvad_be.Migrations
                     DeviceId = table.Column<Guid>(type: "uuid", nullable: false),
                     LastHeartbeat = table.Column<Instant>(type: "timestamptz", nullable: true),
                     BootId = table.Column<string>(type: "text", nullable: true),
-                    Seq = table.Column<long>(type: "bigint", nullable: false),
-                    UptimeSec = table.Column<int>(type: "integer", nullable: false),
+                    Seq = table.Column<long>(type: "bigint", nullable: true),
+                    UptimeSec = table.Column<int>(type: "integer", nullable: true),
                     HbIntervalSec = table.Column<int>(type: "integer", nullable: true),
                     HbJitterPct = table.Column<short>(type: "smallint", nullable: true),
                     ConfigHash = table.Column<string>(type: "text", nullable: true),
@@ -503,13 +506,11 @@ namespace kvad_be.Migrations
                     BatteryPct = table.Column<short>(type: "smallint", nullable: true),
                     LoadPct = table.Column<short>(type: "smallint", nullable: true),
                     TempC = table.Column<float>(type: "real", nullable: true),
-                    Lifecycle = table.Column<int>(type: "integer", nullable: false),
                     Mode = table.Column<int>(type: "integer", nullable: false),
                     Connectivity = table.Column<int>(type: "integer", nullable: false),
                     Health = table.Column<int>(type: "integer", nullable: false),
                     Flags = table.Column<JsonDocument>(type: "jsonb", nullable: true),
-                    Extra = table.Column<JsonDocument>(type: "jsonb", nullable: true),
-                    UpdatedAt = table.Column<Instant>(type: "timestamptz", nullable: false)
+                    Extra = table.Column<JsonDocument>(type: "jsonb", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -661,6 +662,11 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Groups",
+                columns: new[] { "Id", "Name" },
+                values: new object[] { new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), "admin" });
+
+            migrationBuilder.InsertData(
                 table: "Prefixes",
                 columns: new[] { "Symbol", "Base", "Exponent", "Name" },
                 values: new object[,]
@@ -724,6 +730,36 @@ namespace kvad_be.Migrations
                     { "mol", null, new[] { (short)0, (short)0, (short)0, (short)0, (short)0, (short)1, (short)0 }, "{\"Numerator\":1,\"Denominator\":1}", "Mole", true, "Amount of Substance", "linear" },
                     { "s", null, new[] { (short)0, (short)0, (short)1, (short)0, (short)0, (short)0, (short)0 }, "{\"Numerator\":1,\"Denominator\":1}", "Second", true, "Time", "linear" }
                 });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "Icon", "Password", "PrivateGroupId", "Username" },
+                values: new object[] { new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png", "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU", new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), "admin" });
+
+            migrationBuilder.InsertData(
+                table: "Devices",
+                columns: new[] { "Id", "Description", "Lifecycle", "Location", "Mac", "Name", "OwnerId", "Type", "Virtual" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), "This is a virtual device for testing purposes.", 0, "Lab", null, "Virtual Device 1", new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), "Virtual", true });
+
+            migrationBuilder.InsertData(
+                table: "GroupUser",
+                columns: new[] { "GroupsId", "UsersId" },
+                values: new object[] { new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730") });
+
+            migrationBuilder.InsertData(
+                table: "RoleUser",
+                columns: new[] { "RolesId", "UsersId" },
+                values: new object[] { 1, new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730") });
+
+            migrationBuilder.InsertData(
+                table: "DeviceInfo",
+                columns: new[] { "DeviceId", "Capabilities", "ConfigHash", "Fw", "Hw", "Model", "Settings", "UpdatedAt" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), null, null, null, null, null, null, NodaTime.Instant.FromUnixTimeTicks(17265114000000000L) });
+
+            migrationBuilder.InsertData(
+                table: "DeviceState",
+                columns: new[] { "DeviceId", "BatteryPct", "BootId", "ConfigHash", "Connectivity", "Extra", "Flags", "HbIntervalSec", "HbJitterPct", "Health", "LastHeartbeat", "LastIp", "LoadPct", "Mode", "Rssi", "Seq", "TempC", "UptimeSec" },
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), null, null, null, 4, null, null, 10, (short)20, 3, null, null, null, 4, null, 0L, null, 0 });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ChatMessages_UserId",

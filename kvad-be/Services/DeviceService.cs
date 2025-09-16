@@ -20,19 +20,41 @@ public class DeviceService
         return await _context.Devices.ToListAsync();
     }
 
-    public async Task<List<Device>> GetAllDevicesOfUser(User user)
+    public async Task<List<DeviceDTO>> GetAllDevicesOfUser(User user)
     {
         return await _context.Devices
+            .Include(d => d.Tags)
+            .Include(d => d.State)
             .Where(d => d.Groups.Any(g => g.Users.Any(u => u.Id == user.Id)))
+            .Select(d => new DeviceDTO(
+                d.Id,
+                d.Name,
+                d.Description,
+                d.OwnerId,
+                d.Location,
+                d.Type,
+                d.Virtual,
+                d.Tags.Select(t => new TagDTO(
+                    t.Id.ToString(),
+                    t.Path,
+                    null, // Description
+                    t.UnitId,
+                    "", // Expression - empty for now
+                    t.Enabled,
+                    t.HistPolicies.Any(), // Historicize
+                    "Device" // Source
+                )).ToList(),
+                d.State != null ? new DeviceStateDTO(
+                    d.State.DeviceId,
+                    d.State.Connectivity,
+                    d.State.Health,
+                    d.State.Mode,
+                    d.State.LastHeartbeat
+                ) : null
+            ))
             .ToListAsync();
     }
 
-    public async Task<List<Device>> GetAllDevicesOfGroup(Group group)
-    {
-        return await _context.Devices
-            .Where(d => d.Groups.Any(g => g.Id == group.Id))
-            .ToListAsync();
-    }
 
     public async Task<Device?> GetDeviceById(Guid id)
     {

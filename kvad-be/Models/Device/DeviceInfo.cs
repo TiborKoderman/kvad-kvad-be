@@ -13,7 +13,6 @@ public class DeviceInfo
   public string? Model { get; set; }
   public string? Hw { get; set; }
   public string? Fw { get; set; }
-  public string? BootId { get; set; }
   [Column(TypeName = "jsonb")] public JsonDocument? Capabilities { get; set; }
   [Column(TypeName = "jsonb")] public JsonDocument? Settings { get; set; }
   public string? ConfigHash { get; set; }

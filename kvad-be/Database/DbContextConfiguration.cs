@@ -23,6 +23,10 @@ public static class DbContextConfiguration
         {
             // Enable NodaTime support for EF Core
             options.UseNodaTime();
+            // Ensure migrations go to the Migrations folder
+            options.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+            // Optional: Set custom migrations history table name
+            options.MigrationsHistoryTable("__EFMigrationsHistory");
         });
         
         // Add any other common configuration here

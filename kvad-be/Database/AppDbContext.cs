@@ -252,7 +252,28 @@ public class AppDbContext : DbContext
             IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", [0, 0, 0, 0, 0, 0, 1], null)
         );
 
-        // Seed Device first
+        // Seed admin group first (required for user)
+        modelBuilder.Entity<Group>().HasData(
+            new Group
+            {
+                Id = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                Name = "admin"
+            }
+        );
+
+        // Seed admin user (required for device owner)
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                Id = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                Username = "admin",
+                Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU",
+                PrivateGroupId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
+                Icon = "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png"
+            }
+        );
+
+        // Seed Device after user exists
         modelBuilder.Entity<Device>().HasData(
             new Device
             {
@@ -277,7 +298,6 @@ public class AppDbContext : DbContext
                 UptimeSec = 0,
                 HbIntervalSec = 10,
                 HbJitterPct = 20,
-                UpdatedAt = Instant.FromUnixTimeSeconds(1726511400) // Static timestamp: Sept 16, 2025
             }
         );
 
@@ -289,6 +309,21 @@ public class AppDbContext : DbContext
                 UpdatedAt = Instant.FromUnixTimeSeconds(1726511400) // Static timestamp: Sept 16, 2025
             }
         );
+
+        // Seed many-to-many relationship data via join tables
+        // Note: The relationship configurations are handled automatically by EF for conventional many-to-many relationships
+        
+        // Seed the GroupUser join table
+        modelBuilder.Entity("GroupUser").HasData(
+            new { GroupsId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), UsersId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730") }
+        );
+
+        // Seed the RoleUser join table (Admin role)
+        modelBuilder.Entity("RoleUser").HasData(
+            new { RolesId = 1, UsersId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730") }
+        );
+
+
 
     }
 
