@@ -11,8 +11,16 @@ public partial class OptimizeTagHist : Migration
 
     //Toast compress
     migrationBuilder.Sql(@"
-            ALTER TABLE TagHists SET (toast.compress = 'lz4');
-        ");
+    DO $$
+    BEGIN
+      IF current_setting('server_version_num')::int >= 140000 THEN
+        -- Use LZ4 for wide/TOASTed columns
+        EXECUTE 'ALTER TABLE public.""TagHists"" ALTER COLUMN ""V_string"" SET COMPRESSION lz4';
+        EXECUTE 'ALTER TABLE public.""TagHists"" ALTER COLUMN ""V_json""   SET COMPRESSION lz4';
+        EXECUTE 'ALTER TABLE public.""TagHists"" ALTER COLUMN ""V_bytea""  SET COMPRESSION lz4';
+      END IF;
+    END $$;
+    ");
 
     migrationBuilder.Sql(@"
       select create_hypertable('public.""TagHists""',
