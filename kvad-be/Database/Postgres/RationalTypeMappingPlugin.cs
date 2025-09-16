@@ -6,13 +6,14 @@ public sealed class RationalTypeMappingPlugin : IRelationalTypeMappingSourcePlug
 
     public RelationalTypeMapping? FindMapping(in RelationalTypeMappingInfo mappingInfo)
     {
-        // Match by CLR type or store type name.
+        // Only handle Rational type specifically - let other plugins handle other types
         if (mappingInfo.ClrType == typeof(Rational))
             return _mapping;
 
         if (string.Equals(mappingInfo.StoreTypeNameBase, "rational", StringComparison.OrdinalIgnoreCase))
             return _mapping;
 
+        // Return null for all other types to let the default plugins handle them
         return null;
     }
 }

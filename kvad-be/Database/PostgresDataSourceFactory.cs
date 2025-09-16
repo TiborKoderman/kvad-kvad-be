@@ -13,10 +13,9 @@ public static class PostgresDataSourceFactory
         dsb.EnableDynamicJson();
         dsb.UseNodaTime();
 
-        // Note: Composite type mappings are commented out since we're using JSONB
-        // If you want to use composite types, uncomment these and ensure the types exist in DB:
-        // dsb.MapComposite<Rational>("rational");
-        // dsb.MapComposite<Dim7>("dim7");
+        // Register composite types
+        dsb.MapComposite<Rational>("rational");
+        // dsb.MapComposite<Dim7>("dim7"); // Uncomment when Dim7 composite mapping is ready
 
         return dsb.Build();
     }

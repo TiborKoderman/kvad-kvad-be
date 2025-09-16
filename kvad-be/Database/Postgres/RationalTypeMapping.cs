@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Linq.Expressions;
+using System.Data.Common;
+using System.Reflection;
+using Npgsql;
 
 public sealed class RationalTypeMapping : RelationalTypeMapping
 {
@@ -17,25 +20,35 @@ public sealed class RationalTypeMapping : RelationalTypeMapping
             storeTypePostfix: StoreTypePostfix.None))
     { }
 
-  protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
-  {
-    return new RationalTypeMapping();
-  }
+    protected override RelationalTypeMapping Clone(RelationalTypeMappingParameters parameters)
+    {
+        return new RationalTypeMapping();
+    }
 
-  protected override string GenerateNonNullSqlLiteral(object value)
+    protected override string GenerateNonNullSqlLiteral(object value)
     {
         var r = (Rational)value;
         // Emit: ROW(<num>,<den>)::rational
         return $"ROW({r.Numerator},{r.Denominator})::rational";
     }
 
-  // Optional but nice for parameters: send as text in Postgres's record text form "(a,b)"
-  public Expression ComposeUsingCollation(Expression valueExpression, string collation)
-  {
-    return valueExpression;
-  }
+    protected override void ConfigureParameter(DbParameter parameter)
+    {
+        base.ConfigureParameter(parameter);
+        if (parameter is NpgsqlParameter npgParam)
+        {
+            npgParam.DataTypeName = "rational";
+        }
+    }
 
-  private sealed class RationalValueComparer : ValueComparer<Rational>
+    public override Expression GenerateCodeLiteral(object value)
+    {
+        var r = (Rational)value;
+        var ctor = typeof(Rational).GetConstructor(new[] { typeof(long), typeof(long) })!;
+        return Expression.New(ctor, Expression.Constant(r.Numerator), Expression.Constant(r.Denominator));
+    }
+
+    private sealed class RationalValueComparer : ValueComparer<Rational>
     {
         public RationalValueComparer()
             : base(

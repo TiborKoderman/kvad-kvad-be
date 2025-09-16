@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using kvad_be.Database.Converters;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -60,7 +61,7 @@ public class AppDbContext : DbContext
             .HaveConversion<byte>()
             .HaveColumnType("smallint");
 
-        // Configure complex types to use JSONB storage
+        // Configure Rational to use JSONB for now (composite type mapping requires more setup)
         configurationBuilder.Properties<Rational>()
             .HaveConversion<RationalConverter>()
             .HaveColumnType("jsonb");
