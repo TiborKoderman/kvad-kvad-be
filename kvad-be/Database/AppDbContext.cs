@@ -99,18 +99,15 @@ public class AppDbContext : DbContext
             
             d.ToTable(tb =>
             {
-                // 1. Enforce sequential IDs (no gaps) starting from 0
-                // The constraint ensures that for every row with Id > 0, a row with Id = (this.Id - 1) exists
-                tb.HasCheckConstraint(
-                    "ck_enumunitdimension_sequential_ids",
-                    @"(""Id"" = 0) OR EXISTS (SELECT 1 FROM ""EnumUnitDimensions"" e WHERE e.""Id"" = ""EnumUnitDimensions"".""Id"" - 1)"
-                );
-
+                // 1. Sequential ID validation is handled by PostgreSQL triggers (check constraints can't use subqueries)
                 // 2. Prevent deletion if any Unit.Dimension[Id] != 0 (using PostgreSQL triggers)
                 tb.HasTrigger("trg_enumunitdimension_prevent_delete_if_used");
                 
                 // 3. Trigger to expand existing Unit.Dimension arrays when new EnumUnitDimension is inserted
                 tb.HasTrigger("trg_enumunitdimension_expand_unit_dimensions");
+                
+                // 4. Trigger to validate sequential IDs on insert
+                tb.HasTrigger("trg_enumunitdimension_validate_sequential_id");
             });
         });
 

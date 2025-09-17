@@ -14,16 +14,13 @@ using NpgsqlTypes;
 using kvad_be.Database;
 
 #nullable disable
-
-namespace kvad_be.Migrations
+[DbContext(typeof(AppDbContext))]
+[Migration("20250917175631_UpdateEnumUnitDimensionConstraints")]
+partial class UpdateEnumUnitDimensionConstraints
 {
-    [DbContext(typeof(AppDbContext))]
-    [Migration("20250917172915_Initial")]
-    partial class Initial
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.8")
@@ -405,7 +402,14 @@ namespace kvad_be.Migrations
                     b.HasIndex("Symbol")
                         .IsUnique();
 
-                    b.ToTable("EnumUnitDimensions");
+                    b.ToTable("EnumUnitDimensions", t =>
+                        {
+                            t.HasTrigger("trg_enumunitdimension_expand_unit_dimensions");
+
+                            t.HasTrigger("trg_enumunitdimension_prevent_delete_if_used");
+
+                            t.HasTrigger("trg_enumunitdimension_validate_sequential_id");
+                        });
 
                     b.HasData(
                         new
@@ -845,7 +849,12 @@ namespace kvad_be.Migrations
 
                     b.HasKey("Symbol");
 
-                    b.ToTable("Units");
+                    b.ToTable("Units", t =>
+                        {
+                            t.HasTrigger("trg_unit_pad_dimension_array");
+
+                            t.HasCheckConstraint("ck_unit_dimension_array_length", "array_length(\"Dimension\", 1) = (SELECT COUNT(*) FROM \"EnumUnitDimensions\")");
+                        });
 
                     b.HasDiscriminator<string>("UnitKind").HasValue("Unit");
 
@@ -1237,12 +1246,22 @@ namespace kvad_be.Migrations
                     b.Property<decimal>("Offset")
                         .HasColumnType("numeric");
 
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("ck_unit_dimension_array_length", "array_length(\"Dimension\", 1) = (SELECT COUNT(*) FROM \"EnumUnitDimensions\")");
+                        });
+
                     b.HasDiscriminator().HasValue("affine");
                 });
 
             modelBuilder.Entity("LinearUnit", b =>
                 {
                     b.HasBaseType("Unit");
+
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("ck_unit_dimension_array_length", "array_length(\"Dimension\", 1) = (SELECT COUNT(*) FROM \"EnumUnitDimensions\")");
+                        });
 
                     b.HasDiscriminator().HasValue("linear");
 
@@ -1327,6 +1346,11 @@ namespace kvad_be.Migrations
                     b.Property<string>("LogRef")
                         .IsRequired()
                         .HasColumnType("jsonb");
+
+                    b.ToTable(t =>
+                        {
+                            t.HasCheckConstraint("ck_unit_dimension_array_length", "array_length(\"Dimension\", 1) = (SELECT COUNT(*) FROM \"EnumUnitDimensions\")");
+                        });
 
                     b.HasDiscriminator().HasValue("log");
                 });
@@ -1656,4 +1680,3 @@ namespace kvad_be.Migrations
 #pragma warning restore 612, 618
         }
     }
-}
