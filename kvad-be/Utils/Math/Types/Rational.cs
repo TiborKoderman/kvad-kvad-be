@@ -54,6 +54,30 @@ public readonly struct Rational
     public static Rational operator /(Rational a, Rational b)
         => new Rational(a.Numerator * b.Denominator, a.Denominator * b.Numerator).Normalize();
 
+    public static Rational operator +(Rational a, Rational b)
+        => new Rational(a.Numerator * b.Denominator + b.Numerator * a.Denominator, a.Denominator * b.Denominator).Normalize();
+
+    public static Rational operator -(Rational a, Rational b)
+        => new Rational(a.Numerator * b.Denominator - b.Numerator * a.Denominator, a.Denominator * b.Denominator).Normalize();
+
+    public static bool operator ==(Rational a, Rational b)
+    {
+        var aNorm = a.Normalize();
+        var bNorm = b.Normalize();
+        return aNorm.Numerator == bNorm.Numerator && aNorm.Denominator == bNorm.Denominator;
+    }
+
+    public static bool operator !=(Rational a, Rational b) => !(a == b);
+
+    public override bool Equals(object? obj)
+        => obj is Rational other && this == other;
+
+    public override int GetHashCode()
+    {
+        var normalized = Normalize();
+        return HashCode.Combine(normalized.Numerator, normalized.Denominator);
+    }
+
     public decimal ToDecimal()
         => (decimal)Numerator / (decimal)Denominator;
 
