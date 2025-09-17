@@ -200,5 +200,55 @@ namespace kvad_be.Tests.Units
             Assert.Equal(new Rational(-1, 1), result["3.14"]);
             Assert.Equal(new Rational(-2, 1), result["s"]);
         }
+
+        [Fact]
+        public void ParseDefinition_MultipleDivisions_HandlesDenominatorsCorrectly()
+        {
+            // Arrange - Test "kg/m/s" which should be kg/(m*s)
+            var definition = "kg/m/s";
+            
+            // Act
+            var result = IUnitFactory.ParseDefinition(definition);
+            
+            // Assert
+            Assert.Equal(3, result.Count);
+            Assert.Equal(new Rational(1, 1), result["kg"]);   // numerator
+            Assert.Equal(new Rational(-1, 1), result["m"]);   // first denominator  
+            Assert.Equal(new Rational(-1, 1), result["s"]);   // second denominator
+        }
+
+        [Fact]
+        public void ParseDefinition_MultipleDivisionsWithExponents_HandlesCorrectly()
+        {
+            // Arrange - Test "kg m^2/s/A^3" which should be (kg*m^2)/(s*A^3)
+            var definition = "kg m^2/s/A^3";
+            
+            // Act
+            var result = IUnitFactory.ParseDefinition(definition);
+            
+            // Assert
+            Assert.Equal(4, result.Count);
+            Assert.Equal(new Rational(1, 1), result["kg"]);   // numerator
+            Assert.Equal(new Rational(2, 1), result["m"]);    // numerator with exponent
+            Assert.Equal(new Rational(-1, 1), result["s"]);   // first denominator
+            Assert.Equal(new Rational(-3, 1), result["A"]);   // second denominator with exponent
+        }
+
+        [Fact]
+        public void ParseDefinition_MultipleDivisionsWithParentheses_HandlesCorrectly()
+        {
+            // Arrange - Test "N/(m kg)/s" which should treat (m kg) as one denominator and s as another
+            var definition = "N/(m kg)/s";
+            
+            // Act
+            var result = IUnitFactory.ParseDefinition(definition);
+            
+            // Assert
+            Assert.Equal(4, result.Count);
+            Assert.Equal(new Rational(1, 1), result["N"]);    // numerator
+            Assert.Equal(new Rational(-1, 1), result["m"]);   // from first denominator (m kg)
+            Assert.Equal(new Rational(-1, 1), result["kg"]);  // from first denominator (m kg)
+            Assert.Equal(new Rational(-1, 1), result["s"]);   // second denominator
+        }
     }
 }

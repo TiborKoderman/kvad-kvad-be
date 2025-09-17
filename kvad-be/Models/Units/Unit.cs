@@ -30,15 +30,7 @@ public interface IUnitFactory
         };
     }
 
-    /** Create a Unit based on the provided parameters.
-        Definition is a string that defines the unit in terms of other units.
-        Syntax is as follows:
-        - Multiplication: use a space or '*', e.g. "N m" or "N*m"
-        - Division: use '/', e.g. "m/s"
-        - Exponentiation: use '^', e.g. "m^2"
-        - Parentheses for grouping, e.g. "kg m/(s^2 A)"
-        - Unit symbols must match existing units in the database.
-     */
+
     public static Unit CreateUnit(string Symbol, string Definition, string? Name)
     {
         // TODO: Implement unit creation from definition string
@@ -46,37 +38,22 @@ public interface IUnitFactory
         throw new NotImplementedException("Unit creation from definition not yet implemented");
     }
 
-    // Syntax is as follows:
-    // - Multiplication: use a space or '*', e.g. "N m" or "N*m"
-    // - Division: use '/', e.g. "m/s"
-    // - Exponentiation: use '^', e.g. "m^2"
-    // - Parentheses for grouping, e.g. "kg m/(s^2 A)"
-    // - Unit symbols must match existing units in the database.
-    // Output is an array of {symbol/number, exponent} pairs
-    // E.g. "kg m/(s^2 A)" -> [("kg", 1), ("m", 1), ("s", -2), ("A", -1)]
-    // Don't handle prefixes here, just raw symbols
-    // Handle implicit multiplication (space) and explicit (*)
-    // Handle negative exponents
-    // Handle parentheses for grouping
-    // Do it in a quick and dirty way, no need for full parsing
-    // Throw exception on invalid syntax
-    // This is just a basic implementation, not a full parser
-    // This function does not validate if the units exist in the database
     public static Dictionary<string, Rational> ParseDefinition(string definition)
     {
         var result = new Dictionary<string, Rational>();
-        
-        // Split by '/' to handle division (everything after / gets negative exponent)
+
+        // Split by '/' to handle division - first part is numerator, all others are denominators
         var parts = definition.Split('/');
-        if (parts.Length > 2) throw new ArgumentException("Multiple divisions not supported");
-        
+
         // Parse numerator (positive exponents)
         ParseSection(parts[0], result, new Rational(1, 1));
-        
-        // Parse denominator (negative exponents)
-        if (parts.Length == 2)
-            ParseSection(parts[1], result, new Rational(-1, 1));
-            
+
+        // Parse all denominators (negative exponents)
+        for (int i = 1; i < parts.Length; i++)
+        {
+            ParseSection(parts[i], result, new Rational(-1, 1));
+        }
+
         return result;
     }
     
