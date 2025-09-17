@@ -6,14 +6,21 @@ namespace kvad_be.Database.Converters;
 
 public class VectorArrayConverter : ValueConverter<Vector<short>, short[]>
 {
-    public VectorArrayConverter()
-        : base(
-            v => 
-              short[] array = new short[Vector<short>.Count];
-              v.CopyTo(array);
-              return array;
-            ,
-            a => new Vector<short>(a)
-        )
-    { }
+  public VectorArrayConverter()
+      : base(
+          v => ToArray(v),
+
+          a => new Vector<short>(a)
+      )
+  { }
+
+
+  private static short[] ToArray(Vector<short> vector)
+  {
+    short[] array = new short[Vector<short>.Count];
+    vector.CopyTo(array);
+    return array;
+  }
+    
+
 }
