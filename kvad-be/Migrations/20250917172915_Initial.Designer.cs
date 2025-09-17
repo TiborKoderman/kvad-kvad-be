@@ -18,7 +18,7 @@ using kvad_be.Database;
 namespace kvad_be.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250916190736_Initial")]
+    [Migration("20250917172915_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -384,6 +384,71 @@ namespace kvad_be.Migrations
                             Mode = 4,
                             Seq = 0L,
                             UptimeSec = 0
+                        });
+                });
+
+            modelBuilder.Entity("EnumUnitDimension", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Symbol")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Symbol")
+                        .IsUnique();
+
+                    b.ToTable("EnumUnitDimensions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 0,
+                            Name = "Length",
+                            Symbol = "L"
+                        },
+                        new
+                        {
+                            Id = 1,
+                            Name = "Mass",
+                            Symbol = "M"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Time",
+                            Symbol = "T"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Electric Current",
+                            Symbol = "I"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Thermodynamic Temperature",
+                            Symbol = "Θ"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Amount of Substance",
+                            Symbol = "N"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Luminous Intensity",
+                            Symbol = "J"
                         });
                 });
 

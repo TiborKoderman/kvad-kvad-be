@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
     public DbSet<Device> Devices { get; set; }
 
     public DbSet<Unit> Units { get; set; }
+    public DbSet<EnumUnitDimension> EnumUnitDimensions { get; set; }
     public DbSet<UnitPrefix> Prefixes { get; set; }
     public DbSet<ChatRoom> ChatRooms { get; set; }
     public DbSet<ChatMessage> ChatMessages { get; set; }
@@ -66,6 +67,7 @@ public class AppDbContext : DbContext
             .HaveConversion<RationalConverter>()
             .HaveColumnType("jsonb");
 
+
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -85,6 +87,53 @@ public class AppDbContext : DbContext
              .HasValue<AffineUnit>("affine")
              .HasValue<LogarithmicUnit>("log");
         });
+
+        modelBuilder.Entity<EnumUnitDimension>(d =>
+        {
+            d.HasKey(x => x.Id);
+            d.HasIndex(x => x.Symbol).IsUnique();
+            
+            // Configure identity to start from 0 and increment by 1
+            d.Property(x => x.Id)
+                .ValueGeneratedNever(); // We'll provide the IDs manually in seed data
+            
+            d.ToTable(tb =>
+            {
+                // 1. Enforce sequential IDs (no gaps) starting from 0
+                // The constraint ensures that for every row with Id > 0, a row with Id = (this.Id - 1) exists
+                tb.HasCheckConstraint(
+                    "ck_enumunitdimension_sequential_ids",
+                    @"(""Id"" = 0) OR EXISTS (SELECT 1 FROM ""EnumUnitDimensions"" e WHERE e.""Id"" = ""EnumUnitDimensions"".""Id"" - 1)"
+                );
+
+                // 2. Prevent deletion if any Unit.Dimension[Id] != 0 (using PostgreSQL triggers)
+                tb.HasTrigger("trg_enumunitdimension_prevent_delete_if_used");
+                
+                // 3. Trigger to expand existing Unit.Dimension arrays when new EnumUnitDimension is inserted
+                tb.HasTrigger("trg_enumunitdimension_expand_unit_dimensions");
+            });
+        });
+
+        // Configure Unit.Dimension array with comprehensive validation
+        modelBuilder.Entity<Unit>(u =>
+        {
+            u.Property(unit => unit.Dimension)
+                .HasColumnType("smallint[]")
+                .IsRequired();
+
+            u.ToTable(tb =>
+            {
+                // 4. Ensure Unit.Dimension array length equals EnumUnitDimension count
+                tb.HasCheckConstraint(
+                    "ck_unit_dimension_array_length",
+                    @"array_length(""Dimension"", 1) = (SELECT COUNT(*) FROM ""EnumUnitDimensions"")"
+                );
+
+                // 5. Trigger to automatically pad Unit.Dimension arrays to correct length
+                tb.HasTrigger("trg_unit_pad_dimension_array");
+            });
+        });
+
 
         modelBuilder.Entity<ChatMessage>()
             .Property(cm => cm.Id)
@@ -167,6 +216,18 @@ public class AppDbContext : DbContext
                 Id = 3,
                 Name = "User",
             }
+        );
+
+        // Seed EnumUnitDimension with the 7 SI base dimensions
+        // These correspond directly to indices 0-6 in Unit.Dimension arrays: [L, M, T, I, Θ, N, J]
+        modelBuilder.Entity<EnumUnitDimension>().HasData(
+            new EnumUnitDimension { Id = 0, Symbol = "L", Name = "Length" },
+            new EnumUnitDimension { Id = 1, Symbol = "M", Name = "Mass" },
+            new EnumUnitDimension { Id = 2, Symbol = "T", Name = "Time" },
+            new EnumUnitDimension { Id = 3, Symbol = "I", Name = "Electric Current" },
+            new EnumUnitDimension { Id = 4, Symbol = "Θ", Name = "Thermodynamic Temperature" },
+            new EnumUnitDimension { Id = 5, Symbol = "N", Name = "Amount of Substance" },
+            new EnumUnitDimension { Id = 6, Symbol = "J", Name = "Luminous Intensity" }
         );
 
         modelBuilder.Entity<DashboardType>().HasData(

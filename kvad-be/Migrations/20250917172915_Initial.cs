@@ -49,6 +49,19 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EnumUnitDimensions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false),
+                    Symbol = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EnumUnitDimensions", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Groups",
                 columns: table => new
                 {
@@ -662,6 +675,20 @@ namespace kvad_be.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "EnumUnitDimensions",
+                columns: new[] { "Id", "Name", "Symbol" },
+                values: new object[,]
+                {
+                    { 0, "Length", "L" },
+                    { 1, "Mass", "M" },
+                    { 2, "Time", "T" },
+                    { 3, "Electric Current", "I" },
+                    { 4, "Thermodynamic Temperature", "Θ" },
+                    { 5, "Amount of Substance", "N" },
+                    { 6, "Luminous Intensity", "J" }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Groups",
                 columns: new[] { "Id", "Name" },
                 values: new object[] { new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), "admin" });
@@ -797,6 +824,12 @@ namespace kvad_be.Migrations
                 column: "OwnerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EnumUnitDimensions_Symbol",
+                table: "EnumUnitDimensions",
+                column: "Symbol",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_GroupUser_UsersId",
                 table: "GroupUser",
                 column: "UsersId");
@@ -875,6 +908,9 @@ namespace kvad_be.Migrations
 
             migrationBuilder.DropTable(
                 name: "DeviceState");
+
+            migrationBuilder.DropTable(
+                name: "EnumUnitDimensions");
 
             migrationBuilder.DropTable(
                 name: "GroupUser");
