@@ -1,5 +1,4 @@
 using Xunit;
-using System.Collections.Generic;
 
 namespace kvad_be.Tests.Units
 {
