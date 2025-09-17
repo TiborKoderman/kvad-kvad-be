@@ -49,7 +49,10 @@ public abstract class Unit
 
     [InverseProperty(nameof(UnitCanonicalPart.Part))]
     public UnitCanonicalPart[] PartOfUnits { get; set; } = [];
+
 }
+
+
 
 
 public class LinearUnit : Unit

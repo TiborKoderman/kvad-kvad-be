@@ -62,10 +62,10 @@ public class AppDbContext : DbContext
             .HaveConversion<byte>()
             .HaveColumnType("smallint");
 
-        // Configure Rational to use JSONB for now (composite type mapping requires more setup)
+        // Configure Rational to use bigint[] for efficient storage
         configurationBuilder.Properties<Rational>()
-            .HaveConversion<RationalConverter>()
-            .HaveColumnType("jsonb");
+            .HaveConversion<Rational.LongArrayConverter>()
+            .HaveColumnType("bigint[]");
 
 
     }
