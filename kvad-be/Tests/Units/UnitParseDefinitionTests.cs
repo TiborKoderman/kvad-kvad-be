@@ -250,4 +250,189 @@ namespace kvad_be.Tests.Units
             Assert.Equal(new Rational(-1, 1), result["s"]);   // second denominator
         }
     }
+
+    public class UnitReduceDefinitionTests
+    {
+        [Fact]
+        public void ReduceDefinition_OnlyUnits_ReturnsUnchangedWithUnitScaleFactor()
+        {
+            // Arrange
+            var definition = new Dictionary<string, Rational>
+            {
+                {"kg", new Rational(1, 1)},
+                {"m", new Rational(2, 1)},
+                {"s", new Rational(-1, 1)}
+            };
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert
+            Assert.Equal(3, reduced.Count);
+            Assert.Equal(new Rational(1, 1), reduced["kg"]);
+            Assert.Equal(new Rational(2, 1), reduced["m"]);
+            Assert.Equal(new Rational(-1, 1), reduced["s"]);
+            Assert.Equal(new Rational(1, 1), scaleFactor);
+        }
+
+        [Fact]
+        public void ReduceDefinition_OnlyNumbers_ReturnsEmptyWithCombinedScaleFactor()
+        {
+            // Arrange - numeric keys with their exponents
+            var definition = new Dictionary<string, Rational>
+            {
+                {"42", new Rational(1, 1)},    // exponent 1
+                {"3", new Rational(2, 1)},     // exponent 2
+                {"10", new Rational(-1, 1)}    // exponent -1
+            };
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert
+            Assert.Empty(reduced);
+            // scaleFactor is multiplied by each exponent: 1 * 1 * 2 * (-1) = -2
+            Assert.Equal(new Rational(-2, 1), scaleFactor);
+        }
+
+        [Fact]
+        public void ReduceDefinition_MixedUnitsAndNumbers_SeparatesCorrectly()
+        {
+            // Arrange
+            var definition = new Dictionary<string, Rational>
+            {
+                {"1000", new Rational(1, 1)},   // numeric key with exponent 1
+                {"kg", new Rational(1, 1)},
+                {"3", new Rational(-1, 1)},     // numeric key with exponent -1
+                {"m", new Rational(2, 1)}
+            };
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert
+            Assert.Equal(2, reduced.Count);
+            Assert.Equal(new Rational(1, 1), reduced["kg"]);
+            Assert.Equal(new Rational(2, 1), reduced["m"]);
+            // scaleFactor is multiplied by numeric exponents: 1 * 1 * (-1) = -1
+            Assert.Equal(new Rational(-1, 1), scaleFactor);
+        }
+
+        [Fact]
+        public void ReduceDefinition_DecimalNumbers_TreatedAsUnits()
+        {
+            // Arrange - decimal numbers are NOT treated as pure digit keys
+            var definition = new Dictionary<string, Rational>
+            {
+                {"3.14", new Rational(1, 1)},
+                {"kg", new Rational(1, 1)},
+                {"2.5", new Rational(2, 1)}
+            };
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert - decimal numbers are kept as units, not combined into scaleFactor
+            Assert.Equal(3, reduced.Count);
+            Assert.Equal(new Rational(1, 1), reduced["3.14"]);
+            Assert.Equal(new Rational(1, 1), reduced["kg"]);
+            Assert.Equal(new Rational(2, 1), reduced["2.5"]);
+            Assert.Equal(new Rational(1, 1), scaleFactor);
+        }
+
+        [Fact]
+        public void ReduceDefinition_SingleNumber_ReturnsEmptyWithExponentAsScaleFactor()
+        {
+            // Arrange
+            var definition = new Dictionary<string, Rational>
+            {
+                {"42", new Rational(3, 2)}   // exponent 3/2
+            };
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert
+            Assert.Empty(reduced);
+            Assert.Equal(new Rational(3, 2), scaleFactor);
+        }
+
+        [Fact]
+        public void ReduceDefinition_EmptyInput_ReturnsEmptyWithUnitScaleFactor()
+        {
+            // Arrange
+            var definition = new Dictionary<string, Rational>();
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert
+            Assert.Empty(reduced);
+            Assert.Equal(new Rational(1, 1), scaleFactor);
+        }
+
+        [Fact]
+        public void ReduceDefinition_IntegrationWithParseDefinition_WorksCorrectly()
+        {
+            // Arrange - Parse a definition with numbers and units
+            var definition = IUnitFactory.ParseDefinition("1000 kg m/3 s^2");
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert
+            Assert.Equal(3, reduced.Count);
+            Assert.Equal(new Rational(1, 1), reduced["kg"]);
+            Assert.Equal(new Rational(1, 1), reduced["m"]);
+            Assert.Equal(new Rational(-2, 1), reduced["s"]);
+            // scaleFactor is multiplied by numeric exponents: 1 * 1 * (-1) = -1
+            // (1000 has exponent 1, 3 has exponent -1)
+            Assert.Equal(new Rational(-1, 1), scaleFactor);
+        }
+
+        [Fact]
+        public void ReduceDefinition_MultipleNumbers_MultipliesExponents()
+        {
+            // Arrange
+            var definition = new Dictionary<string, Rational>
+            {
+                {"2", new Rational(3, 1)},      // exponent 3
+                {"5", new Rational(-1, 1)},     // exponent -1
+                {"10", new Rational(2, 1)},     // exponent 2
+                {"kg", new Rational(1, 1)}
+            };
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert
+            Assert.Single(reduced);
+            Assert.Equal(new Rational(1, 1), reduced["kg"]);
+            // scaleFactor is multiplied by numeric exponents: 1 * 3 * (-1) * 2 = -6
+            Assert.Equal(new Rational(-6, 1), scaleFactor);
+        }
+
+        [Fact]
+        public void ReduceDefinition_OnlyChecksDigits_NotDecimalNumbers()
+        {
+            // Arrange - mixed pure digit and decimal strings
+            var definition = new Dictionary<string, Rational>
+            {
+                {"123", new Rational(2, 1)},      // pure digits - treated as number
+                {"45.6", new Rational(1, 1)},     // decimal - treated as unit
+                {"789", new Rational(-1, 1)},     // pure digits - treated as number
+                {"kg", new Rational(1, 1)}
+            };
+            
+            // Act
+            var (reduced, scaleFactor) = IUnitFactory.ReduceDefinition(definition);
+            
+            // Assert
+            Assert.Equal(2, reduced.Count);
+            Assert.Equal(new Rational(1, 1), reduced["45.6"]);  // decimal kept as unit
+            Assert.Equal(new Rational(1, 1), reduced["kg"]);
+            // scaleFactor from pure digit keys: 1 * 2 * (-1) = -2
+            Assert.Equal(new Rational(-2, 1), scaleFactor);
+        }
+    }
 }
