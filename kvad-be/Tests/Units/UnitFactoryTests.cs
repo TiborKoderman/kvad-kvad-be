@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Xunit;
 
 namespace kvad_be.Tests.Units
@@ -16,16 +17,15 @@ namespace kvad_be.Tests.Units
                     Symbol = "m",
                     Name = "Meter",
                     Quantity = "Length",
-                    Dimension = new short[] { 1, 0, 0, 0, 0, 0, 0 }, // Length
+                    Dimension = VectorHelper.CreateDimensionVector(1, 0, 0, 0, 0, 0, 0), // Length
                     Factor = new Rational(1, 1),
-                    Prefixable = true
                 },
                 new LinearUnit
                 {
                     Symbol = "kg",
                     Name = "Kilogram",
                     Quantity = "Mass",
-                    Dimension = new short[] { 0, 1, 0, 0, 0, 0, 0 }, // Mass
+                    Dimension = VectorHelper.CreateDimensionVector(0, 1, 0, 0, 0, 0, 0), // Mass
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 },
@@ -34,7 +34,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "s",
                     Name = "Second",
                     Quantity = "Time",
-                    Dimension = new short[] { 0, 0, 1, 0, 0, 0, 0 }, // Time
+                    Dimension = VectorHelper.CreateDimensionVector(0, 0, 1, 0, 0, 0, 0), // Time
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 },
@@ -43,7 +43,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "A",
                     Name = "Ampere",
                     Quantity = "Electric Current",
-                    Dimension = new short[] { 0, 0, 0, 1, 0, 0, 0 }, // Current
+                    Dimension = VectorHelper.CreateDimensionVector(0, 0, 0, 1, 0, 0, 0), // Current
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 },
@@ -52,7 +52,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "N",
                     Name = "Newton",
                     Quantity = "Force",
-                    Dimension = new short[] { 1, 1, -2, 0, 0, 0, 0 }, // kg⋅m⋅s⁻²
+                    Dimension = VectorHelper.CreateDimensionVector(1, 1, -2, 0, 0, 0, 0), // kg⋅m⋅s⁻²
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 },
@@ -61,7 +61,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "Hz",
                     Name = "Hertz",
                     Quantity = "Frequency",
-                    Dimension = new short[] { 0, 0, -1, 0, 0, 0, 0 }, // s⁻¹
+                    Dimension = VectorHelper.CreateDimensionVector(0, 0, -1, 0, 0, 0, 0), // s⁻¹
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 },
@@ -70,7 +70,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "rad",
                     Name = "Radian",
                     Quantity = "Angle",
-                    Dimension = new short[] { 0, 0, 0, 0, 0, 0, 0 }, // Dimensionless
+                    Dimension = VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 0), // Dimensionless
                     Factor = new Rational(1, 1),
                     Prefixable = false // Angles typically don't use prefixes
                 }
@@ -104,7 +104,7 @@ namespace kvad_be.Tests.Units
             var (dimension, scaleFactor) = IUnitFactory.GenerateDimensionArray(definition, units, prefixes);
 
             // Assert
-            Assert.Equal(new short[] { 1, 0, 0, 0, 0, 0, 0 }, dimension);
+            Assert.Equal(new short[] { 1, 0, 0, 0, 0, 0, 0 }, dimension.ToShortArray());
             Assert.Equal(new Rational(1, 1), scaleFactor);
         }
 
@@ -120,7 +120,7 @@ namespace kvad_be.Tests.Units
             var (dimension, scaleFactor) = IUnitFactory.GenerateDimensionArray(definition, units, prefixes);
 
             // Assert
-            Assert.Equal(new short[] { 1, 0, 0, 0, 0, 0, 0 }, dimension);
+            Assert.Equal(new short[] { 1, 0, 0, 0, 0, 0, 0 }, dimension.ToShortArray());
             Assert.Equal(new Rational(1000, 1), scaleFactor); // k = 10^3 = 1000
         }
 
@@ -140,7 +140,7 @@ namespace kvad_be.Tests.Units
             var (dimension, scaleFactor) = IUnitFactory.GenerateDimensionArray(definition, units, prefixes);
 
             // Assert
-            Assert.Equal(new short[] { 1, 0, -1, 0, 0, 0, 0 }, dimension); // m/s
+            Assert.Equal(new short[] { 1, 0, -1, 0, 0, 0, 0 }, dimension.ToShortArray()); // m/s
             Assert.Equal(new Rational(1, 1), scaleFactor);
         }
 
@@ -161,7 +161,7 @@ namespace kvad_be.Tests.Units
             var (dimension, scaleFactor) = IUnitFactory.GenerateDimensionArray(definition, units, prefixes);
 
             // Assert
-            Assert.Equal(new short[] { 2, 1, -2, 0, 0, 0, 0 }, dimension); // kg⋅m²⋅s⁻²
+            Assert.Equal(new short[] { 2, 1, -2, 0, 0, 0, 0 }, dimension.ToShortArray()); // kg⋅m²⋅s⁻²
             Assert.Equal(new Rational(1, 1), scaleFactor);
         }
 
@@ -180,7 +180,7 @@ namespace kvad_be.Tests.Units
             var (dimension, scaleFactor) = IUnitFactory.GenerateDimensionArray(definition, units, prefixes);
 
             // Assert
-            Assert.Equal(new short[] { 2, 0, 0, 0, 0, 0, 0 }, dimension); // Length²
+            Assert.Equal(new short[] { 2, 0, 0, 0, 0, 0, 0 }, dimension.ToShortArray()); // Length²
             Assert.Equal(new Rational(1000000, 1), scaleFactor); // (10³)² = 10⁶
         }
 
@@ -199,7 +199,7 @@ namespace kvad_be.Tests.Units
             var (dimension, scaleFactor) = IUnitFactory.GenerateDimensionArray(definition, units, prefixes);
 
             // Assert
-            Assert.Equal(new short[] { -1, 0, 0, 0, 0, 0, 0 }, dimension); // 1/Length
+            Assert.Equal(new short[] { -1, 0, 0, 0, 0, 0, 0 }, dimension.ToShortArray()); // 1/Length
             Assert.Equal(new Rational(1, 1000), scaleFactor); // 1/(10³) = 1/1000
         }
 
@@ -219,7 +219,7 @@ namespace kvad_be.Tests.Units
             var (dimension, scaleFactor) = IUnitFactory.GenerateDimensionArray(definition, units, prefixes);
 
             // Assert
-            Assert.Equal(new short[] { 1, 0, -1, 0, 0, 0, 0 }, dimension); // m/s
+            Assert.Equal(new short[] { 1, 0, -1, 0, 0, 0, 0 }, dimension.ToShortArray()); // m/s
             // Scale factor: 1000 * (1/0.001) = 1000 * 1000 = 1,000,000
             Assert.Equal(new Rational(1000000, 1), scaleFactor);
         }
@@ -290,7 +290,7 @@ namespace kvad_be.Tests.Units
             var (dimension, scaleFactor) = IUnitFactory.GenerateDimensionArray(definition, units, prefixes);
 
             // Assert
-            Assert.Equal(new short[] { 0, 0, 0, 0, 0, 0, 0 }, dimension);
+            Assert.Equal(new short[] { 0, 0, 0, 0, 0, 0, 0 }, dimension.ToShortArray());
             Assert.Equal(new Rational(1, 1), scaleFactor);
         }
 
@@ -305,7 +305,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "m",
                     Name = "Meter",
                     Quantity = "Length",
-                    Dimension = new short[] { 1, 0, 0, 0, 0, 0, 0 },
+                    Dimension = VectorHelper.CreateDimensionVector(1, 0, 0, 0, 0, 0, 0),
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 }
@@ -337,7 +337,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "m",
                     Name = "Meter",
                     Quantity = "Length",
-                    Dimension = new short[] { 1, 0, 0, 0, 0, 0, 0 },
+                    Dimension = VectorHelper.CreateDimensionVector(1, 0, 0, 0, 0, 0, 0),
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 },
@@ -346,7 +346,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "Hz",
                     Name = "Hertz",
                     Quantity = "Frequency",
-                    Dimension = new short[] { 0, 0, -1, 0, 0, 0, 0 },
+                    Dimension = VectorHelper.CreateDimensionVector(0, 0, -1, 0, 0, 0, 0),
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 },
@@ -355,7 +355,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "rad",
                     Name = "Radian",
                     Quantity = "Angle",
-                    Dimension = new short[] { 0, 0, 0, 0, 0, 0, 0 },
+                    Dimension = VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 0),
                     Factor = new Rational(1, 1),
                     Prefixable = false // Not prefixable
                 }
@@ -509,7 +509,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "N",
                     Name = "Newton",
                     Quantity = "Force",
-                    Dimension = new short[] { 1, 1, -2, 0, 0, 0, 0 }, // kg⋅m⋅s⁻²
+                    Dimension = VectorHelper.CreateDimensionVector(1, 1, -2, 0, 0, 0, 0), // kg⋅m⋅s⁻²
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 },
@@ -518,7 +518,7 @@ namespace kvad_be.Tests.Units
                     Symbol = "m",
                     Name = "Meter", 
                     Quantity = "Length",
-                    Dimension = new short[] { 1, 0, 0, 0, 0, 0, 0 },
+                    Dimension = VectorHelper.CreateDimensionVector(1, 0, 0, 0, 0, 0, 0),
                     Factor = new Rational(1, 1),
                     Prefixable = true
                 }
@@ -549,7 +549,7 @@ namespace kvad_be.Tests.Units
             Assert.Equal(new Rational(-1, 1), scaleFactor);
 
             // Dimension should be N⋅m = [1,1,-2,0,0,0,0] + [1,0,0,0,0,0,0] = [2,1,-2,0,0,0,0]
-            Assert.Equal(new short[] { 2, 1, -2, 0, 0, 0, 0 }, dimension);
+            Assert.Equal(new short[] { 2, 1, -2, 0, 0, 0, 0 }, dimension.ToShortArray());
             
             // Unit scale factor should be kN factor * m factor = 1000 * 1 = 1000
             Assert.Equal(new Rational(1000, 1), unitScaleFactor);

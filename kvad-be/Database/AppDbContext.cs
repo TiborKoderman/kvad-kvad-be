@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using kvad_be.Database.Converters;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Numerics;
 
 namespace kvad_be.Database;
 
@@ -66,6 +67,11 @@ public class AppDbContext : DbContext
         configurationBuilder.Properties<Rational>()
             .HaveConversion<Rational.LongArrayConverter>()
             .HaveColumnType("bigint[]");
+
+        // Configure Vector<short> to use short[] for storage
+        configurationBuilder.Properties<Vector<short>>()
+            .HaveConversion<VectorShortConverter>()
+            .HaveColumnType("smallint[]");
 
 
     }
@@ -301,13 +307,18 @@ public class AppDbContext : DbContext
 
         // Re-enable LinearUnit seed data now that type mapping is properly configured
         modelBuilder.Entity<LinearUnit>().HasData(
-            IUnitFactory.CreateUnit("m", "Meter", "Length", [1, 0, 0, 0, 0, 0, 0], null),
-            IUnitFactory.CreateUnit("kg", "Kilogram", "Mass", [0, 1, 0, 0, 0, 0, 0], null),
-            IUnitFactory.CreateUnit("s", "Second", "Time", [0, 0, 1, 0, 0, 0, 0], null),
-            IUnitFactory.CreateUnit("A", "Ampere", "Electric Current", [0, 0, 0, 1, 0, 0, 0], null),
-            IUnitFactory.CreateUnit("K", "Kelvin", "Temperature", [0, 0, 0, 0, 1, 0, 0], null),
-            IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", [0, 0, 0, 0, 0, 1, 0], null),
-            IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", [0, 0, 0, 0, 0, 0, 1], null)
+            //Base SI units
+            IUnitFactory.CreateUnit("m", "Meter", "Length", VectorHelper.CreateDimensionVector(1, 0, 0, 0, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("kg", "Kilogram", "Mass", VectorHelper.CreateDimensionVector(0, 1, 0, 0, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("s", "Second", "Time", VectorHelper.CreateDimensionVector(0, 0, 1, 0, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("A", "Ampere", "Electric Current", VectorHelper.CreateDimensionVector(0, 0, 0, 1, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("K", "Kelvin", "Temperature", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 1, 0, 0), null),
+            IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 1, 0), null),
+            IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 1), null)
+            
+            //base non-SI units
+            IUnitFactory.CreateUnit("rad", "Radian", "Plane Angle", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 0), null),
+            
         );
 
         // Seed admin group first (required for user)

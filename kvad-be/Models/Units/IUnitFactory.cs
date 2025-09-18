@@ -1,4 +1,5 @@
 using kvad_be.Database;
+using System.Numerics;
 
 public interface IUnitFactory
 {
@@ -10,12 +11,12 @@ public interface IUnitFactory
       Name = Name,
       Definition = Definition,
       Quantity = Quantity,
-      Dimension = [0, 0, 0, 0, 0, 0, 0],
+      Dimension = Vector<short>.Zero,
       Factor = new Rational(1, 1) // Set default Factor value
     };
   }
 
-  public static Unit CreateUnit(string Symbol, string Name, string Quantity, short[] Dimension, string? Definition, bool Prefixable = true)
+  public static Unit CreateUnit(string Symbol, string Name, string Quantity, Vector<short> Dimension, string? Definition, bool Prefixable = true)
   {
     return new LinearUnit
     {
@@ -177,7 +178,7 @@ public interface IUnitFactory
   // m -> dimension [1,0,0,0,0,0,0], factor 1/1
   // s -> dimension [0,0,1,0,0,0,0], factor 1/1
   // Overall dimension = [2,1,-1,0,0,0,0], overall factor = 1000/1
-  public static (short[] dimensionArray, Rational scaleFactor) GenerateDimensionArray(Dictionary<string, Rational> definition, IEnumerable<Unit> availableUnits, IEnumerable<UnitPrefix> availablePrefixes)
+  public static (Vector<short> dimensionVector, Rational scaleFactor) GenerateDimensionArray(Dictionary<string, Rational> definition, IEnumerable<Unit> availableUnits, IEnumerable<UnitPrefix> availablePrefixes)
   {
     foreach (var kvp in definition)
     {
@@ -192,8 +193,8 @@ public interface IUnitFactory
     if (firstUnit == null)
       throw new ArgumentException("No units available in database");
     
-    var dimensionLength = firstUnit.Dimension.Length;
-    var resultDimension = new short[dimensionLength];
+    var dimensionLength = firstUnit.Dimension.GetDimensionLength();
+    var resultDimension = VectorHelper.ZeroDimension();
     var totalScaleFactor = new Rational(1, 1);
 
     foreach (var kvp in definition)
@@ -258,10 +259,7 @@ public interface IUnitFactory
       }
 
       // Add unit's dimension contribution (multiplied by exponent)
-      for (int i = 0; i < dimensionLength; i++)
-      {
-        resultDimension[i] += (short)(unit.Dimension[i] * exponent);
-      }
+      resultDimension = resultDimension.AddDimensions(unit.Dimension, exponent);
 
       // Calculate scale factor contribution: (unit.Factor * prefixFactor)^exponent
       var unitTotalFactor = unit.Factor * prefixFactor;
@@ -322,7 +320,7 @@ public interface IUnitFactory
   }
 
   // Database-driven version of GenerateDimensionArray that fetches units and prefixes from DbContext
-  public static (short[] dimensionArray, Rational scaleFactor) GenerateDimensionArray(Dictionary<string, Rational> definition, AppDbContext context)
+  public static (Vector<short> dimensionVector, Rational scaleFactor) GenerateDimensionArray(Dictionary<string, Rational> definition, AppDbContext context)
   {
     return GenerateDimensionArray(definition, context.Units.ToList(), context.Prefixes.ToList());
   }

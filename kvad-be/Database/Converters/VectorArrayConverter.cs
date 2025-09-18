@@ -14,7 +14,6 @@ public class VectorArrayConverter : ValueConverter<Vector<short>, short[]>
       )
   { }
 
-
   private static short[] ToArray(Vector<short> vector)
   {
     short[] array = new short[Vector<short>.Count];

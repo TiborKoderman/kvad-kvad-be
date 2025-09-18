@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Numerics;
 public abstract class Unit
 {
     [Key]
@@ -7,7 +8,7 @@ public abstract class Unit
     public required string Name { get; set; }
     public string Quantity { get; set; } = "";
 
-    public short[] Dimension { get; set; } = new short[7];
+    public Vector<short> Dimension { get; set; } = Vector<short>.Zero;
     public bool Prefixable { get; set; } = true;
     public string? Definition { get; set; } = null;
 
