@@ -5,6 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>kvad_be</RootNamespace>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+    <NoWarn>$(NoWarn);CS7022</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="15.0.1" />
