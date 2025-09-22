@@ -120,11 +120,9 @@ public class AppDbContext : DbContext
 
             u.ToTable(tb =>
             {
-                // 4. Ensure Unit.Dimension array length equals EnumUnitDimension count
-                tb.HasCheckConstraint(
-                    "ck_unit_dimension_array_length",
-                    @"array_length(""Dimension"", 1) = (SELECT COUNT(*) FROM ""EnumUnitDimensions"")"
-                );
+                // Note: Check constraint for array length validation is not possible in PostgreSQL 
+                // as it doesn't allow subqueries in check constraints.
+                // Array length validation is handled by application logic and database triggers.
 
                 // 5. Trigger to automatically pad Unit.Dimension arrays to correct length
                 tb.HasTrigger("trg_unit_pad_dimension_array");
@@ -224,7 +222,12 @@ public class AppDbContext : DbContext
             new EnumUnitDimension { Id = 3, Symbol = "I", Name = "Electric Current" },
             new EnumUnitDimension { Id = 4, Symbol = "Θ", Name = "Thermodynamic Temperature" },
             new EnumUnitDimension { Id = 5, Symbol = "N", Name = "Amount of Substance" },
-            new EnumUnitDimension { Id = 6, Symbol = "J", Name = "Luminous Intensity" }
+            new EnumUnitDimension { Id = 6, Symbol = "J", Name = "Luminous Intensity" },
+
+            // Additional, non-SI dimensions
+            new EnumUnitDimension { Id = 7, Symbol = "A", Name = "Angle" },
+            new EnumUnitDimension { Id = 8, Symbol = "C", Name = "Currency" },
+            new EnumUnitDimension { Id = 9, Symbol = "Sh", Name = "Information" }
         );
 
         modelBuilder.Entity<DashboardType>().HasData(

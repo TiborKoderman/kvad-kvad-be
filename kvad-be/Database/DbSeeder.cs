@@ -52,6 +52,8 @@ public static class DbSeeder
                 device.Groups.Add(adminGroup);
                 await db.SaveChangesAsync();
             }
+
+            Console.WriteLine("Admin user and group created.");
         }
 
     }
