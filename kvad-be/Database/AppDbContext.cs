@@ -345,6 +345,16 @@ public class AppDbContext : DbContext
                 Type = "Virtual",
                 Virtual = true,
                 OwnerId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730")
+            },
+            new Device
+            {
+                Id = Guid.Parse("504b1696-2ad5-4109-ac28-5158965d6675"),
+                Name = "Virtual Device 2",
+                Description = "This is another virtual device for testing purposes.",
+                Location = "Office",
+                Type = "Virtual",
+                Virtual = true,
+                OwnerId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
             }
         );
 

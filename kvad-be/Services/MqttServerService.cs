@@ -17,11 +17,13 @@ public class MqttServerService : BackgroundService
     private readonly int _encryptedMqttPort;
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<MqttServerService> _logger;
+    private readonly JsonSerializerOptions _jsonOptions;
 
     public MqttServerService(
         IConfiguration configuration, 
         IServiceProvider serviceProvider,
-        ILogger<MqttServerService> logger)
+        ILogger<MqttServerService> logger,
+        JsonSerializerOptions jsonOptions)
     {
         _certPath = configuration["MqttServer:CertPath"] ?? "server-cert.pfx";
         _certPassword = configuration["MqttServer:CertPassword"] ?? "your_password";
@@ -29,6 +31,7 @@ public class MqttServerService : BackgroundService
         _encryptedMqttPort = int.Parse(configuration["MqttServer:EncryptedMqttPort"] ?? "8883");
         _serviceProvider = serviceProvider;
         _logger = logger;
+        _jsonOptions = jsonOptions;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -143,7 +146,7 @@ public class MqttServerService : BackgroundService
             }
 
             // Parse heartbeat payload
-            var heartbeat = JsonSerializer.Deserialize<HeartbeatDTO>(payload);
+            var heartbeat = JsonSerializer.Deserialize<HeartbeatDTO>(payload, _jsonOptions);
             if (heartbeat == null)
             {
                 _logger.LogWarning("Failed to deserialize heartbeat payload from device {DeviceId}", deviceId);

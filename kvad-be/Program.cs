@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics;
 using Npgsql;
@@ -20,7 +21,12 @@ if (builder.Environment.IsDevelopment())
 
 var Configuration = builder.Configuration;
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -77,6 +83,23 @@ builder.Services.AddScoped<ScadaService>();
 
 // Add NodaTime clock for dependency injection
 builder.Services.AddSingleton<IClock>(SystemClock.Instance);
+
+// Configure global JSON serializer options
+builder.Services.Configure<JsonSerializerOptions>(options =>
+{
+    options.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    options.PropertyNameCaseInsensitive = true;
+});
+
+// Add a singleton JsonSerializerOptions for services that need it
+builder.Services.AddSingleton<JsonSerializerOptions>(provider =>
+{
+    return new JsonSerializerOptions
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true
+    };
+});
 
 builder.Services.AddSingleton<MqttServerService>(); // Ensures single instance
 builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttServerService>()); // Use the same instance

@@ -42,14 +42,21 @@ public static class DbSeeder
 
             // Seed the virtual device and add it to the admin group
             var deviceId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+            var device2Id =  Guid.Parse("504b1696-2ad5-4109-ac28-5158965d6675");
             var adminUserId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730");
 
             var adminGroup = db.Groups.FirstOrDefault(g => g.Id == adminUserId);
             var device = db.Devices.FirstOrDefault(d => d.Id == deviceId);
-
+            var device2 = db.Devices.FirstOrDefault(d => d.Id == device2Id);
             if (adminGroup != null && device != null && !device.Groups.Contains(adminGroup))
             {
                 device.Groups.Add(adminGroup);
+                await db.SaveChangesAsync();
+            }
+
+            if (adminGroup != null && device2 != null && !device2.Groups.Contains(adminGroup))
+            {
+                device2.Groups.Add(adminGroup);
                 await db.SaveChangesAsync();
             }
 
