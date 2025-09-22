@@ -68,10 +68,16 @@ public class AppDbContext : DbContext
             .HaveColumnType("bigint[]");
 
 
+
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasPostgresEnum<DeviceConnectivity>();
+        modelBuilder.HasPostgresEnum<DeviceHealth>();
+        modelBuilder.HasPostgresEnum<DeviceMode>();
+
+
         modelBuilder.Entity<User>()
         .HasAlternateKey(u => u.Username);
 
@@ -349,11 +355,11 @@ public class AppDbContext : DbContext
             new Device
             {
                 Id = Guid.Parse("504b1696-2ad5-4109-ac28-5158965d6675"),
-                Name = "Virtual Device 2",
-                Description = "This is another virtual device for testing purposes.",
+                Name = "Esp32 Test Device",
+                Description = "This is a physical test device.",
                 Location = "Office",
-                Type = "Virtual",
-                Virtual = true,
+                Type = "Physical",
+                Virtual = false,
                 OwnerId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
             }
         );

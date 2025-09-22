@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using NodaTime;
+using NpgsqlTypes;
 
 public class DeviceState
 {
@@ -37,6 +38,7 @@ public class DeviceState
 
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
+[PgName("DeviceConnectivity")]
 public enum DeviceConnectivity
 {
     Online,
@@ -45,7 +47,10 @@ public enum DeviceConnectivity
     Unreachable,
     Unknown
 }
+
+
 [JsonConverter(typeof(JsonStringEnumConverter))]
+[PgName("DeviceHealth")]
 public enum DeviceHealth
 {
     Healthy,
@@ -54,6 +59,7 @@ public enum DeviceHealth
     Unknown
 }
 [JsonConverter(typeof(JsonStringEnumConverter))]
+[PgName("DeviceMode")]
 public enum DeviceMode
 {
     Normal,

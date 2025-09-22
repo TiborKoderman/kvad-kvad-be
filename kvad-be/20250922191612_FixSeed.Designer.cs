@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,22 +14,18 @@ using NpgsqlTypes;
 using kvad_be.Database;
 
 #nullable disable
-
-namespace kvad_be.Migrations
+[DbContext(typeof(AppDbContext))]
+[Migration("20250922191612_FixSeed")]
+partial class FixSeed
 {
-    [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceConnectivity", new[] { "online", "offline", "intermittent", "unreachable", "unknown" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceHealth", new[] { "healthy", "warning", "critical", "unknown" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceMode", new[] { "normal", "maintenance", "emergency", "test", "unknown" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ChatMessage", b =>
@@ -1695,4 +1692,3 @@ namespace kvad_be.Migrations
 #pragma warning restore 612, 618
         }
     }
-}

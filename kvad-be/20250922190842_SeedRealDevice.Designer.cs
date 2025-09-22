@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,22 +14,18 @@ using NpgsqlTypes;
 using kvad_be.Database;
 
 #nullable disable
-
-namespace kvad_be.Migrations
+[DbContext(typeof(AppDbContext))]
+[Migration("20250922190842_SeedRealDevice")]
+partial class SeedRealDevice
 {
-    [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceConnectivity", new[] { "online", "offline", "intermittent", "unreachable", "unknown" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceHealth", new[] { "healthy", "warning", "critical", "unknown" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceMode", new[] { "normal", "maintenance", "emergency", "test", "unknown" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ChatMessage", b =>
@@ -261,13 +258,13 @@ namespace kvad_be.Migrations
                         new
                         {
                             Id = new Guid("504b1696-2ad5-4109-ac28-5158965d6675"),
-                            Description = "This is a physical test device.",
+                            Description = "This is another virtual device for testing purposes.",
                             Lifecycle = 0,
                             Location = "Office",
-                            Name = "Esp32 Test Device",
+                            Name = "Virtual Device 2",
                             OwnerId = new Guid("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
-                            Type = "Physical",
-                            Virtual = false
+                            Type = "Virtual",
+                            Virtual = true
                         });
                 });
 
@@ -1695,4 +1692,3 @@ namespace kvad_be.Migrations
 #pragma warning restore 612, 618
         }
     }
-}
