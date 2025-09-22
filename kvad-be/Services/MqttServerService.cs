@@ -3,6 +3,10 @@ using MQTTnet.Diagnostics.Logger;
 using System.Security.Cryptography.X509Certificates;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using MQTTnet.Protocol;
+using System.Buffers;
 
 public class MqttServerService : BackgroundService
 {
@@ -11,13 +15,20 @@ public class MqttServerService : BackgroundService
     private readonly string _certPassword;
     private readonly int _mqttPort;
     private readonly int _encryptedMqttPort;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<MqttServerService> _logger;
 
-    public MqttServerService(IConfiguration configuration)
+    public MqttServerService(
+        IConfiguration configuration, 
+        IServiceProvider serviceProvider,
+        ILogger<MqttServerService> logger)
     {
         _certPath = configuration["MqttServer:CertPath"] ?? "server-cert.pfx";
         _certPassword = configuration["MqttServer:CertPassword"] ?? "your_password";
         _mqttPort = int.Parse(configuration["MqttServer:MqttPort"] ?? "1883");
         _encryptedMqttPort = int.Parse(configuration["MqttServer:EncryptedMqttPort"] ?? "8883");
+        _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -79,9 +90,78 @@ public class MqttServerService : BackgroundService
                 .Build();
 
         var server = mqttServerFactory.CreateMqttServer(mqttServerOptions);
+        
+        // Subscribe to message events for heartbeat handling
+        server.InterceptingPublishAsync += OnMessageReceived;
+        
         await server.StartAsync();
         Console.WriteLine("MQTT server started with certificate.");
         return server;
+    }
+
+    private async Task OnMessageReceived(InterceptingPublishEventArgs eventArgs)
+    {
+        try
+        {
+            var topic = eventArgs.ApplicationMessage.Topic;
+            var payload = string.Empty;
+            
+            if (!eventArgs.ApplicationMessage.Payload.IsEmpty)
+            {
+                var payloadBytes = eventArgs.ApplicationMessage.Payload.ToArray();
+                payload = Encoding.UTF8.GetString(payloadBytes);
+            }
+
+            // Check if this is a heartbeat message
+            if (IsHeartbeatTopic(topic))
+            {
+                await HandleHeartbeatMessage(topic, payload);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing MQTT message on topic: {Topic}", eventArgs.ApplicationMessage.Topic);
+        }
+    }
+
+    private bool IsHeartbeatTopic(string topic)
+    {
+        // Match pattern: device/<deviceId>/hb
+        return topic.StartsWith("device/") && topic.EndsWith("/hb");
+    }
+
+    private async Task HandleHeartbeatMessage(string topic, string payload)
+    {
+        try
+        {
+            // Extract device ID from topic: device/<deviceId>/hb
+            var topicParts = topic.Split('/');
+            if (topicParts.Length != 3 || !Guid.TryParse(topicParts[1], out var deviceId))
+            {
+                _logger.LogWarning("Invalid heartbeat topic format: {Topic}", topic);
+                return;
+            }
+
+            // Parse heartbeat payload
+            var heartbeat = JsonSerializer.Deserialize<HeartbeatDTO>(payload);
+            if (heartbeat == null)
+            {
+                _logger.LogWarning("Failed to deserialize heartbeat payload from device {DeviceId}", deviceId);
+                return;
+            }
+
+            // Use scoped service to handle the heartbeat
+            using var scope = _serviceProvider.CreateScope();
+            var heartbeatHandler = scope.ServiceProvider.GetRequiredService<DeviceHeartbeatHandlerService>();
+            
+            await heartbeatHandler.HandleHeartbeatAsync(deviceId, heartbeat);
+
+            _logger.LogDebug("Processed heartbeat for device {DeviceId} on topic {Topic}", deviceId, topic);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling heartbeat message from topic: {Topic}", topic);
+        }
     }
 
     private async Task StopMqttServer()

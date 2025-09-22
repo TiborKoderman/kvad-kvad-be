@@ -106,5 +106,35 @@ public class DeviceController : ControllerBase
         return Ok(tagSources);
     }
 
+    [HttpPost("{id}/heartbeat")]
+    public async Task<IActionResult> ProcessHeartbeat(Guid id, [FromBody] HeartbeatDTO heartbeat)
+    {
+        try
+        {
+            await _deviceService.ProcessHeartbeatAsync(id, heartbeat);
+            return Ok(new { message = "Heartbeat processed successfully", deviceId = id });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = "Error processing heartbeat", error = ex.Message });
+        }
+    }
+
+    [HttpGet("stale")]
+    public async Task<IActionResult> GetStaleDevices([FromQuery] int minutesThreshold = 5)
+    {
+        var staleThreshold = TimeSpan.FromMinutes(minutesThreshold);
+        var staleDevices = await _deviceService.GetDevicesWithStaleHeartbeats(staleThreshold);
+        
+        return Ok(staleDevices.Select(d => new
+        {
+            Id = d.Id,
+            Name = d.Name,
+            LastHeartbeat = d.State?.LastHeartbeat,
+            Connectivity = d.State?.Connectivity,
+            Health = d.State?.Health
+        }));
+    }
+
 
 }

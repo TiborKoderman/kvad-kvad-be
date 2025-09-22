@@ -8,6 +8,7 @@ using System.Diagnostics;
 using Npgsql;
 using kvad_be.Database;
 using Microsoft.EntityFrameworkCore.Storage;
+using NodaTime;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -71,10 +72,17 @@ builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<DeviceService>();
+builder.Services.AddScoped<DeviceHeartbeatHandlerService>();
 builder.Services.AddScoped<ScadaService>();
+
+// Add NodaTime clock for dependency injection
+builder.Services.AddSingleton<IClock>(SystemClock.Instance);
 
 builder.Services.AddSingleton<MqttServerService>(); // Ensures single instance
 builder.Services.AddHostedService(provider => provider.GetRequiredService<MqttServerService>()); // Use the same instance
+
+// Add device health monitoring service
+builder.Services.AddHostedService<DeviceHealthMonitorService>();
 // builder.Services.AddSingleton<MdnsDiscoveryService>();
 // builder.Services.AddHostedService(
 //     provider => new MdnsDiscoveryService(provider.GetRequiredService<ILogger<MdnsDiscoveryService>>(), )

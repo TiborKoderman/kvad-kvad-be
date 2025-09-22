@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using kvad_be.Database;
+using NodaTime;
 
 public class DeviceService
 {
@@ -101,6 +102,52 @@ public class DeviceService
     public async Task<List<TagSource>> GetAllTagSources()
     {
         return await _context.TagSources.ToListAsync();
+    }
+
+    public async Task ProcessHeartbeatAsync(Guid deviceId, HeartbeatDTO heartbeat)
+    {
+        var device = await _context.Devices
+            .Include(d => d.State)
+            .FirstOrDefaultAsync(d => d.Id == deviceId);
+
+        if (device == null)
+        {
+            _logger.LogWarning("Device with ID {DeviceId} not found for heartbeat processing.", deviceId);
+            return;
+        }
+
+        // Initialize device state if it doesn't exist
+        if (device.State == null)
+        {
+            device.State = new DeviceState { DeviceId = deviceId };
+        }
+
+        // Update heartbeat information
+        device.State.LastHeartbeat = heartbeat.Ts;
+        device.State.BootId = heartbeat.BootId.ToString();
+        device.State.Seq = heartbeat.Seq;
+        device.State.UptimeSec = (int)heartbeat.UptimeS;
+        device.State.ConfigHash = heartbeat.CfgHash;
+
+        // Update connectivity to Online when receiving heartbeat
+        device.State.Connectivity = DeviceConnectivity.Online;
+        device.State.Health = DeviceHealth.Healthy;
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogDebug("Heartbeat processed for device {DeviceId}", deviceId);
+    }
+
+    public async Task<List<Device>> GetDevicesWithStaleHeartbeats(TimeSpan staleThreshold)
+    {
+        var cutoffTime = SystemClock.Instance.GetCurrentInstant() - Duration.FromTimeSpan(staleThreshold);
+        
+        return await _context.Devices
+            .Include(d => d.State)
+            .Where(d => d.State != null && 
+                       d.State.LastHeartbeat.HasValue && 
+                       d.State.LastHeartbeat < cutoffTime)
+            .ToListAsync();
     }
 
 }
