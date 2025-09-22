@@ -224,13 +224,18 @@ public class AppDbContext : DbContext
         // Seed EnumUnitDimension with the 7 SI base dimensions
         // These correspond directly to indices 0-6 in Unit.Dimension arrays: [L, M, T, I, Θ, N, J]
         modelBuilder.Entity<EnumUnitDimension>().HasData(
+            // Base SI dimensions
             new EnumUnitDimension { Id = 0, Symbol = "L", Name = "Length" },
             new EnumUnitDimension { Id = 1, Symbol = "M", Name = "Mass" },
             new EnumUnitDimension { Id = 2, Symbol = "T", Name = "Time" },
             new EnumUnitDimension { Id = 3, Symbol = "I", Name = "Electric Current" },
             new EnumUnitDimension { Id = 4, Symbol = "Θ", Name = "Thermodynamic Temperature" },
             new EnumUnitDimension { Id = 5, Symbol = "N", Name = "Amount of Substance" },
-            new EnumUnitDimension { Id = 6, Symbol = "J", Name = "Luminous Intensity" }
+            new EnumUnitDimension { Id = 6, Symbol = "J", Name = "Luminous Intensity" },
+            //Extended dimensions can be added here
+            new EnumUnitDimension { Id = 7, Symbol = "A", Name = "Angle" }, // plane angle (radian)
+            new EnumUnitDimension { Id = 8, Symbol = "X", Name = "Information" }, // information (bit)
+            new EnumUnitDimension { Id = 9, Symbol = "H", Name = "Currency" } // currency (e.g., USD, EUR
         );
 
         modelBuilder.Entity<DashboardType>().HasData(
@@ -314,11 +319,11 @@ public class AppDbContext : DbContext
             IUnitFactory.CreateUnit("A", "Ampere", "Electric Current", VectorHelper.CreateDimensionVector(0, 0, 0, 1, 0, 0, 0), null),
             IUnitFactory.CreateUnit("K", "Kelvin", "Temperature", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 1, 0, 0), null),
             IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 1, 0), null),
-            IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 1), null)
-            
+            IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 1), null),
             //base non-SI units
             IUnitFactory.CreateUnit("rad", "Radian", "Plane Angle", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 0), null),
-            
+            IUnitFactory.CreateUnit("bit", "Bit", "Information", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 0), null),
+            IUnitFactory.CreateUnit("USD", "US Dollar", "Currency", VectorHelper.CreateDimensionVector(0, 0, 0, 0, 0, 0, 0), null)
         );
 
         // Seed admin group first (required for user)
