@@ -123,7 +123,7 @@ public class DeviceService
         }
 
         // Update heartbeat information
-        device.State.LastHeartbeat = heartbeat.Ts;
+        device.State.LastHeartbeat = NodaTime.Instant.FromUnixTimeSeconds(heartbeat.Ts);
         device.State.BootId = heartbeat.BootId.ToString();
         device.State.Seq = heartbeat.Seq;
         device.State.UptimeSec = (int)heartbeat.UptimeS;

@@ -16,6 +16,9 @@ public static class PostgresDataSourceFactory
         // Register composite types
         dsb.MapComposite<Rational>("rational");
         // dsb.MapComposite<Dim7>("dim7"); // Uncomment when Dim7 composite mapping is ready
+        dsb.MapEnum<DeviceConnectivity>("device_connectivity");
+        dsb.MapEnum<DeviceHealth>("device_health");
+        dsb.MapEnum<DeviceMode>("device_mode");
 
         return dsb.Build();
     }

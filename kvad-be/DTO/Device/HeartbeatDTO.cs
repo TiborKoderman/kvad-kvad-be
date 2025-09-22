@@ -1,8 +1,6 @@
-using NodaTime;
-
 public record HeartbeatDTO(
-    Instant Ts,
-    Guid BootId,
+    long Ts,
+    string BootId,
     long Seq,
     long UptimeS,
     string? CfgHash,
