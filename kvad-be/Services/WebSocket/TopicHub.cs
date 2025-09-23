@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Security.Claims;
+using System.Text;
 
 public class TopicHub
 {
@@ -46,6 +47,8 @@ public class TopicHub
       case "UNSUBSCRIBE":
       case "PUBLISH":
       case "PING":
+        await HandlePing(client);
+        break;
       case "PONG":
       case "DISCONNECT":
       case "ACK":
@@ -53,6 +56,13 @@ public class TopicHub
       case "BEGIN":
       case "COMMIT":
       case "ABORT":
+      case "SEND":
+      case "MESSAGE":
+      case "RECEIPT":
+      case "CREATE TOPIC":
+      case "DELETE TOPIC":
+        // Handle other commands as needed
+        break;
       default:
         _logger.LogWarning("Unknown command: {Command}", frame.Command);
         break;
@@ -61,28 +71,55 @@ public class TopicHub
 
   private async Task SendError(WsClient client, string errorCode, string message)
   {
-    var errorFrame = new Frame
+    var errorFrame = new Frame($"ERROR {errorCode}", "Message", new Dictionary<string, string>
     {
-      Command = $"ERROR {errorCode}",
-      Headers = new Dictionary<string, string>
-      {
-        { "message", message }
-      },
-      Body = message
-    };
-    await SendFrameAsync(client, errorFrame);
+      { "message", message }
+    });
+    await SendFrame(client, errorFrame);
+  }
+
+  private async Task SendFrame(WsClient client, Frame frame)
+  {
+    if (client.Socket.State != WebSocketState.Open) return;
+
+    var data = frame.ToArraySegment();
+    await client.Socket.SendAsync(data, WebSocketMessageType.Text, true, client.Cancellation);
   }
 
   private async Task HandleSubscribe(WsClient client, Frame frame)
   {
     if (!frame.Headers.TryGetValue("topic", out var topic))
     {
-      await SendErrorAsync(client, "Missing 'topic' header in SUBSCRIBE frame.");
+      await SendError(client, "400", "Missing 'topic' header in SUBSCRIBE frame.");
       return;
     }
 
-    var topicObj = _topics.GetOrAdd(topic, key => new Topic(key));
-    topicObj.Add(client);
-    await SendReceiptAsync(client, frame);
+    client.Subscriptions.Add(topic);
+
+
+    _topics.AddOrUpdate(topic, t => new Topic(t), (t, topicObj) =>
+    {
+      topicObj.Add(client);
+      return topicObj;
+    });
+
+    var response = new Frame
+    {
+      Command = "SUBSCRIBED",
+      Headers = { ["topic"] = topic }
+    };
+    await SendFrame(client, response);
+    _logger.LogInformation("Client {ClientId} subscribed to {Topic}", client.Id, topic);
+  }
+
+  private async Task HandlePing(WsClient client)
+  {
+    var pong = new Frame
+    {
+      Command = "PONG",
+      Headers = { ["Timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() }
+    };
+
+    await SendFrame(client, pong);
   }
 }

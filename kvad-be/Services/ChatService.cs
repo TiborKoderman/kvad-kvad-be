@@ -143,7 +143,7 @@ public class ChatService
         }
         else
         {
-            connections.TryAdd(userId, new HashSet<WebSocket> { socket });
+            connections.TryAdd(userId, [socket]);
         }
         return Task.CompletedTask;
     }

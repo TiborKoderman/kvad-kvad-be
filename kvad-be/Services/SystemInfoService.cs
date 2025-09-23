@@ -8,7 +8,7 @@ public class SystemInfoService
     public Task<JsonArray> GetCPUInfo()
     {
         var jsonString = File.ReadAllLines("/proc/cpuinfo");
-        JsonArray jsonArray = new JsonArray();
+        JsonArray jsonArray = [];
         JsonObject? currentProcessor = null;
 
         foreach (var line in jsonString)
@@ -23,7 +23,7 @@ public class SystemInfoService
                 var split = line.Split(":");
                 if (currentProcessor == null)
                 {
-                    currentProcessor = new JsonObject();
+                    currentProcessor = [];
                 }
 
                 var key = split[0].Trim();
@@ -31,11 +31,7 @@ public class SystemInfoService
                 if (new[] { "flags", "bugs" }.Contains(key))
                 {
                     var flags = split[1].Trim().Split(" ");
-                    JsonArray flagsArray = new JsonArray();
-                    foreach (var flag in flags)
-                    {
-                        flagsArray.Add(flag);
-                    }
+                    JsonArray flagsArray = [.. flags];
                     currentProcessor.Add(key, flagsArray);
                 }
                 else
@@ -52,7 +48,7 @@ public class SystemInfoService
     public Task<JsonObject> GetMemoryInfo()
     {
         var jsonString = File.ReadAllLines("/proc/meminfo");
-        JsonObject jsonObject = new JsonObject();
+        JsonObject jsonObject = [];
 
         foreach (var line in jsonString)
         {
@@ -169,7 +165,7 @@ public class SystemInfoService
     public Task<JsonObject> GetMemoryUsage()
     {
         var jsonString = File.ReadAllLines("/proc/meminfo");
-        JsonObject jsonObject = new JsonObject();
+        JsonObject jsonObject = [];
 
         foreach (var line in jsonString)
         {

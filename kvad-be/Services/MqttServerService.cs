@@ -180,7 +180,7 @@ public class MqttServerService : BackgroundService
     {
         if (_mqttServer == null)
         {
-            return new List<MqttClientStatus>();
+            return [];
         }
         IList<MqttClientStatus> clients = await _mqttServer.GetClientsAsync();
 
@@ -198,7 +198,7 @@ public class MqttServerService : BackgroundService
     {
         if (_mqttServer == null)
         {
-            return new List<MqttSessionStatus>();
+            return [];
         }
         IList<MqttSessionStatus> sessions = await _mqttServer.GetSessionsAsync();
 

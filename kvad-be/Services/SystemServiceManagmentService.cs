@@ -9,7 +9,7 @@ public class SystemServiceManagmentService
         return await Task.Run(() =>
         {
             var processes = Process.GetProcesses();
-            JsonArray jsonArray = new JsonArray();
+            JsonArray jsonArray = [];
 
             foreach (var process in processes)
             {
@@ -28,7 +28,7 @@ public class SystemServiceManagmentService
 
     public async Task<JsonArray> GetServiceList(String? type, String? status)
     {
-        JsonArray jsonArray = new JsonArray();
+        JsonArray jsonArray = [];
 
         var arguments = "list-units --no-legend";
         if (!string.IsNullOrEmpty(type))
@@ -62,9 +62,11 @@ public class SystemServiceManagmentService
                 continue;
             }
             var split = line.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.Add("Name", split[0]);
-            jsonObject.Add("Status", split[2]);
+            JsonObject jsonObject = new JsonObject
+            {
+              { "Name", split[0] },
+              { "Status", split[2] }
+            };
             jsonArray.Add(jsonObject);
         }
 
@@ -90,7 +92,7 @@ public class SystemServiceManagmentService
 
         var output = await process.StandardOutput.ReadToEndAsync();
 
-        JsonObject jsonObject = new JsonObject();
+        JsonObject jsonObject = [];
 
         foreach (var line in output.Split("\n"))
         {

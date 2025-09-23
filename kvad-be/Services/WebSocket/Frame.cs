@@ -9,11 +9,12 @@ public sealed class Frame
 
   public Frame() { }
 
+
   // Constructor for text payload
   public Frame(string command, string textPayload, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? new Dictionary<string, string>();
+    Headers = headers ?? [];
     Headers["DataType"] = "text";
     Payload = Encoding.UTF8.GetBytes(textPayload);
   }
@@ -22,7 +23,7 @@ public sealed class Frame
   public Frame(string command, object jsonObject, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? new Dictionary<string, string>();
+    Headers = headers ?? [];
     Headers["DataType"] = "json";
     Headers["ContentType"] = "application/json";
 
@@ -34,7 +35,7 @@ public sealed class Frame
   public Frame(string command, byte[] binaryData, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? new Dictionary<string, string>();
+    Headers = headers ?? [];
     Headers["DataType"] = "binary";
     Headers["ContentLength"] = binaryData.Length.ToString();
     Payload = binaryData;
@@ -44,7 +45,7 @@ public sealed class Frame
   public Frame(string command, ReadOnlyMemory<byte> binaryData, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? new Dictionary<string, string>();
+    Headers = headers ?? [];
     Headers["DataType"] = "binary";
     Headers["ContentLength"] = binaryData.Length.ToString();
     Payload = binaryData;
@@ -56,7 +57,7 @@ public sealed class Frame
     var frame = new Frame
     {
       Command = command,
-      Headers = headers ?? new Dictionary<string, string>()
+      Headers = headers ?? []
     };
     frame.Headers["DataType"] = "json";
     frame.Headers["ContentType"] = "application/json";
@@ -118,6 +119,15 @@ public sealed class Frame
       frame.Payload = data.Slice(position);
     }
 
+    if (frame.Headers.TryGetValue("ContentLength", out var lenStr) &&
+    int.TryParse(lenStr, out var contentLen) &&
+    contentLen >= 0 &&
+    contentLen <= frame.Payload.Length)
+    {
+      frame.Payload = frame.Payload[..contentLen];
+    }
+
+
     return frame;
   }
 
@@ -133,18 +143,19 @@ public sealed class Frame
     int position = 0;
 
     // Write command
-    var commandBytes = Encoding.UTF8.GetBytes(Command);
-    commandBytes.CopyTo(buffer, position);
-    position += commandBytes.Length;
+
+    // COMMAND + CRLF
+    position += Encoding.UTF8.GetBytes(Command, buffer.AsSpan(position));
     buffer[position++] = (byte)'\r';
     buffer[position++] = (byte)'\n';
 
-    // Write headers
-    foreach (var header in Headers)
+    // Headers
+    foreach (var kvp in Headers)
     {
-      var headerBytes = Encoding.UTF8.GetBytes($"{header.Key}: {header.Value}");
-      headerBytes.CopyTo(buffer, position);
-      position += headerBytes.Length;
+      position += Encoding.UTF8.GetBytes(kvp.Key, buffer.AsSpan(position));
+      buffer[position++] = (byte)':';
+      buffer[position++] = (byte)' ';
+      position += Encoding.UTF8.GetBytes(kvp.Value, buffer.AsSpan(position));
       buffer[position++] = (byte)'\r';
       buffer[position++] = (byte)'\n';
     }
@@ -165,17 +176,12 @@ public sealed class Frame
   // Helper to calculate header size
   private int CalculateHeaderSize()
   {
-    int size = Encoding.UTF8.GetByteCount(Command) + 2; // Command + CRLF
-
-    foreach (var header in Headers)
-    {
-      size += Encoding.UTF8.GetByteCount($"{header.Key}: {header.Value}") + 2; // Header + CRLF
-    }
-
-    size += 2; // Empty line CRLF
+    int size = Encoding.UTF8.GetByteCount(Command) + 2; // CRLF
+    foreach (var kvp in Headers)
+      size += Encoding.UTF8.GetByteCount(kvp.Key) + 2 + Encoding.UTF8.GetByteCount(kvp.Value) + 2; // "Key: Value\r\n"
+    size += 2; // empty line
     return size;
   }
-
   // Deserialize JSON payload to type T
   public T? GetJsonPayload<T>() where T : class
   {
@@ -195,6 +201,10 @@ public sealed class Frame
   {
     return Payload.ToArray();
   }
+
+
+  public void SetHeader(string key, string value) => Headers[key] = value;
+    
 
 }
 
