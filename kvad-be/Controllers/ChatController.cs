@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,17 +7,19 @@ using Microsoft.AspNetCore.Mvc;
 public class ChatController : ControllerBase
 {
     private readonly ChatService _chatService;
+    private readonly AuthService _auth;
 
-    public ChatController(ChatService chatService)
+    public ChatController(ChatService chatService, AuthService authService)
     {
         _chatService = chatService;
+        _auth = authService;
     }
 
 
     [HttpPost("newChatRoom")]
     public async Task<IActionResult> NewChatRoom(NewChatRoomDTO chatroom)
     {
-        var user = HttpContext.Items["User"] as User;
+        var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -37,7 +40,8 @@ public class ChatController : ControllerBase
     [HttpGet("chatRooms")]
     public async Task<IActionResult> GetChatRooms()
     {
-        var user = HttpContext.Items["User"] as User;
+
+        var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -49,7 +53,7 @@ public class ChatController : ControllerBase
     [HttpGet("chatRoom/{id}")]
     public async Task<IActionResult> GetChatRoom(Guid id)
     {
-        var user = HttpContext.Items["User"] as User;
+        var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -61,7 +65,7 @@ public class ChatController : ControllerBase
     [HttpGet("chatMessages/{id}")]
     public async Task<IActionResult> GetChatMessages(Guid id)
     {
-        var user = HttpContext.Items["User"] as User;
+        var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -73,7 +77,7 @@ public class ChatController : ControllerBase
     [HttpPost("sendMessage")]
     public async Task<IActionResult> AddChatMessage(SendChatMessageDTO chatMessage)
     {
-        var user = HttpContext.Items["User"] as User;
+        var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -89,7 +93,7 @@ public class ChatController : ControllerBase
     [HttpDelete("deleteChatRoom/{id}")]
     public async Task<IActionResult> DeleteChatRoom(Guid id)
     {
-        var user = HttpContext.Items["User"] as User;
+        var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();

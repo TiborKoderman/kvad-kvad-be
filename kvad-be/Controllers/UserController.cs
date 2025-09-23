@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 public class UserController : ControllerBase
 {
     private readonly UserService _userService;
+    private readonly AuthService _auth;
 
-    public UserController(UserService userService)
+    public UserController(UserService userService, AuthService authService)
     {
         _userService = userService;
+        _auth = authService;
     }
 
     [HttpGet("{username}")]
@@ -25,9 +27,9 @@ public class UserController : ControllerBase
     }
 
     [HttpGet("me")]
-    public IActionResult GetMe()
+    public async Task<IActionResult> GetMe()
     {
-        var user = HttpContext.Items["User"] as User;
+        var user = await _auth.GetUser(User);
         if (user == null)
         {
             return NotFound();

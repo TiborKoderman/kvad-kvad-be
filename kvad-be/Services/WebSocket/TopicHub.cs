@@ -19,10 +19,10 @@ public class TopicHub
     _authService = authService;
   }
 
-  public async Task ConnectClientAsync(HttpContext context)
+  public async Task ConnectClientAsync(HttpContext context, User? user = null)
   {
-    string? token = context.Request.Query["token"];
-    var user = await _authService.ValidateToken(token);
+    // string? token = context.Request.Query["token"];
+
     if (user == null)
     {
       context.Response.StatusCode = 401; // Unauthorized

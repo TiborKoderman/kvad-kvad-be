@@ -6,16 +6,18 @@ using Microsoft.AspNetCore.Mvc;
 public class DashboardController : ControllerBase
 {
     private readonly DashboardService _dashboardService;
+    private readonly AuthService _auth;
 
-    public DashboardController(DashboardService dashboardService)
+    public DashboardController(DashboardService dashboardService, AuthService authService)
     {
         _dashboardService = dashboardService;
+        _auth = authService;
     }
 
     [HttpGet("all")]
     public async Task<IActionResult> GetDashboard()
     {
-        var user = HttpContext.Items["User"] as User;
+                var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -26,7 +28,7 @@ public class DashboardController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetDashboard(Guid id)
     {
-        var user = HttpContext.Items["User"] as User;
+                var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -41,7 +43,7 @@ public class DashboardController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteDashboard(Guid id)
     {
-        var user = HttpContext.Items["User"] as User;
+                var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -53,7 +55,7 @@ public class DashboardController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> SaveDashboard(DashboardDTO dashboardDTO)
     {
-        var user = HttpContext.Items["User"] as User;
+                var user = await _auth.GetUser(User);
         if (user == null)
         {
             return Unauthorized();

@@ -73,7 +73,6 @@ builder.Services.AddScoped<DockerService>();
 builder.Services.AddScoped<CounterService>();
 builder.Services.AddScoped<NodesService>();
 builder.Services.AddScoped<UserService>();
-builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ChatService>();
 builder.Services.AddScoped<DashboardService>();
 builder.Services.AddScoped<GroupService>();
@@ -84,8 +83,10 @@ builder.Services.AddScoped<ScadaService>();
 // Add NodaTime clock for dependency injection
 builder.Services.AddSingleton<IClock>(SystemClock.Instance);
 
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddSingleton<TokenService>();
 
-builder.Services.AddSingleton<TopicHub>();
+builder.Services.AddScoped<TopicHub>();
 
 
 // Configure global JSON serializer options
@@ -123,40 +124,8 @@ builder.Services.AddSingleton<IRelationalTypeMappingSourcePlugin, RationalTypeMa
 
 // Configure the PostgreSQL connection with single source of truth
 builder.Services.AddAppDbContext(builder.Configuration);
-
-// JWT
-var jwtIssuer = builder.Configuration["Authentication:Schemes:Bearer:Issuer"];
-var jwtKey = builder.Configuration["Authentication:Schemes:Bearer:Key"];
-if (string.IsNullOrEmpty(jwtKey))
-{
-    throw new ArgumentNullException(nameof(jwtKey), "JWT Key cannot be null or empty.");
-}
-var jwtAudiences = builder.Configuration.GetSection("Authentication:Schemes:Bearer:ValidAudiences").Get<string[]>();
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtIssuer,
-            ValidAudiences = jwtAudiences,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
-        };
-    });
-
-
-// Authorization
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("AdminOnly", policy => policy.RequireClaim("role", "Admin"));
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
-});
-
+builder.Services.AddJwtAuth(builder.Configuration);
+builder.Services.AddHttpContextAccessor();
 
 // APP
 var app = builder.Build();
@@ -184,7 +153,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseWebSockets();
 
-app.UseMiddleware<UserMiddleware>();
+// app.UseMiddleware<UserMiddleware>();
 // app.UseMiddleware<WebSocketMiddleware>();
 
 var wsOptions = new WebSocketOptions
@@ -195,7 +164,7 @@ var wsOptions = new WebSocketOptions
 app.UseWebSockets(wsOptions);
 
 // 3) Map the WebSocket endpoint -> TopicHub.ConnectClientAsync
-app.Map("/ws", async (HttpContext ctx, TopicHub hub) => await hub.ConnectClientAsync(ctx));
+// app.Map("/ws", async (HttpContext ctx, TopicHub hub) => await hub.ConnectClientAsync(ctx));
 
 
 app.MapControllers();

@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 public class DeviceController : ControllerBase
 {
     private readonly DeviceService _deviceService;
+    private readonly AuthService _auth;
 
-    public DeviceController(DeviceService deviceService)
+    public DeviceController(DeviceService deviceService, AuthService authService)
     {
         _deviceService = deviceService;
+        _auth = authService;
     }
 
     [HttpGet("all")]
@@ -21,7 +23,7 @@ public class DeviceController : ControllerBase
     [HttpGet("user/all")]
     public async Task<IActionResult> GetAllDevicesOfUser()
     {
-        if (HttpContext.Items["User"] is not User user)
+        if (         await _auth.GetUser(User) is not User user)
         {
             return NotFound("User not found.");
         }
@@ -52,7 +54,8 @@ public class DeviceController : ControllerBase
     [HttpPut("virtual")]
     public async Task<IActionResult> EditVirtualDevice(VirtualDeviceDTO deviceDTO)
     {
-        if (HttpContext.Items["User"] is not User user)
+        var user = await _auth.GetUser(User);
+        if (user == null)
         {
             return NotFound("User not found.");
         }

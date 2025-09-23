@@ -3,67 +3,33 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net.WebSockets;
 using System.Text;
 
-[ApiController]
-[Route("ws_legacy")]
+[Route("ws")]
 [AllowAnonymous]
+[ApiController]
 public class WebSocketController : ControllerBase
 {
 
-    private readonly ChatService _chatService;
+  private readonly TopicHub _topicHub;
+  private readonly AuthService _auth;
 
-    public WebSocketController(ChatService chatService)
+  public WebSocketController(TopicHub topicHub, AuthService authService)
+  {
+    _topicHub = topicHub;
+    _auth = authService;
+  }
+
+  [HttpGet("")]
+  public async Task Get()
+  {
+    var user = await _auth.GetUser(User);
+    if (HttpContext.WebSockets.IsWebSocketRequest)
     {
-        _chatService = chatService;
+      await _topicHub.ConnectClientAsync(HttpContext, user);
     }
-
-    [HttpGet("time")]
-    public async Task Time()
+    else
     {
-        if (HttpContext.WebSockets.IsWebSocketRequest)
-        {
-            using var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
-            while (true)
-            {
-                var message = "The current time is " + DateTime.Now.ToString("h:mm:ss tt");
-                var bytes = Encoding.UTF8.GetBytes(message);
-                var ArraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-                if (ws.State == WebSocketState.Open)
-                {
-                    await ws.SendAsync(ArraySegment, WebSocketMessageType.Text, true, CancellationToken.None);
-                }
-                else if (ws.State == WebSocketState.CloseReceived || ws.State == WebSocketState.Aborted)
-                {
-                    break;
-                }
-                Thread.Sleep(1000);
-            }
-        }
-        else
-        {
-            HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-        }
+      HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
     }
+  }
 
-    [HttpGet("chat")]
-    public async Task ChatWS()
-    {
-        var user = HttpContext.Items["User"] as User;
-        if (user == null)
-        {
-            HttpContext.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return;
-        }
-        var userId = user.Id;
-        if (HttpContext.WebSockets.IsWebSocketRequest)
-        {
-            using var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
-            await _chatService.AddSocket(ws, userId);
-            await _chatService.Receive(ws);
-        }
-        else
-        {
-            HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
-        }
-
-    }
 }
