@@ -1,9 +1,11 @@
+using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 public sealed class Frame
 {
-  public string Command { get; set; } = "";
+  public Command Command { get; set; }
   public Dictionary<string, string> Headers { get; set; } = new(StringComparer.Ordinal);
   public ReadOnlyMemory<byte> Payload { get; set; } = ReadOnlyMemory<byte>.Empty;
 
@@ -11,7 +13,7 @@ public sealed class Frame
 
 
   // Constructor for text payload
-  public Frame(string command, string textPayload, Dictionary<string, string>? headers = null)
+  public Frame(Command command, string textPayload, Dictionary<string, string>? headers = null)
   {
     Command = command;
     Headers = headers ?? [];
@@ -20,7 +22,7 @@ public sealed class Frame
   }
 
   // Constructor for JSON payload (with generic struct/class)
-  public Frame(string command, object jsonObject, Dictionary<string, string>? headers = null)
+  public Frame(Command command, object jsonObject, Dictionary<string, string>? headers = null)
   {
     Command = command;
     Headers = headers ?? [];
@@ -32,7 +34,7 @@ public sealed class Frame
   }
 
   // Constructor for binary payload
-  public Frame(string command, byte[] binaryData, Dictionary<string, string>? headers = null)
+  public Frame(Command command, byte[] binaryData, Dictionary<string, string>? headers = null)
   {
     Command = command;
     Headers = headers ?? [];
@@ -42,7 +44,7 @@ public sealed class Frame
   }
 
   // Constructor for ReadOnlyMemory<byte> (zero-copy)
-  public Frame(string command, ReadOnlyMemory<byte> binaryData, Dictionary<string, string>? headers = null)
+  public Frame(Command command, ReadOnlyMemory<byte> binaryData, Dictionary<string, string>? headers = null)
   {
     Command = command;
     Headers = headers ?? [];
@@ -51,8 +53,16 @@ public sealed class Frame
     Payload = binaryData;
   }
 
+
+  // Frame with no payload
+  public Frame(Command command, Dictionary<string, string>? headers = null)
+  {
+    Command = command;
+    Headers = headers ?? [];
+  }
+
   // Static factory method for creating typed frames
-  public static Frame CreateJson<T>(string command, T data, Dictionary<string, string>? headers = null) where T : notnull
+  public static Frame CreateJson<T>(Command command, T data, Dictionary<string, string>? headers = null) where T : notnull
   {
     var frame = new Frame
     {
@@ -67,6 +77,7 @@ public sealed class Frame
     return frame;
   }
 
+
   public static Frame Parse(ReadOnlyMemory<byte> data)
   {
     var span = data.Span;
@@ -79,13 +90,16 @@ public sealed class Frame
 
     for (int i = 0; i < span.Length; i++)
     {
-      if (span[i] == '\n')
+      if (span[i] == (byte)'\n')
       {
-        var lineLength = i - lineStart - (i > 0 && span[i - 1] == '\r' ? 1 : 0);
+        int lineLength = i - lineStart;
 
         if (firstLine)
         {
-          frame.Command = Encoding.UTF8.GetString(span.Slice(lineStart, lineLength));
+          var commandStr = Encoding.UTF8.GetString(span.Slice(lineStart, lineLength));
+          if (!Enum.TryParse<Command>(commandStr, out var command))
+            throw new InvalidOperationException($"Unknown command: {commandStr}");
+          frame.Command = command;
           firstLine = false;
         }
         else if (inHeaders)
@@ -103,8 +117,8 @@ public sealed class Frame
 
           if (colonIndex > 0)
           {
-            var key = Encoding.UTF8.GetString(lineSpan.Slice(0, colonIndex)).Trim();
-            var value = Encoding.UTF8.GetString(lineSpan.Slice(colonIndex + 1)).Trim();
+            var key = Encoding.UTF8.GetString(lineSpan[..colonIndex]).Trim();
+            var value = Encoding.UTF8.GetString(lineSpan[(colonIndex + 1)..]).Trim();
             frame.Headers[key] = value;
           }
         }
@@ -116,7 +130,7 @@ public sealed class Frame
     // Extract payload if present (zero-copy)
     if (position < span.Length)
     {
-      frame.Payload = data.Slice(position);
+      frame.Payload = data[position..];
     }
 
     if (frame.Headers.TryGetValue("ContentLength", out var lenStr) &&
@@ -144,9 +158,8 @@ public sealed class Frame
 
     // Write command
 
-    // COMMAND + CRLF
-    position += Encoding.UTF8.GetBytes(Command, buffer.AsSpan(position));
-    buffer[position++] = (byte)'\r';
+    // COMMAND + LF
+    position += Encoding.UTF8.GetBytes(Command.ToString(), buffer.AsSpan(position));
     buffer[position++] = (byte)'\n';
 
     // Headers
@@ -156,12 +169,10 @@ public sealed class Frame
       buffer[position++] = (byte)':';
       buffer[position++] = (byte)' ';
       position += Encoding.UTF8.GetBytes(kvp.Value, buffer.AsSpan(position));
-      buffer[position++] = (byte)'\r';
       buffer[position++] = (byte)'\n';
     }
 
     // Empty line between headers and payload
-    buffer[position++] = (byte)'\r';
     buffer[position++] = (byte)'\n';
 
     // Copy payload
@@ -176,10 +187,10 @@ public sealed class Frame
   // Helper to calculate header size
   private int CalculateHeaderSize()
   {
-    int size = Encoding.UTF8.GetByteCount(Command) + 2; // CRLF
+    int size = Encoding.UTF8.GetByteCount(Command.ToString()) + 1; // LF
     foreach (var kvp in Headers)
-      size += Encoding.UTF8.GetByteCount(kvp.Key) + 2 + Encoding.UTF8.GetByteCount(kvp.Value) + 2; // "Key: Value\r\n"
-    size += 2; // empty line
+      size += Encoding.UTF8.GetByteCount(kvp.Key) + 2 + Encoding.UTF8.GetByteCount(kvp.Value) + 2; // "Key: Value\n"
+    size += 1;   // empty line
     return size;
   }
   // Deserialize JSON payload to type T
@@ -203,8 +214,92 @@ public sealed class Frame
   }
 
 
+  public string? GetHeader(string key)
+    => Headers.TryGetValue(key, out var v) ? v : null;
   public void SetHeader(string key, string value) => Headers[key] = value;
-    
+
+  public WebSocketMessageType GetSuggestedMessageType()
+  {
+    var dt = GetHeader("DataType");
+    return string.Equals(dt, "binary", StringComparison.OrdinalIgnoreCase)
+      ? WebSocketMessageType.Binary
+      : WebSocketMessageType.Text;
+  }
 
 }
 
+public enum Command
+{
+  CONNECT,
+  CONNECTED,
+  DISCONNECT,
+
+  SUBSCRIBE,
+  SUBSCRIBED,
+  UNSUBSCRIBE,
+  UNSUBSCRIBED,
+
+  SEND,
+  PUBLISH,
+  PUBLISHED,
+  MESSAGE,
+  ERROR,
+
+
+  CREATE_TOPIC,
+  DELETE_TOPIC,
+
+  BEGIN,
+  COMMIT,
+  ABORT,
+  ACK,
+  NACK,
+  RECEIPT,
+
+  PING,
+  PONG,
+}
+
+public enum DataType
+{
+  Text,
+  Json,
+  Binary
+}
+
+
+
+public record StatusCode(int Code, string Description)
+{
+  public static readonly StatusCode OK = new(200, "OK");
+  public static readonly StatusCode BadRequest = new(400, "Bad Request");
+  public static readonly StatusCode Unauthorized = new(401, "Unauthorized");
+  public static readonly StatusCode Forbidden = new(403, "Forbidden");
+  public static readonly StatusCode NotFound = new(404, "Not Found");
+  public static readonly StatusCode Conflict = new(409, "Conflict");
+  public static readonly StatusCode InternalServerError = new(500, "Internal Server Error");
+  public static readonly StatusCode ServiceUnavailable = new(503, "Service Unavailable");
+
+
+  public override string ToString() => $"{Code} {Description}";
+
+  public static StatusCode FromCode(int code) => code switch
+  {
+    200 => OK,
+    400 => BadRequest,
+    401 => Unauthorized,
+    403 => Forbidden,
+    404 => NotFound,
+    409 => Conflict,
+    500 => InternalServerError,
+    503 => ServiceUnavailable,
+    _ => new StatusCode(code, "Unknown")
+  };
+
+  //implicit string conversion
+  public static implicit operator string(StatusCode status) => status.ToString();
+
+
+  //implicit conversion to key-value pair for headers
+  public static implicit operator (string, string)(StatusCode status) => ("status", status.ToString());
+}

@@ -20,5 +20,5 @@ sealed class Topic(string key)
   public IReadOnlyCollection<WsClient> GetSubscribers()
             => [.. _subscribers.Values];
 
-  public bool IsEmpty() => _subscribers.IsEmpty;
+  public bool IsEmpty => _subscribers.IsEmpty;
 }
