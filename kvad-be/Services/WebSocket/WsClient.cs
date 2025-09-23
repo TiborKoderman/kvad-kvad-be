@@ -1,21 +1,22 @@
 using System.Net.WebSockets;
 
-public sealed class WsConnection
+public class WsClient
 {
   public Guid Id { get; } = Guid.NewGuid();
-  public required WebSocket Socket { get; set; }
-  public Guid? UserId { get; set; }
-  public HashSet<string> CurrentTopics { get; } = new(StringComparer.Ordinal);
+  public WebSocket Socket { get; set; }
+  public User? User { get; set; }
+  public HashSet<string> Subscriptions { get; } = new(StringComparer.Ordinal);
+  public bool IsAuthenticated { get; set; }
 
 
   private readonly CancellationTokenSource _cts = new();
   public CancellationTokenSource CancellationSource => _cts;
   public CancellationToken Cancellation => _cts.Token;
 
-  public WsConnection(WebSocket socket, Guid? userId)
+  public WsClient(WebSocket socket, User? user)
   {
     Socket = socket;
-    UserId = userId;
+    User = user;
   }
 
   public void MarkClosed() => _cts.Cancel();

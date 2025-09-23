@@ -60,6 +60,38 @@ public class AuthService
         return true;
     }
 
+    public async Task<User?> ValidateToken(string? token)
+    {
+        if (string.IsNullOrEmpty(token))
+            return null;
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var configuration = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").Build();
+        var key = Encoding.ASCII.GetBytes(configuration["Authentication:Schemes:Bearer:Key"] ?? "");
+
+        try
+        {
+            tokenHandler.ValidateToken(token, new TokenValidationParameters
+            {
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(key),
+                ValidateIssuer = true,
+                ValidIssuer = configuration["Authentication:Schemes:Bearer:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = configuration["Authentication:Schemes:Bearer:Audience"],
+                ClockSkew = TimeSpan.Zero
+            }, out SecurityToken validatedToken);
+
+            var jwtToken = (JwtSecurityToken)validatedToken;
+            var userId = jwtToken.Claims.First(x => x.Type == ClaimTypes.Name).Value;
+
+            return await GetUserById(userId);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
 
     public async Task<User?> GetUser(string username)
     {

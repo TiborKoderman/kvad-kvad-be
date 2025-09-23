@@ -2,22 +2,22 @@ using System.Collections.Concurrent;
 
 sealed class Topic
 {
-  private readonly ConcurrentDictionary<Guid, WsConnection> _subscribers = new();
+  private readonly ConcurrentDictionary<Guid, WsClient> _subscribers = new();
   public string Key { get; }
   public Topic(string key) => Key = key;
 
-public void Add(WsConnection connection)
+public void Add(WsClient connection)
   {
     _subscribers[connection.Id] = connection;
-    connection.CurrentTopics.Add(Key);
+    connection.Subscriptions.Add(Key);
   }
 
-  public void Remove(WsConnection connection)
+  public void Remove(WsClient connection)
   {
     _subscribers.TryRemove(connection.Id, out _);
-    connection.CurrentTopics.Remove(Key);
+    connection.Subscriptions.Remove(Key);
   }
 
-  public IReadOnlyCollection<WsConnection> GetSubscribers()
+  public IReadOnlyCollection<WsClient> GetSubscribers()
             => _subscribers.Values.ToArray();
 }
