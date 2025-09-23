@@ -4,7 +4,7 @@ using System.Net.WebSockets;
 using System.Text;
 
 [ApiController]
-[Route("ws")]
+[Route("ws_legacy")]
 [AllowAnonymous]
 public class WebSocketController : ControllerBase
 {

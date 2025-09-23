@@ -84,6 +84,10 @@ builder.Services.AddScoped<ScadaService>();
 // Add NodaTime clock for dependency injection
 builder.Services.AddSingleton<IClock>(SystemClock.Instance);
 
+
+builder.Services.AddSingleton<TopicHub>();
+
+
 // Configure global JSON serializer options
 builder.Services.Configure<JsonSerializerOptions>(options =>
 {
@@ -181,7 +185,18 @@ app.UseAuthorization();
 app.UseWebSockets();
 
 app.UseMiddleware<UserMiddleware>();
-app.UseMiddleware<WebSocketMiddleware>();
+// app.UseMiddleware<WebSocketMiddleware>();
+
+var wsOptions = new WebSocketOptions
+{
+//   KeepAliveInterval = TimeSpan.FromSeconds(30),
+  // AllowedOrigins = { "https://your.site" } // if needed
+};
+app.UseWebSockets(wsOptions);
+
+// 3) Map the WebSocket endpoint -> TopicHub.ConnectClientAsync
+app.Map("/ws", async (HttpContext ctx, TopicHub hub) => await hub.ConnectClientAsync(ctx));
+
 
 app.MapControllers();
 app.UseSwaggerUI(c =>
