@@ -1,9 +1,0 @@
-{
-  "sdk": {
-    "version": "9.0.0",
-    "rollForward": "latestMinor"
-  },
-  "msbuild-sdks": {
-    "Microsoft.EntityFrameworkCore.Design": "9.0.8"
-  }
-}
