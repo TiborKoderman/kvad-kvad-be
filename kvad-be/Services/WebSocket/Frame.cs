@@ -1,7 +1,5 @@
 using System.Net.WebSockets;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 public sealed class Frame
 {
@@ -17,7 +15,7 @@ public sealed class Frame
   {
     Command = command;
     Headers = headers ?? [];
-    Headers["DataType"] = "text";
+    Headers[Header.DataType] = "text";
     Payload = Encoding.UTF8.GetBytes(textPayload);
   }
 
@@ -26,8 +24,8 @@ public sealed class Frame
   {
     Command = command;
     Headers = headers ?? [];
-    Headers["DataType"] = "json";
-    Headers["ContentType"] = "application/json";
+    Headers[Header.DataType] = "json";
+    Headers[Header.ContentType] = "application/json";
 
     var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(jsonObject);
     Payload = jsonBytes;
@@ -38,8 +36,8 @@ public sealed class Frame
   {
     Command = command;
     Headers = headers ?? [];
-    Headers["DataType"] = "binary";
-    Headers["ContentLength"] = binaryData.Length.ToString();
+    Headers[Header.DataType] = "binary";
+    Headers[Header.ContentLength] = binaryData.Length.ToString();
     Payload = binaryData;
   }
 
@@ -48,8 +46,8 @@ public sealed class Frame
   {
     Command = command;
     Headers = headers ?? [];
-    Headers["DataType"] = "binary";
-    Headers["ContentLength"] = binaryData.Length.ToString();
+    Headers[Header.DataType] = "binary";
+    Headers[Header.ContentLength] = binaryData.Length.ToString();
     Payload = binaryData;
   }
 
@@ -69,9 +67,9 @@ public sealed class Frame
       Command = command,
       Headers = headers ?? []
     };
-    frame.Headers["DataType"] = "json";
-    frame.Headers["ContentType"] = "application/json";
-    frame.Headers["Type"] = typeof(T).Name;
+    frame.Headers[Header.DataType] = "json";
+    frame.Headers[Header.ContentType] = "application/json";
+    frame.Headers[Header.Type] = typeof(T).Name;
 
     frame.Payload = JsonSerializer.SerializeToUtf8Bytes(data);
     return frame;
@@ -178,7 +176,7 @@ public sealed class Frame
     frame.Payload = ReadOnlyMemory<byte>.Empty;
 
   // Respect ContentLength (if present and sane)
-  if (frame.Headers.TryGetValue("ContentLength", out var lenStr) &&
+  if (frame.Headers.TryGetValue(Header.ContentLength, out var lenStr) &&
       int.TryParse(lenStr, out var contentLen) &&
       contentLen >= 0)
   {
@@ -265,7 +263,7 @@ public sealed class Frame
 
   public WebSocketMessageType GetSuggestedMessageType()
   {
-    var dt = GetHeader("DataType");
+    var dt = GetHeader(Header.DataType);
     return string.Equals(dt, "binary", StringComparison.OrdinalIgnoreCase)
       ? WebSocketMessageType.Binary
       : WebSocketMessageType.Text;
