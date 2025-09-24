@@ -1,5 +1,4 @@
 using AutoMapper;
-using Microsoft.Extensions.Logging; // For ILoggerFactory
 
 public class MapperConfig
 {

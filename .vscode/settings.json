@@ -4,5 +4,9 @@
         "**/*.rpa": true,
         "**/*.rpymc": true,
         "**/cache/": true
+    },
+    "editor.formatOnSave": true,
+    "[csharp]": {
+        "editor.defaultFormatter": "ms-dotnettools.csharp"
     }
 }

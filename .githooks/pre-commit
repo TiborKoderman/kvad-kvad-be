@@ -1,0 +1,16 @@
+#!/bin/sh
+echo "Running dotnet format..."
+DOTNET_TOOLS_CONFIG=".config/dotnet-tools.json"
+if [ -f "$DOTNET_TOOLS_CONFIG" ]; then
+    dotnet tool restore --tool-manifest "$DOTNET_TOOLS_CONFIG"
+fi
+if command -v dotnet-format >/dev/null 2>&1; then
+    dotnet-format || true
+else
+    echo "dotnet-format not found, attempting global install..."
+    dotnet tool install -g dotnet-format --version 6.0.264601 || true
+    if command -v dotnet-format >/dev/null 2>&1; then
+        dotnet-format || true
+    fi
+fi
+git add -A

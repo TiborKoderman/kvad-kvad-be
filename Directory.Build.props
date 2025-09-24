@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Enable .NET analyzers and style enforcement -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Ensure .editorconfig is considered by analyzers -->
+    <AdditionalFiles Include=".editorconfig" />
+  </ItemGroup>
+</Project>

@@ -2,6 +2,7 @@ using kvad_be.Database;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using System.Text.Json;
+using kvad_be.Services.WebSocket;
 
 public class DeviceHeartbeatHandlerService
 {

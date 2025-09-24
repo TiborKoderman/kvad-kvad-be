@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using kvad_be.Services.WebSocket;
 
 [Route("ws")]
 [ApiController]
@@ -22,7 +23,7 @@ public class WebSocketController : ControllerBase
 
     if (HttpContext.WebSockets.IsWebSocketRequest)
     {
-    var user = await _authService.GetUser(User);
+      var user = await _authService.GetUser(User);
       await _topicHub.ConnectClientAsync(HttpContext, user);
     }
     else
