@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text.Json;
-
 namespace kvad_be.Services.WebSocket;
 
 internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activationManager)
@@ -175,7 +174,7 @@ internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activat
   {
     var okFrame = new Frame(command, message ?? string.Empty, new Dictionary<string, string>
     {
-      ["Status"] = StatusCode.OK
+      ["Status"] = Status.OK
     });
     await SendFrame(client, okFrame);
   }
@@ -194,7 +193,7 @@ internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activat
   {
     if (!frame.Headers.TryGetValue("Topic", out var topic))
     {
-      await SendError(client, StatusCode.BadRequest, "Missing 'topic' header in SUBSCRIBE frame.");
+      await SendError(client, Status.BadRequest, "Missing 'topic' header in SUBSCRIBE frame.");
       return;
     }
 
@@ -213,7 +212,7 @@ internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activat
     var response = new Frame
     {
       Command = Command.SUBSCRIBED,
-      Headers = { ["Topic"] = topic, ["Status"] = StatusCode.OK }
+      Headers = { ["Topic"] = topic, ["Status"] = Status.OK }
     };
     await SendFrame(client, response);
     logger.LogInformation("Client {ClientId} subscribed to {Topic}", client.Id, topic);
@@ -224,7 +223,7 @@ internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activat
   {
     if (!frame.Headers.TryGetValue("Topic", out var topic))
     {
-      await SendError(client, StatusCode.BadRequest, "Missing 'topic' header in UNSUBSCRIBE frame.");
+      await SendError(client, Status.BadRequest, "Missing 'topic' header in UNSUBSCRIBE frame.");
       return;
     }
 
@@ -246,7 +245,7 @@ internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activat
     await SendFrame(client, new Frame
     {
       Command = Command.UNSUBSCRIBED,
-      Headers = { ["Topic"] = topic, ["Status"] = StatusCode.OK }
+      Headers = { ["Topic"] = topic, ["Status"] = Status.OK }
     });
 
     logger.LogInformation("Client {ClientId} unsubscribed from {Topic}", client.Id, topic);
@@ -256,7 +255,7 @@ internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activat
   {
     if (!frame.Headers.TryGetValue("Topic", out var topic) || string.IsNullOrWhiteSpace(topic))
     {
-      await SendError(client, StatusCode.BadRequest, "Missing 'topic' header in PUBLISH.");
+      await SendError(client, Status.BadRequest, "Missing 'topic' header in PUBLISH.");
       return;
     }
 
@@ -273,7 +272,7 @@ internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activat
       await SendFrame(client, new Frame(Command.PUBLISHED, "No subscribers for topic.", new Dictionary<string, string>
       {
         ["Topic"] = topic,
-        ["code"] = StatusCode.OK,
+        ["code"] = Status.OK,
         ["delivered"] = "0"
       }));
       logger.LogInformation("Publish to {Topic} had no subscribers", topic);
@@ -312,7 +311,7 @@ internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activat
     await SendFrame(client, new Frame(Command.PUBLISHED, "Message published.", new Dictionary<string, string>
     {
       [Header.Topic] = topic,
-      ["code"] = StatusCode.OK,
+      ["code"] = Status.OK,
       ["delivered"] = delivered.ToString()
     }));
 

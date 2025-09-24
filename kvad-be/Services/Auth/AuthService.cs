@@ -1,11 +1,9 @@
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
 using Sodium;
 using kvad_be.Database;
 
-public class AuthService(AppDbContext db, TokenService tokens, ILogger<AuthService> logger)
+public class AuthService(AppDbContext db, TokenService tokens)
 {
     public async Task<string?> Authenticate(string username, string password, CancellationToken ct = default)
     {

@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using kvad_be.Services.WebSocket;
 
 [Route("ws")]
 [ApiController]
 [AllowAnonymous]
-public class WebSocketController(TopicHub topicHub, AuthService authService) : ControllerBase
+internal class WebSocketController(TopicHub topicHub, AuthService authService) : ControllerBase
 {
   [HttpGet("")]
   public async Task Get()

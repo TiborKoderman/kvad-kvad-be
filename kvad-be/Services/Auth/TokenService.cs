@@ -39,7 +39,7 @@ public sealed class TokenService
     );
 
     return new JwtSecurityTokenHandler().WriteToken(token);
-    
+
   }
 
 }

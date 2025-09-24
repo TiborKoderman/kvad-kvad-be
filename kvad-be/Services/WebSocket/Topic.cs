@@ -23,3 +23,4 @@ sealed class Topic(string key)
 
   public bool IsEmpty => _subscribers.IsEmpty;
 }
+

@@ -1,5 +1,6 @@
 
 namespace kvad_be.Services.WebSocket;
+
 public readonly struct Header : IEquatable<Header>
 {
   private readonly string _value;
@@ -14,7 +15,7 @@ public readonly struct Header : IEquatable<Header>
 
   public override string ToString() => _value;
 
-  public override bool Equals(object obj) => obj is Header other && Equals(other);
+  public override bool Equals(object? obj) => obj is Header other && Equals(other);
 
   public bool Equals(Header other) =>
     string.Equals(_value, other._value, StringComparison.OrdinalIgnoreCase);
