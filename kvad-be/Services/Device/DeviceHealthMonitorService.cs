@@ -13,7 +13,7 @@ public class DeviceHealthMonitorService : BackgroundService
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
-        
+
         // Configure check interval from configuration (default: 1 minute)
         var intervalMinutes = configuration.GetValue<int>("DeviceHealthMonitor:CheckIntervalMinutes", 1);
         _checkInterval = TimeSpan.FromMinutes(intervalMinutes);

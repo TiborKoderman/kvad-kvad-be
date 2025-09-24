@@ -3,7 +3,7 @@ namespace kvad_be.Services.WebSocket;
 using System.Net.WebSockets;
 using System.Text.Json;
 
-public sealed class Frame
+internal sealed class Frame
 {
   public Command Command { get; set; }
   public Dictionary<string, string> Headers { get; set; } = new(StringComparer.Ordinal);
@@ -39,7 +39,7 @@ public sealed class Frame
     Command = command;
     Headers = headers ?? [];
     Headers[Header.DataType] = "binary";
-    Headers[Header.ContentLength] = binaryData.Length.ToString();
+    Headers[Header.ContentLength] = $"{binaryData.Length}";
     Payload = binaryData;
   }
 
@@ -49,7 +49,7 @@ public sealed class Frame
     Command = command;
     Headers = headers ?? [];
     Headers[Header.DataType] = "binary";
-    Headers[Header.ContentLength] = binaryData.Length.ToString();
+    Headers[Header.ContentLength] = $"{binaryData.Length}";
     Payload = binaryData;
   }
 
@@ -128,66 +128,66 @@ public sealed class Frame
       }
     }
 
-     for (int i = 0; i < span.Length; i++)
-  {
-    if (span[i] == (byte)'\n')
+    for (int i = 0; i < span.Length; i++)
     {
-      var line = span.Slice(lineStart, i - lineStart);
-      ProcessLine(line);
-
-      if (!inHeaders && position < 0)
+      if (span[i] == (byte)'\n')
       {
-        // First time we exit headers: payload starts after this '\n'
-        position = i + 1;
-        // Do NOT break—there might be payload bytes after this; we only needed the index.
-        // We’ll stop scanning lines here to avoid misinterpreting payload contents as lines.
-        break;
+        var line = span.Slice(lineStart, i - lineStart);
+        ProcessLine(line);
+
+        if (!inHeaders && position < 0)
+        {
+          // First time we exit headers: payload starts after this '\n'
+          position = i + 1;
+          // Do NOT break—there might be payload bytes after this; we only needed the index.
+          // We’ll stop scanning lines here to avoid misinterpreting payload contents as lines.
+          break;
+        }
+
+        lineStart = i + 1;
+      }
+    }
+
+    // If we never hit a '\n' for the last line (EOF without newline), process the trailing line
+    if (position < 0) // only if we haven’t already determined start-of-payload
+    {
+      if (lineStart < span.Length)
+      {
+        var tailLine = span.Slice(lineStart);
+        ProcessLine(tailLine);
       }
 
-      lineStart = i + 1;
+      // If headers are still "open", there was no blank line → no payload
+      if (inHeaders)
+      {
+        position = span.Length; // payload empty
+      }
+      else if (position < 0)
+      {
+        // We ended headers in the EOF tail-line case; payload begins after that line.
+        // Since there was no '\n' to step past, payload starts exactly at end of tail line.
+        position = span.Length;
+      }
     }
-  }
 
-  // If we never hit a '\n' for the last line (EOF without newline), process the trailing line
-  if (position < 0) // only if we haven’t already determined start-of-payload
-  {
-    if (lineStart < span.Length)
+    // Slice payload zero-copy
+    if (position < 0) position = span.Length; // safety
+    if (position <= span.Length)
+      frame.Payload = data[position..];
+    else
+      frame.Payload = ReadOnlyMemory<byte>.Empty;
+
+    // Respect ContentLength (if present and sane)
+    if (frame.Headers.TryGetValue(Header.ContentLength, out var lenStr) &&
+        int.TryParse(lenStr, out var contentLen) &&
+        contentLen >= 0)
     {
-      var tailLine = span.Slice(lineStart);
-      ProcessLine(tailLine);
+      if (contentLen > frame.Payload.Length)
+        throw new InvalidOperationException($"Declared ContentLength {contentLen} exceeds available payload {frame.Payload.Length}.");
+      frame.Payload = frame.Payload[..contentLen];
     }
 
-    // If headers are still "open", there was no blank line → no payload
-    if (inHeaders)
-    {
-      position = span.Length; // payload empty
-    }
-    else if (position < 0)
-    {
-      // We ended headers in the EOF tail-line case; payload begins after that line.
-      // Since there was no '\n' to step past, payload starts exactly at end of tail line.
-      position = span.Length;
-    }
-  }
-
-  // Slice payload zero-copy
-  if (position < 0) position = span.Length; // safety
-  if (position <= span.Length)
-    frame.Payload = data[position..];
-  else
-    frame.Payload = ReadOnlyMemory<byte>.Empty;
-
-  // Respect ContentLength (if present and sane)
-  if (frame.Headers.TryGetValue(Header.ContentLength, out var lenStr) &&
-      int.TryParse(lenStr, out var contentLen) &&
-      contentLen >= 0)
-  {
-    if (contentLen > frame.Payload.Length)
-      throw new InvalidOperationException($"Declared ContentLength {contentLen} exceeds available payload {frame.Payload.Length}.");
-    frame.Payload = frame.Payload[..contentLen];
-  }
-
-  return frame;
+    return frame;
   }
 
 
@@ -273,7 +273,7 @@ public sealed class Frame
 
 }
 
-public enum Command
+internal enum Command
 {
   CONNECT,
   CONNECTED,
@@ -305,7 +305,7 @@ public enum Command
   PONG,
 }
 
-public enum DataType
+internal enum DataType
 {
   Text,
   Json,
@@ -314,7 +314,7 @@ public enum DataType
 
 
 
-public record StatusCode(int Code, string Description)
+internal record StatusCode(int Code, string Description)
 {
   public static readonly StatusCode OK = new(200, "OK");
   public static readonly StatusCode BadRequest = new(400, "Bad Request");
@@ -351,7 +351,7 @@ public record StatusCode(int Code, string Description)
 
 
 
-public enum Headers
+internal enum Headers
 {
   DataType,
   ContentType,

@@ -94,7 +94,7 @@ builder.Services.Configure<JsonSerializerOptions>(options =>
 });
 
 // Add a singleton JsonSerializerOptions for services that need it
-builder.Services.AddSingleton<JsonSerializerOptions>(provider =>
+builder.Services.AddSingleton(provider =>
 {
     return new JsonSerializerOptions
     {
@@ -130,13 +130,12 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await db.Database.MigrateAsync();   // auto-applies CreatePgTypes + others
+    await db.Database.MigrateAsync().ConfigureAwait(false);   // auto-applies CreatePgTypes + others
 }
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    Console.WriteLine("Development mode");
     app.UseSwagger();
     app.UseSwaggerUI(c =>
      {
@@ -162,10 +161,10 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = "swagger";
 });
 
-await DbSeeder.SeedAsync(app.Services);
+await DbSeeder.SeedAsync(app.Services).ConfigureAwait(false);
 
 
-app.Run();
+await app.RunAsync().ConfigureAwait(false);
 
 
 
@@ -173,7 +172,7 @@ static void StartDockerCompose()
 {
     try
     {
-        Process process = new Process();
+        using Process process = new();
         process.StartInfo.FileName = "docker";
         process.StartInfo.Arguments = "compose up -d"; // Run docker compose in detached mode
         process.StartInfo.RedirectStandardOutput = true;
@@ -192,8 +191,14 @@ static void StartDockerCompose()
             Console.WriteLine("Docker Compose Error: " + error);
         }
     }
-    catch (Exception ex)
+    catch (InvalidOperationException ex)
     {
         Console.WriteLine("Failed to start Docker Compose: " + ex.Message);
+        throw;
+    }
+    catch (System.ComponentModel.Win32Exception ex)
+    {
+        Console.WriteLine("Failed to start Docker Compose: " + ex.Message);
+        throw;
     }
 }

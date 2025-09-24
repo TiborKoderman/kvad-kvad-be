@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 namespace kvad_be.Services.WebSocket;
 
-public sealed class TopicActivationManager
+internal sealed class TopicActivationManager
 {
   private sealed class Activation
   {
@@ -48,7 +48,7 @@ public sealed class TopicActivationManager
       }
     }
 
-    try { toDispose?.Dispose(); } catch { /* ignore */ }
+    toDispose?.Dispose();
     if (drop) _map.TryRemove(topic, out _);
   }
 

@@ -4,21 +4,10 @@ using System.Text.Json;
 
 namespace kvad_be.Services.WebSocket;
 
-public class TopicHub
+internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activationManager)
 {
   private readonly ConcurrentDictionary<string, Topic> _topics = new(StringComparer.Ordinal);
   private readonly ConcurrentDictionary<Guid, WsClient> _clients = new();
-  private readonly ILogger<TopicHub> _logger;
-
-  private readonly TopicActivationManager _activations;
-
-  private static readonly TimeSpan ReceiveLoopPingInterval = TimeSpan.FromSeconds(30);
-
-  public TopicHub(ILogger<TopicHub> logger, TopicActivationManager activationManager)
-  {
-    _logger = logger;
-    _activations = activationManager;
-  }
 
   public async Task ConnectClientAsync(HttpContext context, User? user = null)
   {
@@ -38,7 +27,7 @@ public class TopicHub
     using var webSocket = await context.WebSockets.AcceptWebSocketAsync();
     var client = new WsClient(webSocket, user);
     _clients[client.Id] = client;
-    _logger.LogInformation("Client connected: {ClientId}, User: {UserId}", client.Id, user.Id);
+    logger.LogInformation("Client connected: {ClientId}, User: {UserId}", client.Id, user.Id);
 
     try
     {
@@ -47,7 +36,7 @@ public class TopicHub
     }
     catch (Exception ex)
     {
-      _logger.LogWarning(ex, "Receive loop error for client {ClientId}", client.Id);
+      logger.LogWarning(ex, "Receive loop error for client {ClientId}", client.Id);
     }
     finally
     {
@@ -130,7 +119,7 @@ public class TopicHub
         topic.Remove(client);
         if (topic.IsEmpty)
         {
-          _activations.Release(topicKey);
+          activationManager.Release(topicKey);
           _topics.TryRemove(topicKey, out _);
         }
       }
@@ -144,7 +133,7 @@ public class TopicHub
       catch { /* ignore */ }
     }
 
-    _logger.LogInformation("Client {ClientId} disconnected", client.Id);
+    logger.LogInformation("Client {ClientId} disconnected", client.Id);
   }
 
 
@@ -168,7 +157,7 @@ public class TopicHub
         await DisconnectClient(client);
         break;
       default:
-        _logger.LogWarning("Unknown command: {Command}", frame.Command);
+        logger.LogWarning("Unknown command: {Command}", frame.Command);
         break;
     }
   }
@@ -218,7 +207,7 @@ public class TopicHub
     if (t.GetSubscribers().Count == 1)
     {
       // _activations.AddRef(topicKey, StartPublisherForTopic);
-      _logger.LogInformation("Activated publisher for {Topic}", topicKey);
+      logger.LogInformation("Activated publisher for {Topic}", topicKey);
     }
 
     var response = new Frame
@@ -227,7 +216,7 @@ public class TopicHub
       Headers = { ["Topic"] = topic, ["Status"] = StatusCode.OK }
     };
     await SendFrame(client, response);
-    _logger.LogInformation("Client {ClientId} subscribed to {Topic}", client.Id, topic);
+    logger.LogInformation("Client {ClientId} subscribed to {Topic}", client.Id, topic);
   }
 
 
@@ -248,9 +237,9 @@ public class TopicHub
       if (t.IsEmpty)
       {
         // No subscribers → stop publisher
-        _activations.Release(topicKey);
+        activationManager.Release(topicKey);
         _topics.TryRemove(topicKey, out _);
-        _logger.LogInformation("Deactivated publisher for {Topic}", topicKey);
+        logger.LogInformation("Deactivated publisher for {Topic}", topicKey);
       }
     }
 
@@ -260,7 +249,7 @@ public class TopicHub
       Headers = { ["Topic"] = topic, ["Status"] = StatusCode.OK }
     });
 
-    _logger.LogInformation("Client {ClientId} unsubscribed from {Topic}", client.Id, topic);
+    logger.LogInformation("Client {ClientId} unsubscribed from {Topic}", client.Id, topic);
   }
 
   private async Task HandlePublish(WsClient client, Frame frame)
@@ -287,7 +276,7 @@ public class TopicHub
         ["code"] = StatusCode.OK,
         ["delivered"] = "0"
       }));
-      _logger.LogInformation("Publish to {Topic} had no subscribers", topic);
+      logger.LogInformation("Publish to {Topic} had no subscribers", topic);
       return;
     }
 
@@ -316,7 +305,7 @@ public class TopicHub
       }
       catch (Exception ex)
       {
-        _logger.LogWarning(ex, "Failed to deliver message to client {ClientId}", subscriber.Id);
+        logger.LogWarning(ex, "Failed to deliver message to client {ClientId}", subscriber.Id);
       }
     }
 
@@ -327,7 +316,7 @@ public class TopicHub
       ["delivered"] = delivered.ToString()
     }));
 
-    _logger.LogInformation("Published message to {Topic}, delivered to {Count} subscribers", topic, delivered);
+    logger.LogInformation("Published message to {Topic}, delivered to {Count} subscribers", topic, delivered);
 
   }
 
