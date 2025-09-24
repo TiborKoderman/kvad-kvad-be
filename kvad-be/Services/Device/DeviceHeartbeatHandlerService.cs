@@ -9,17 +9,21 @@ public class DeviceHeartbeatHandlerService
     private readonly ILogger<DeviceHeartbeatHandlerService> _logger;
     private readonly GroupService _groupService;
     private readonly IClock _clock;
+    private readonly TopicHub _topicHub;
 
     public DeviceHeartbeatHandlerService(
-        AppDbContext context, 
-        ILogger<DeviceHeartbeatHandlerService> logger, 
+        AppDbContext context,
+        ILogger<DeviceHeartbeatHandlerService> logger,
         GroupService groupService,
-        IClock clock)
+        IClock clock,
+        TopicHub topicHub
+    )
     {
         _context = context;
         _logger = logger;
         _groupService = groupService;
         _clock = clock;
+        _topicHub = topicHub;
     }
 
     public async Task HandleHeartbeatAsync(Guid deviceId, HeartbeatDTO heartbeat)
@@ -76,6 +80,10 @@ public class DeviceHeartbeatHandlerService
 
             await _context.SaveChangesAsync();
 
+            await _topicHub.PublishJsonAsync(
+                topic: $"device/state",
+                payload: device.State
+                );
             _logger.LogDebug(
                 "Heartbeat processed for device {DeviceId}. Seq: {Seq}, Uptime: {Uptime}s, Connectivity: {Connectivity}",
                 deviceId, heartbeat.Seq, heartbeat.UptimeS, device.State.Connectivity);
@@ -132,7 +140,7 @@ public class DeviceHeartbeatHandlerService
         if (heartbeat.Flags != null)
         {
             var flags = heartbeat.Flags.Where(f => f != null).ToList();
-            
+
             if (flags.Any(f => f!.Contains("critical", StringComparison.OrdinalIgnoreCase) ||
                               f.Contains("error", StringComparison.OrdinalIgnoreCase)))
             {
@@ -170,8 +178,8 @@ public class DeviceHeartbeatHandlerService
             var staleDevices = await _context.Devices
                 .Include(d => d.State)
                 .Include(d => d.HeartbeatSettings)
-                .Where(d => d.State != null && 
-                           d.State.LastHeartbeat.HasValue && 
+                .Where(d => d.State != null &&
+                           d.State.LastHeartbeat.HasValue &&
                            d.State.LastHeartbeat < staleThreshold &&
                            d.State.Connectivity != DeviceConnectivity.Offline)
                 .ToListAsync();
@@ -185,7 +193,7 @@ public class DeviceHeartbeatHandlerService
                 {
                     device.State.Connectivity = DeviceConnectivity.Offline;
                     device.State.Health = DeviceHealth.Unknown;
-                    
+
                     _logger.LogWarning(
                         "Device {DeviceId} marked as offline. Last heartbeat: {LastHeartbeat}",
                         device.Id, device.State.LastHeartbeat);

@@ -48,7 +48,6 @@ public static class AuthRegistration
             OnMessageReceived = ctx =>
             {
               if (ctx.Request.Path.StartsWithSegments("/ws") &&
-                  ctx.Request.Headers.Connection == "Upgrade" &&
                   ctx.Request.Headers.Upgrade == "websocket")
               {
                 var token = ctx.Request.Query["token"];

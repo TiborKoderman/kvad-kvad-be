@@ -33,7 +33,6 @@ public class DeviceState
 
     [Column(TypeName = "jsonb")] public JsonDocument? Flags { get; set; }   // e.g., ["ok","throttled"]
     [Column(TypeName = "jsonb")] public JsonDocument? Extra { get; set; }
-
 }
 
 

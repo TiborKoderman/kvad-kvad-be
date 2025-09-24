@@ -1,28 +1,25 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using System.Security.Claims;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 public class TopicHub
 {
   private readonly ConcurrentDictionary<string, Topic> _topics = new(StringComparer.Ordinal);
   private readonly ConcurrentDictionary<Guid, WsClient> _clients = new();
   private readonly ILogger<TopicHub> _logger;
-  private readonly AuthService _authService;
+
+  private readonly TopicActivationManager _activations;
 
   private static readonly TimeSpan ReceiveLoopPingInterval = TimeSpan.FromSeconds(30);
 
-  public TopicHub(ILogger<TopicHub> logger, AuthService authService)
+  public TopicHub(ILogger<TopicHub> logger, TopicActivationManager activationManager)
   {
     _logger = logger;
-    _authService = authService;
+    _activations = activationManager;
   }
 
-  public async Task ConnectClientAsync(HttpContext context)
+  public async Task ConnectClientAsync(HttpContext context, User? user = null)
   {
-    var user = await _authService.GetUser(context.User);
 
     if (user == null)
     {
@@ -52,7 +49,7 @@ public class TopicHub
     }
     finally
     {
-      //await DisconnectClient(client);
+      await DisconnectClient(client);
     }
   }
 
@@ -72,21 +69,21 @@ public class TopicHub
     var buffer = new byte[4096];
 
     // Optional: background ping to keep idle connections alive
-    using var pingCts = CancellationTokenSource.CreateLinkedTokenSource(client.Cancellation);
-    _ = Task.Run(async () =>
-    {
-      try
-      {
-        while (!pingCts.IsCancellationRequested && socket.State == WebSocketState.Open)
-        {
-          await Task.Delay(ReceiveLoopPingInterval, pingCts.Token);
-          if (socket.State != WebSocketState.Open) break;
-          var ping = new Frame(Command.PING);
-          await SendFrame(client, ping);
-        }
-      }
-      catch { /* ignore */ }
-    }, pingCts.Token);
+    // using var pingCts = CancellationTokenSource.CreateLinkedTokenSource(client.Cancellation);
+    // _ = Task.Run(async () =>
+    // {
+    //   try
+    //   {
+    //     while (!pingCts.IsCancellationRequested && socket.State == WebSocketState.Open)
+    //     {
+    //       await Task.Delay(ReceiveLoopPingInterval, pingCts.Token);
+    //       if (socket.State != WebSocketState.Open) break;
+    //       var ping = new Frame(Command.PING);
+    //       await SendFrame(client, ping);
+    //     }
+    //   }
+    //   catch { /* ignore */ }
+    // }, pingCts.Token);
 
 
     try
@@ -118,7 +115,7 @@ public class TopicHub
     }
     finally
     {
-      pingCts.Cancel();
+      // pingCts.Cancel();
     }
   }
 
@@ -131,6 +128,7 @@ public class TopicHub
         topic.Remove(client);
         if (topic.IsEmpty)
         {
+          _activations.Release(topicKey);
           _topics.TryRemove(topicKey, out _);
         }
       }
@@ -219,26 +217,16 @@ public class TopicHub
     }
 
     // Optional scoping: if client wants per-user isolation, allow `Scope=user`
-    if (frame.Headers.TryGetValue("Scope", out var scope))
-    {
-      switch (scope.ToLowerInvariant())
-      {
-        case "user":
-          if (client.User == null)
-          {
-            await SendError(client, StatusCode.Unauthorized, "Authentication required for user-scoped topics.");
-            return;
-          }
-          topic = $"/u/{client.User.Id}/{topic}";
-          break;
-        default:
-          await SendError(client, StatusCode.BadRequest, $"Unknown scope '{scope}' in SUBSCRIBE frame.");
-          return;
-      }
-    }
+    var topicKey = ResolveTopicKey(client, topic, frame);
 
-    var t = _topics.GetOrAdd(topic, static k => new Topic(k));
+    var t = _topics.GetOrAdd(topicKey, static k => new Topic(k));
     t.Add(client);
+
+    if (t.GetSubscribers().Count == 1)
+    {
+      // _activations.AddRef(topicKey, StartPublisherForTopic);
+      _logger.LogInformation("Activated publisher for {Topic}", topicKey);
+    }
 
     var response = new Frame
     {
@@ -259,17 +247,18 @@ public class TopicHub
     }
 
     // Mirror same scoping rule
-    if (frame.Headers.TryGetValue("Scope", out var scope) &&
-        scope.Equals("user", StringComparison.OrdinalIgnoreCase) &&
-        client.User is not null)
-    {
-      topic = $"u/{client.User.Id}/{topic}";
-    }
+    var topicKey = ResolveTopicKey(client, topic, frame);
 
-    if (_topics.TryGetValue(topic, out var t))
+    if (_topics.TryGetValue(topicKey, out var t))
     {
       t.Remove(client);
-      if (t.IsEmpty) _topics.TryRemove(topic, out _);
+      if (t.IsEmpty)
+      {
+        // No subscribers → stop publisher
+        _activations.Release(topicKey);
+        _topics.TryRemove(topicKey, out _);
+        _logger.LogInformation("Deactivated publisher for {Topic}", topicKey);
+      }
     }
 
     await SendFrame(client, new Frame
@@ -378,11 +367,11 @@ public class TopicHub
     if (fromUser != null)
       headerBag["From"] = fromUser.Id.ToString();
 
-    var topicKey = scopePerUser && fromUser != null
-  ? $"{fromUser.Id}:{topic}"
-  : topic;
+    //   var topicKey = scopePerUser && fromUser != null
+    // ? $"{fromUser.Id}:{topic}"
+    // : topic;
 
-    if (!_topics.TryGetValue(topicKey, out var t) || t.IsEmpty)
+    if (!_topics.TryGetValue(topic, out var t) || t.IsEmpty)
       return 0;
     var msg = new Frame
     {
@@ -397,8 +386,8 @@ public class TopicHub
       if (sub.Socket.State != WebSocketState.Open) continue;
       try { await SendFrame(sub, msg); delivered++; }
       catch { /* ignore a single failure */ }
-    }
 
+    }
     return delivered;
   }
   // Convenience helpers
@@ -414,5 +403,54 @@ public class TopicHub
     h["Type"] = typeof(T).Name;
     return PublishAsync(topic, JsonSerializer.SerializeToUtf8Bytes(payload), h);
   }
+
+  private string ResolveTopicKey(WsClient client, string topic, Frame frame)
+  {
+    if (frame.Headers.TryGetValue("scope", out var scope) &&
+        scope.Equals("user", StringComparison.OrdinalIgnoreCase) &&
+        client.User is not null)
+    {
+      return $"u/{client.User.Id}/{topic}";
+    }
+    return topic;
+  }
+
+
+//   private IDisposable StartPublisherForTopic(string topicKey)
+// {
+//   // Example: parse deviceId from topicKey like "device/{id}/state"
+//   // var deviceId = ...;
+
+//   var cts = new CancellationTokenSource();
+
+//   _ = Task.Run(async () =>
+//   {
+//     try
+//     {
+//       while (!cts.IsCancellationRequested)
+//       {
+//         // fetch/update device state
+//         // var state = await DeviceService.UpdateStateAsync(topicKey, cts.Token);
+
+//         // broadcast only if still subscribed (cheap guard)
+//         if (_topics.TryGetValue(topicKey, out var topic) && !topic.IsEmpty)
+//           await PublishJsonAsync(topicKey, state);
+
+//         await Task.Delay(TimeSpan.FromSeconds(1), cts.Token); // poll period
+//       }
+//     }
+//     catch (OperationCanceledException) { }
+//     catch (Exception ex) { _logger.LogError(ex, "Publisher loop failed for {Topic}", topicKey); }
+//   }, cts.Token);
+
+//   return new CancellationDisposable(cts);
+// }
+
+// private sealed class CancellationDisposable : IDisposable
+// {
+//   private readonly CancellationTokenSource _cts;
+//   public CancellationDisposable(CancellationTokenSource cts) => _cts = cts;
+//   public void Dispose() { try { _cts.Cancel(); _cts.Dispose(); } catch { } }
+// }
 
 }

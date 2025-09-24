@@ -4,13 +4,16 @@ using System.Security.Claims;
 
 [Route("ws")]
 [ApiController]
+[AllowAnonymous]
 public class WebSocketController : ControllerBase
 {
   private readonly TopicHub _topicHub;
+  private readonly AuthService _authService;
 
-  public WebSocketController(TopicHub topicHub)
+  public WebSocketController(TopicHub topicHub, AuthService authService)
   {
     _topicHub = topicHub;
+    _authService = authService;
   }
 
   [HttpGet("")]
@@ -19,7 +22,8 @@ public class WebSocketController : ControllerBase
 
     if (HttpContext.WebSockets.IsWebSocketRequest)
     {
-      await _topicHub.ConnectClientAsync(HttpContext);
+    var user = await _authService.GetUser(User);
+      await _topicHub.ConnectClientAsync(HttpContext, user);
     }
     else
     {

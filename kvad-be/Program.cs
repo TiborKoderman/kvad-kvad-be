@@ -86,7 +86,8 @@ builder.Services.AddSingleton<IClock>(SystemClock.Instance);
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddSingleton<TokenService>();
 
-builder.Services.AddScoped<TopicHub>();
+builder.Services.AddSingleton<TopicHub>();
+builder.Services.AddSingleton<TopicActivationManager>();
 
 
 // Configure global JSON serializer options
