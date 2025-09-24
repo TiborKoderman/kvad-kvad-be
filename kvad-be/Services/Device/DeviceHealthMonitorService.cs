@@ -1,4 +1,4 @@
-internal class DeviceHealthMonitorService : BackgroundService
+public class DeviceHealthMonitorService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<DeviceHealthMonitorService> _logger;

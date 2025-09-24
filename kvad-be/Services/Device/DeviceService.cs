@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using kvad_be.Database;
 using NodaTime;
+using System.Globalization;
 
 public class DeviceService(AppDbContext context, ILogger<DeviceService> logger, GroupService groupService)
 {
@@ -24,7 +25,7 @@ public class DeviceService(AppDbContext context, ILogger<DeviceService> logger, 
                 d.Type,
                 d.Virtual,
                 d.Tags.Select(t => new TagDTO(
-                    t.Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    t.Id.ToString(CultureInfo.InvariantCulture),
                     t.Path,
                     null, // Description
                     t.UnitId,

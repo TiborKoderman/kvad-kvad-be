@@ -3,7 +3,7 @@ using System.Net.WebSockets;
 using System.Text.Json;
 namespace kvad_be.Services.WebSocket;
 
-internal class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activationManager)
+public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activationManager)
 {
   private readonly ConcurrentDictionary<string, Topic> _topics = new(StringComparer.Ordinal);
   private readonly ConcurrentDictionary<Guid, WsClient> _clients = new();

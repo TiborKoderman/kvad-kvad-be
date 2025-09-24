@@ -1,6 +1,6 @@
 namespace kvad_be.Services.WebSocket;
 
-internal class WsClient(System.Net.WebSockets.WebSocket Socket, User? User = null) : IDisposable
+public class WsClient(System.Net.WebSockets.WebSocket Socket, User? User = null) : IDisposable
 {
   public Guid Id { get; } = Guid.NewGuid();
   public System.Net.WebSockets.WebSocket Socket { get; set; } = Socket;

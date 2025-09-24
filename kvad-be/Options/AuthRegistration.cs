@@ -36,8 +36,6 @@ public static class AuthRegistration
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero,
 
-            NameClaimTypeRetriever = (token, claimType) => ClaimTypes.NameIdentifier,
-
             // Make your principal consistent:
             NameClaimType = ClaimTypes.NameIdentifier, // we’ll put userId here
             RoleClaimType = ClaimTypes.Role            // we’ll put roles here

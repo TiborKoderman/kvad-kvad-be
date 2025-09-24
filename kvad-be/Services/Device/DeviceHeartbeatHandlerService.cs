@@ -4,7 +4,7 @@ using NodaTime;
 using System.Text.Json;
 using kvad_be.Services.WebSocket;
 
-internal class DeviceHeartbeatHandlerService(
+public class DeviceHeartbeatHandlerService(
     AppDbContext context,
     ILogger<DeviceHeartbeatHandlerService> logger,
     GroupService groupService,

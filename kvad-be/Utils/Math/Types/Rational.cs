@@ -1,5 +1,4 @@
 using System.Numerics;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public readonly struct Rational
@@ -117,7 +116,7 @@ public readonly struct Rational
         }
     }
 
-    public sealed class SerialConverter: ValueConverter<Rational, string>
+    public sealed class SerialConverter : ValueConverter<Rational, string>
     {
         public SerialConverter() : base(
             v => ToString(v),

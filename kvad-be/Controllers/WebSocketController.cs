@@ -5,7 +5,7 @@ using kvad_be.Services.WebSocket;
 [Route("ws")]
 [ApiController]
 [AllowAnonymous]
-internal class WebSocketController(TopicHub topicHub, AuthService authService) : ControllerBase
+public class WebSocketController(TopicHub topicHub, AuthService authService) : ControllerBase
 {
   [HttpGet("")]
   public async Task Get()

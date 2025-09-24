@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 namespace kvad_be.Services.WebSocket;
 
-internal sealed class TopicActivationManager
+public sealed class TopicActivationManager
 {
   private sealed class Activation
   {
