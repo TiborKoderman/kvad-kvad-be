@@ -314,21 +314,21 @@ public enum DataType
 
 
 
-public record StatusCode(int Code, string Description)
+public record Status(int Code, string Description)
 {
-  public static readonly StatusCode OK = new(200, "OK");
-  public static readonly StatusCode BadRequest = new(400, "Bad Request");
-  public static readonly StatusCode Unauthorized = new(401, "Unauthorized");
-  public static readonly StatusCode Forbidden = new(403, "Forbidden");
-  public static readonly StatusCode NotFound = new(404, "Not Found");
-  public static readonly StatusCode Conflict = new(409, "Conflict");
-  public static readonly StatusCode InternalServerError = new(500, "Internal Server Error");
-  public static readonly StatusCode ServiceUnavailable = new(503, "Service Unavailable");
+  public static readonly Status OK = new(200, "OK");
+  public static readonly Status BadRequest = new(400, "Bad Request");
+  public static readonly Status Unauthorized = new(401, "Unauthorized");
+  public static readonly Status Forbidden = new(403, "Forbidden");
+  public static readonly Status NotFound = new(404, "Not Found");
+  public static readonly Status Conflict = new(409, "Conflict");
+  public static readonly Status InternalServerError = new(500, "Internal Server Error");
+  public static readonly Status ServiceUnavailable = new(503, "Service Unavailable");
 
 
   public override string ToString() => $"{Code} {Description}";
 
-  public static StatusCode FromCode(int code) => code switch
+  public static Status FromCode(int code) => code switch
   {
     200 => OK,
     400 => BadRequest,
@@ -338,15 +338,15 @@ public record StatusCode(int Code, string Description)
     409 => Conflict,
     500 => InternalServerError,
     503 => ServiceUnavailable,
-    _ => new StatusCode(code, "Unknown")
+    _ => new Status(code, "Unknown")
   };
 
   //implicit string conversion
-  public static implicit operator string(StatusCode status) => status.ToString();
+  public static implicit operator string(Status status) => status.ToString();
 
 
   //implicit conversion to key-value pair for headers
-  public static implicit operator (string, string)(StatusCode status) => ("status", status.ToString());
+  public static implicit operator (string, string)(Status status) => ("status", status.ToString());
 }
 
 

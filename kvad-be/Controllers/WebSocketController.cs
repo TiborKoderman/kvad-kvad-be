@@ -1,14 +1,12 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using kvad_be.Services.WebSocket;
 
 [Route("ws")]
 [ApiController]
-[AllowAnonymous]
 public class WebSocketController(TopicHub topicHub, AuthService authService) : ControllerBase
 {
-  [HttpGet("")]
-  public async Task Get()
+  [HttpGet]
+  public async Task Connect()
   {
 
     if (HttpContext.WebSockets.IsWebSocketRequest)

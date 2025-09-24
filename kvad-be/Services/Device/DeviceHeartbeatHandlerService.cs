@@ -7,7 +7,6 @@ using kvad_be.Services.WebSocket;
 public class DeviceHeartbeatHandlerService(
     AppDbContext context,
     ILogger<DeviceHeartbeatHandlerService> logger,
-    GroupService groupService,
     IClock clock,
     TopicHub topicHub
     )
@@ -28,11 +27,7 @@ public class DeviceHeartbeatHandlerService(
             }
 
             // Initialize device state if it doesn't exist
-            if (device.State == null)
-            {
-                device.State = new DeviceState { DeviceId = deviceId };
-                // Device state will be saved when the device is saved
-            }
+            device.State ??= new DeviceState { DeviceId = deviceId };
 
             var previousHeartbeat = device.State.LastHeartbeat;
             var now = clock.GetCurrentInstant();
