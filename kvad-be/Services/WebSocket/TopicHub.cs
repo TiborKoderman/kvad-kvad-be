@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 public class TopicHub
@@ -358,4 +359,60 @@ public class TopicHub
 
     await SendFrame(client, pong);
   }
+
+
+
+  public async Task<int> PublishAsync(string topic, ReadOnlyMemory<byte> payload, Dictionary<string, string>? headers = null, bool scopePerUser = false, User? fromUser = null)
+  {
+    var headerBag = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+      ["topic"] = topic
+    };
+    if (headers != null)
+      foreach (var kv in headers) headerBag[kv.Key] = kv.Value;
+
+    if (headerBag.TryGetValue("DataType", out var dt) == false)
+      headerBag["DataType"] = "binary"; // default for raw payload
+    if (string.Equals(headerBag["DataType"], "binary", StringComparison.OrdinalIgnoreCase))
+      headerBag["ContentLength"] = payload.Length.ToString();
+    if (fromUser != null)
+      headerBag["From"] = fromUser.Id.ToString();
+
+    var topicKey = scopePerUser && fromUser != null
+  ? $"{fromUser.Id}:{topic}"
+  : topic;
+
+    if (!_topics.TryGetValue(topicKey, out var t) || t.IsEmpty)
+      return 0;
+    var msg = new Frame
+    {
+      Command = Command.MESSAGE,
+      Headers = headerBag,
+      Payload = payload
+    };
+
+    int delivered = 0;
+    foreach (var sub in t.GetSubscribers())
+    {
+      if (sub.Socket.State != WebSocketState.Open) continue;
+      try { await SendFrame(sub, msg); delivered++; }
+      catch { /* ignore a single failure */ }
+    }
+
+    return delivered;
+  }
+  // Convenience helpers
+  public Task<int> PublishTextAsync(string topic, string text, Dictionary<string, string>? headers = null)
+    => PublishAsync(topic, Encoding.UTF8.GetBytes(text),
+         headers ?? new(StringComparer.Ordinal) { ["DataType"] = "text" });
+
+  public Task<int> PublishJsonAsync<T>(string topic, T payload, Dictionary<string, string>? headers = null) where T : notnull
+  {
+    var h = headers ?? new(StringComparer.Ordinal);
+    h["DataType"] = "json";
+    h["ContentType"] = "application/json";
+    h["Type"] = typeof(T).Name;
+    return PublishAsync(topic, JsonSerializer.SerializeToUtf8Bytes(payload), h);
+  }
+
 }
