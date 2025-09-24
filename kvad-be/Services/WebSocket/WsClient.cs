@@ -1,9 +1,9 @@
-using System.Net.WebSockets;
+namespace kvad_be.Services.WebSocket;
 
-public class WsClient(WebSocket Socket, User? User = null)
+public class WsClient(System.Net.WebSockets.WebSocket Socket, User? User = null)
 {
   public Guid Id { get; } = Guid.NewGuid();
-  public WebSocket Socket { get; set; } = Socket;
+  public System.Net.WebSockets.WebSocket Socket { get; set; } = Socket;
   public User? User { get; set; } = User;
   public HashSet<string> Subscriptions { get; } = new(StringComparer.Ordinal);
 

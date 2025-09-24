@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+namespace kvad_be.Services.WebSocket;
 
 sealed class Topic(string key)
 {

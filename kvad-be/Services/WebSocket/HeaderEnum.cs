@@ -1,6 +1,5 @@
-using System;
-using System.Globalization;
 
+namespace kvad_be.Services.WebSocket;
 public readonly struct Header : IEquatable<Header>
 {
   private readonly string _value;

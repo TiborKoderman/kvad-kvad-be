@@ -1,3 +1,5 @@
+namespace kvad_be.Services.WebSocket;
+
 using System.Net.WebSockets;
 using System.Text.Json;
 

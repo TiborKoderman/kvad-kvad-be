@@ -1,15 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
 using System.Text.Json;
-using Microsoft.AspNetCore.Authorization;
 using System.Diagnostics;
-using Npgsql;
 using kvad_be.Database;
 using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
+using kvad_be.Services.WebSocket;
 
 
 var builder = WebApplication.CreateBuilder(args);

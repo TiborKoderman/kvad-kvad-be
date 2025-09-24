@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+namespace kvad_be.Services.WebSocket;
 
 public sealed class TopicActivationManager
 {

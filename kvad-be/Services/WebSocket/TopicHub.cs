@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text.Json;
 
+namespace kvad_be.Services.WebSocket;
 public class TopicHub
 {
   private readonly ConcurrentDictionary<string, Topic> _topics = new(StringComparer.Ordinal);
