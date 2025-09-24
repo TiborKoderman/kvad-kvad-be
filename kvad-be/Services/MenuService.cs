@@ -1,14 +1,5 @@
 using kvad_be.Database;
 
-public class MenuService
+public class MenuService(AppDbContext context, ILogger<MenuService> logger)
 {
-    private readonly AppDbContext _context;
-    private readonly ILogger<MenuService> _logger;
-
-    public MenuService(AppDbContext context, ILogger<MenuService> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
-
 }

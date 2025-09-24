@@ -2,28 +2,16 @@ using Microsoft.EntityFrameworkCore;
 using kvad_be.Database;
 using NodaTime;
 
-public class DeviceService
+public class DeviceService(AppDbContext context, ILogger<DeviceService> logger, GroupService groupService)
 {
-    private readonly AppDbContext _context;
-    private readonly ILogger<DeviceService> _logger;
-
-    private readonly GroupService _groupService;
-
-    public DeviceService(AppDbContext context, ILogger<DeviceService> logger, GroupService groupService)
-    {
-        _context = context;
-        _logger = logger;
-        _groupService = groupService;
-    }
-
     public async Task<List<Device>> GetAllDevices()
     {
-        return await _context.Devices.ToListAsync();
+        return await context.Devices.ToListAsync();
     }
 
     public async Task<List<DeviceDTO>> GetAllDevicesOfUser(User user)
     {
-        return await _context.Devices
+        return await context.Devices
             .Include(d => d.Tags)
             .Include(d => d.State)
             .Where(d => d.Groups.Any(g => g.Users.Any(u => u.Id == user.Id)))
@@ -36,13 +24,13 @@ public class DeviceService
                 d.Type,
                 d.Virtual,
                 d.Tags.Select(t => new TagDTO(
-                    t.Id.ToString(),
+                    t.Id.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     t.Path,
                     null, // Description
                     t.UnitId,
                     "", // Expression - empty for now
                     t.Enabled,
-                    t.HistPolicies.Any(), // Historicize
+                    t.HistPolicies.Count != 0, // Historicize
                     "Device" // Source
                 )).ToList(),
                 d.State != null ? new DeviceStateDTO(
@@ -53,26 +41,26 @@ public class DeviceService
                     d.State.LastHeartbeat
                 ) : null
             ))
-            .ToListAsync();
+            .ToListAsync().ConfigureAwait(false);
     }
 
 
     public async Task<Device?> GetDeviceById(Guid id)
     {
-        return await _context.Devices.FindAsync(id);
+        return await context.Devices.FindAsync(id);
     }
 
     public async Task AddDevice(Device device)
     {
-        await _context.Devices.AddAsync(device);
-        await _context.SaveChangesAsync();
+        await context.Devices.AddAsync(device);
+        await context.SaveChangesAsync();
     }
 
     public async Task UpdateDevice(Device device)
     {
-        _context.Devices.Update(device);
+        context.Devices.Update(device);
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
     }
 
     public async Task UpdateDevice(DeviceDTO deviceDTO)
@@ -94,25 +82,25 @@ public class DeviceService
         var device = await GetDeviceById(id);
         if (device != null)
         {
-            _context.Devices.Remove(device);
-            await _context.SaveChangesAsync();
+            context.Devices.Remove(device);
+            await context.SaveChangesAsync();
         }
     }
 
     public async Task<List<TagSource>> GetAllTagSources()
     {
-        return await _context.TagSources.ToListAsync();
+        return await context.TagSources.ToListAsync();
     }
 
     public async Task ProcessHeartbeatAsync(Guid deviceId, HeartbeatDTO heartbeat)
     {
-        var device = await _context.Devices
+        var device = await context.Devices
             .Include(d => d.State)
             .FirstOrDefaultAsync(d => d.Id == deviceId);
 
         if (device == null)
         {
-            _logger.LogWarning("Device with ID {DeviceId} not found for heartbeat processing.", deviceId);
+            logger.LogWarning("Device with ID {DeviceId} not found for heartbeat processing.", deviceId);
             return;
         }
 
@@ -133,19 +121,19 @@ public class DeviceService
         device.State.Connectivity = DeviceConnectivity.Online;
         device.State.Health = DeviceHealth.Healthy;
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
 
-        _logger.LogDebug("Heartbeat processed for device {DeviceId}", deviceId);
+        logger.LogDebug("Heartbeat processed for device {DeviceId}", deviceId);
     }
 
     public async Task<List<Device>> GetDevicesWithStaleHeartbeats(TimeSpan staleThreshold)
     {
         var cutoffTime = SystemClock.Instance.GetCurrentInstant() - Duration.FromTimeSpan(staleThreshold);
-        
-        return await _context.Devices
+
+        return await context.Devices
             .Include(d => d.State)
-            .Where(d => d.State != null && 
-                       d.State.LastHeartbeat.HasValue && 
+            .Where(d => d.State != null &&
+                       d.State.LastHeartbeat.HasValue &&
                        d.State.LastHeartbeat < cutoffTime)
             .ToListAsync();
     }

@@ -4,14 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class MqttController : Controller
+public class MqttController(MqttServerService mqttServerService) : Controller
 {
-    private MqttServerService? _mqttServerService;
-
-    public MqttController(MqttServerService mqttServerService)
-    {
-        _mqttServerService = mqttServerService;
-    }
+    private MqttServerService? _mqttServerService = mqttServerService;
 
     [HttpGet("clients")]
     public async Task<IActionResult> ListMqttClients()

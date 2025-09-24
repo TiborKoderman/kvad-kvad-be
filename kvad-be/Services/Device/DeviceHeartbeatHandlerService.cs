@@ -4,41 +4,26 @@ using NodaTime;
 using System.Text.Json;
 using kvad_be.Services.WebSocket;
 
-public class DeviceHeartbeatHandlerService
-{
-    private readonly AppDbContext _context;
-    private readonly ILogger<DeviceHeartbeatHandlerService> _logger;
-    private readonly GroupService _groupService;
-    private readonly IClock _clock;
-    private readonly TopicHub _topicHub;
-
-    public DeviceHeartbeatHandlerService(
-        AppDbContext context,
-        ILogger<DeviceHeartbeatHandlerService> logger,
-        GroupService groupService,
-        IClock clock,
-        TopicHub topicHub
+internal class DeviceHeartbeatHandlerService(
+    AppDbContext context,
+    ILogger<DeviceHeartbeatHandlerService> logger,
+    GroupService groupService,
+    IClock clock,
+    TopicHub topicHub
     )
-    {
-        _context = context;
-        _logger = logger;
-        _groupService = groupService;
-        _clock = clock;
-        _topicHub = topicHub;
-    }
-
+{
     public async Task HandleHeartbeatAsync(Guid deviceId, HeartbeatDTO heartbeat)
     {
         try
         {
-            var device = await _context.Devices
+            var device = await context.Devices
                 .Include(d => d.State)
                 .Include(d => d.HeartbeatSettings)
                 .FirstOrDefaultAsync(d => d.Id == deviceId);
 
             if (device == null)
             {
-                _logger.LogWarning("Device with ID {DeviceId} not found.", deviceId);
+                logger.LogWarning("Device with ID {DeviceId} not found.", deviceId);
                 return;
             }
 
@@ -50,7 +35,7 @@ public class DeviceHeartbeatHandlerService
             }
 
             var previousHeartbeat = device.State.LastHeartbeat;
-            var now = _clock.GetCurrentInstant();
+            var now = clock.GetCurrentInstant();
 
             // Update basic heartbeat information
             device.State.LastHeartbeat = Instant.FromUnixTimeSeconds(heartbeat.Ts);
@@ -79,19 +64,19 @@ public class DeviceHeartbeatHandlerService
             // Detect device reboot
             DetectDeviceReboot(device, heartbeat);
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
 
-            await _topicHub.PublishJsonAsync(
+            await topicHub.PublishJsonAsync(
                 topic: $"device/state",
                 payload: device.State
                 );
-            _logger.LogDebug(
+            logger.LogDebug(
                 "Heartbeat processed for device {DeviceId}. Seq: {Seq}, Uptime: {Uptime}s, Connectivity: {Connectivity}",
                 deviceId, heartbeat.Seq, heartbeat.UptimeS, device.State.Connectivity);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing heartbeat for device {DeviceId}", deviceId);
+            logger.LogError(ex, "Error processing heartbeat for device {DeviceId}", deviceId);
             throw;
         }
     }
@@ -160,7 +145,7 @@ public class DeviceHeartbeatHandlerService
         // Check if device has rebooted (sequence number reset or new boot ID)
         if (device.State!.Seq > heartbeat.Seq && device.State.BootId != heartbeat.BootId.ToString())
         {
-            _logger.LogInformation(
+            logger.LogInformation(
                 "Device {DeviceId} appears to have rebooted. Previous seq: {PrevSeq}, New seq: {NewSeq}, Boot ID: {BootId}",
                 device.Id, device.State.Seq, heartbeat.Seq, heartbeat.BootId);
 
@@ -173,10 +158,10 @@ public class DeviceHeartbeatHandlerService
     {
         try
         {
-            var now = _clock.GetCurrentInstant();
+            var now = clock.GetCurrentInstant();
             var staleThreshold = now - Duration.FromMinutes(5); // Consider devices stale if no heartbeat for 5 minutes
 
-            var staleDevices = await _context.Devices
+            var staleDevices = await context.Devices
                 .Include(d => d.State)
                 .Include(d => d.HeartbeatSettings)
                 .Where(d => d.State != null &&
@@ -195,7 +180,7 @@ public class DeviceHeartbeatHandlerService
                     device.State.Connectivity = DeviceConnectivity.Offline;
                     device.State.Health = DeviceHealth.Unknown;
 
-                    _logger.LogWarning(
+                    logger.LogWarning(
                         "Device {DeviceId} marked as offline. Last heartbeat: {LastHeartbeat}",
                         device.Id, device.State.LastHeartbeat);
                 }
@@ -203,12 +188,12 @@ public class DeviceHeartbeatHandlerService
 
             if (staleDevices.Any())
             {
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error checking for stale devices");
+            logger.LogError(ex, "Error checking for stale devices");
         }
     }
 }

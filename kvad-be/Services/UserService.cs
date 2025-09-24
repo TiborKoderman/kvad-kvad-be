@@ -3,35 +3,26 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using kvad_be.Database;
 
-public class UserService
+public class UserService(AppDbContext context)
 {
-
-    private readonly AppDbContext _context;
-
-
-    public UserService(AppDbContext context)
-    {
-        _context = context;
-    }
-
     public Task<User?> getUser(Guid id)
     {
-        return Task.FromResult(_context.Users.FirstOrDefault(u => u.Id == id));
+        return Task.FromResult(context.Users.FirstOrDefault(u => u.Id == id));
     }
 
     public Task<User?> getUser(string username)
     {
-        return Task.FromResult(_context.Users.FirstOrDefault(u => u.Username == username));
+        return Task.FromResult(context.Users.FirstOrDefault(u => u.Username == username));
     }
 
     public Task<List<User>> getUsers()
     {
-        return Task.FromResult(_context.Users.Include(u => u.Roles).ToList());
+        return Task.FromResult(context.Users.Include(u => u.Roles).ToList());
     }
 
     public Task<List<UserTableDTO>> getUserTable()
     {
-        var users = _context.Users.Include(u => u.Roles).Include(u => u.Groups).ToList();
+        var users = context.Users.Include(u => u.Roles).Include(u => u.Groups).ToList();
         var userTable = new List<UserTableDTO>();
         foreach (var user in users)
         {
@@ -44,22 +35,22 @@ public class UserService
 
     public Task addUser(User user)
     {
-        _context.Users.Add(user);
-        _context.SaveChanges();
+        context.Users.Add(user);
+        context.SaveChanges();
         return Task.CompletedTask;
     }
 
     public Task updateUser(User user)
     {
-        _context.Users.Update(user);
-        _context.SaveChanges();
+        context.Users.Update(user);
+        context.SaveChanges();
         return Task.CompletedTask;
     }
 
     public Task deleteUser(User user)
     {
-        _context.Users.Remove(user);
-        _context.SaveChanges();
+        context.Users.Remove(user);
+        context.SaveChanges();
         return Task.CompletedTask;
     }
 
@@ -71,7 +62,7 @@ public class UserService
         }, loggerFactory: null);
         var mapper = configuration.CreateMapper();
 
-        var user = _context.Users.Include(u => u.Roles).Include(u => u.Groups).FirstOrDefault(u => u.Id == userId);
+        var user = context.Users.Include(u => u.Roles).Include(u => u.Groups).FirstOrDefault(u => u.Id == userId);
         if (user == null)
         {
             return Task.FromResult<UserConfigDTO?>(null);
@@ -83,7 +74,7 @@ public class UserService
 
     public Task<bool> uploadIcon(Guid userId, IFormFile icon)
     {
-        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+        var user = context.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null)
         {
             return Task.FromResult(false);
@@ -92,13 +83,13 @@ public class UserService
         using var fileStream = new FileStream(iconPath, FileMode.Create);
         icon.CopyTo(fileStream);
         user.Icon = iconPath;
-        _context.SaveChanges();
+        context.SaveChanges();
         return Task.FromResult(true);
     }
 
     public Task<bool> deleteIcon(Guid userId)
     {
-        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+        var user = context.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null)
         {
             return Task.FromResult(false);
@@ -109,13 +100,13 @@ public class UserService
         }
         File.Delete(user.Icon);
         user.Icon = null;
-        _context.SaveChanges();
+        context.SaveChanges();
         return Task.FromResult(true);
     }
 
     public Task<byte[]?> getIcon(Guid? userId)
     {
-        var user = _context.Users.FirstOrDefault(u => u.Id == userId);
+        var user = context.Users.FirstOrDefault(u => u.Id == userId);
         if (user?.Icon == null)
         {
             return Task.FromResult<byte[]?>(null);

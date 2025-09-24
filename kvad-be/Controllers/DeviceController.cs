@@ -2,40 +2,31 @@ using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]
-public class DeviceController : ControllerBase
+public class DeviceController(DeviceService deviceService, AuthService authService) : ControllerBase
 {
-    private readonly DeviceService _deviceService;
-    private readonly AuthService _auth;
-
-    public DeviceController(DeviceService deviceService, AuthService authService)
-    {
-        _deviceService = deviceService;
-        _auth = authService;
-    }
-
     [HttpGet("all")]
     public async Task<IActionResult> GetAllDevices()
     {
-        var devices = await _deviceService.GetAllDevices();
+        var devices = await deviceService.GetAllDevices();
         return Ok(devices);
     }
 
     [HttpGet("user/all")]
     public async Task<IActionResult> GetAllDevicesOfUser()
     {
-        if (         await _auth.GetUser(User) is not User user)
+        if (await authService.GetUser(User) is not User user)
         {
             return NotFound("User not found.");
         }
 
-        var devices = await _deviceService.GetAllDevicesOfUser(user);
+        var devices = await deviceService.GetAllDevicesOfUser(user);
         return Ok(devices);
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetDeviceById(Guid id)
     {
-        var device = await _deviceService.GetDeviceById(id);
+        var device = await deviceService.GetDeviceById(id);
         if (device == null)
         {
             return NotFound("Device not found.");
@@ -47,14 +38,14 @@ public class DeviceController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> AddDevice([FromBody] Device device)
     {
-        await _deviceService.AddDevice(device);
+        await deviceService.AddDevice(device);
         return CreatedAtAction(nameof(GetDeviceById), new { id = device.Id }, device);
     }
 
     [HttpPut("virtual")]
     public async Task<IActionResult> EditVirtualDevice(VirtualDeviceDTO deviceDTO)
     {
-        var user = await _auth.GetUser(User);
+        var user = await authService.GetUser(User);
         if (user == null)
         {
             return NotFound("User not found.");
@@ -73,7 +64,7 @@ public class DeviceController : ControllerBase
             Info = new DeviceInfo() // Set the required Info property
         };
 
-        await _deviceService.AddDevice(device);
+        await deviceService.AddDevice(device);
         return CreatedAtAction(nameof(GetDeviceById), new { id = device.Id }, device);
     }
 
@@ -85,27 +76,27 @@ public class DeviceController : ControllerBase
             return BadRequest("Device ID mismatch.");
         }
 
-        await _deviceService.UpdateDevice(device);
+        await deviceService.UpdateDevice(device);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteDevice(Guid id)
     {
-        var device = await _deviceService.GetDeviceById(id);
+        var device = await deviceService.GetDeviceById(id);
         if (device == null)
         {
             return NotFound("Device not found.");
         }
 
-        await _deviceService.DeleteDevice(id);
+        await deviceService.DeleteDevice(id);
         return NoContent();
     }
 
     [HttpGet("tagSources")]
     public async Task<IActionResult> GetTagSources()
     {
-        var tagSources = await _deviceService.GetAllTagSources();
+        var tagSources = await deviceService.GetAllTagSources();
         return Ok(tagSources);
     }
 
@@ -114,7 +105,7 @@ public class DeviceController : ControllerBase
     {
         try
         {
-            await _deviceService.ProcessHeartbeatAsync(id, heartbeat);
+            await deviceService.ProcessHeartbeatAsync(id, heartbeat);
             return Ok(new { message = "Heartbeat processed successfully", deviceId = id });
         }
         catch (Exception ex)
@@ -127,8 +118,8 @@ public class DeviceController : ControllerBase
     public async Task<IActionResult> GetStaleDevices([FromQuery] int minutesThreshold = 5)
     {
         var staleThreshold = TimeSpan.FromMinutes(minutesThreshold);
-        var staleDevices = await _deviceService.GetDevicesWithStaleHeartbeats(staleThreshold);
-        
+        var staleDevices = await deviceService.GetDevicesWithStaleHeartbeats(staleThreshold);
+
         return Ok(staleDevices.Select(d => new
         {
             Id = d.Id,

@@ -4,16 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using kvad_be.Database;
 
-public class DashboardService
+public class DashboardService(AppDbContext context, ILogger<DashboardService> logger)
 {
-    private readonly AppDbContext _context;
-    private readonly ILogger<DashboardService> _logger;
-
-    public DashboardService(AppDbContext context, ILogger<DashboardService> logger)
-    {
-        _context = context;
-        _logger = logger;
-    }
     public Task<List<Dashboard>> GetDashboards(User user)
     {
         var dashboards = user.Groups
@@ -28,13 +20,13 @@ public class DashboardService
     {
         if (dashboardDTO == null)
         {
-            _logger.LogError("DashboardDTO is null.");
+            logger.LogError("DashboardDTO is null.");
             throw new ArgumentNullException(nameof(dashboardDTO), "DashboardDTO cannot be null.");
         }
 
         if (string.IsNullOrEmpty(dashboardDTO.Name))
         {
-            _logger.LogError("DashboardDTO Name is null or empty.");
+            logger.LogError("DashboardDTO Name is null or empty.");
             throw new ArgumentException("DashboardDTO Name cannot be null or empty.", nameof(dashboardDTO.Name));
         }
 
@@ -63,12 +55,12 @@ public class DashboardService
 
             try
             {
-                _context.Dashboards.Add(dashboard);
-                await _context.SaveChangesAsync();
+                context.Dashboards.Add(dashboard);
+                await context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving new dashboard.");
+                logger.LogError(ex, "Error saving new dashboard.");
                 throw;
             }
 
@@ -89,11 +81,11 @@ public class DashboardService
 
         try
         {
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating dashboard.");
+            logger.LogError(ex, "Error updating dashboard.");
             throw;
         }
 
@@ -108,7 +100,7 @@ public class DashboardService
             throw new InvalidOperationException("Dashboard not found or access denied.");
         }
 
-        int index = _context.Layouts
+        int index = context.Layouts
             .Where(l => l.DashboardId == DashboardId)
             .OrderByDescending(l => l.Id)
             .Select(l => l.Id)
@@ -123,8 +115,8 @@ public class DashboardService
             ParentId = parentId
         };
 
-        _context.Layouts.Add(layout);
-        await _context.SaveChangesAsync();
+        context.Layouts.Add(layout);
+        await context.SaveChangesAsync();
         return dashboard;
     }
 
@@ -136,13 +128,13 @@ public class DashboardService
             throw new InvalidOperationException("Dashboard not found or access denied.");
         }
 
-        _context.Dashboards.Remove(dashboard);
-        await _context.SaveChangesAsync();
+        context.Dashboards.Remove(dashboard);
+        await context.SaveChangesAsync();
     }
 
     public async Task<Dashboard> GetDashboard(User user, Guid id)
     {
-        var dashboard = await _context.Dashboards
+        var dashboard = await context.Dashboards
             .Where(d => d.Id == id && (d.Owner == user || d.Groups.Any(g => g.Users.Contains(user))))
             .FirstOrDefaultAsync();
 
@@ -156,7 +148,7 @@ public class DashboardService
 
     public async Task<List<DashboardType>> GetDashboardTypes()
     {
-        return await _context.DashboardTypes
+        return await context.DashboardTypes
             .ToListAsync();
     }
 }

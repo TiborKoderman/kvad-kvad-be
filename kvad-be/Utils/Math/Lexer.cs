@@ -91,36 +91,20 @@ enum TokKind { Null, Delimiter, Number, Symbol, Unknown }
 
 readonly record struct Tok(TokKind Kind, string Text);
 
-struct State
+struct State(string expression)
 {
-    public string Expression;
-    public int Index;
-    public string Token;
-    public TokKind TokenType;
-    public int NestingLevel;
-    public int? ConditionalLevel;
-    public Dictionary<string, object> ExtraNodes;
-
-    public State(string expression)
-    {
-        Expression = expression;
-        Index = 0;
-        Token = "";
-        TokenType = TokKind.Null;
-        NestingLevel = 0;
-        ConditionalLevel = null;
-        ExtraNodes = [];
-    }
+    public string Expression = expression;
+    public int Index = 0;
+    public string Token = "";
+    public TokKind TokenType = TokKind.Null;
+    public int NestingLevel = 0;
+    public int? ConditionalLevel = null;
+    public Dictionary<string, object> ExtraNodes = [];
 }
 
-sealed class Lexer
+sealed class Lexer(string expression)
 {
-    State state;
-
-    public Lexer(string expression)
-    {
-        state = new(expression);
-    }
+    State state = new(expression);
 
     void Next()
     {

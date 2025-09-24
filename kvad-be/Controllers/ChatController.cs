@@ -1,25 +1,16 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+namespace kvad_be.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ChatController : ControllerBase
+public class ChatController(ChatService chatService, AuthService authService) : ControllerBase
 {
-    private readonly ChatService _chatService;
-    private readonly AuthService _auth;
-
-    public ChatController(ChatService chatService, AuthService authService)
-    {
-        _chatService = chatService;
-        _auth = authService;
-    }
-
-
     [HttpPost("newChatRoom")]
     public async Task<IActionResult> NewChatRoom(NewChatRoomDTO chatroom)
     {
-        var user = await _auth.GetUser(User);
+        var user = await authService.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -28,7 +19,7 @@ public class ChatController : ControllerBase
         {
             return BadRequest("Invalid chat room name");
         }
-        var chatRoom = await _chatService.CreateChatRoom(chatroom.Name, user);
+        var chatRoom = await chatService.CreateChatRoom(chatroom.Name, user);
         if (chatRoom == null)
         {
             return BadRequest("Chat room already exists");
@@ -41,43 +32,43 @@ public class ChatController : ControllerBase
     public async Task<IActionResult> GetChatRooms()
     {
 
-        var user = await _auth.GetUser(User);
+        var user = await authService.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
         }
-        var chatRooms = await _chatService.GetChatRooms(user);
+        var chatRooms = await chatService.GetChatRooms(user);
         return Ok(chatRooms);
     }
 
     [HttpGet("chatRoom/{id}")]
     public async Task<IActionResult> GetChatRoom(Guid id)
     {
-        var user = await _auth.GetUser(User);
+        var user = await authService.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
         }
-        var chatRoom = await _chatService.GetChatRoom(id);
+        var chatRoom = await chatService.GetChatRoom(id);
         return Ok(chatRoom);
     }
 
     [HttpGet("chatMessages/{id}")]
     public async Task<IActionResult> GetChatMessages(Guid id)
     {
-        var user = await _auth.GetUser(User);
+        var user = await authService.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
         }
-        var chatMessages = await _chatService.GetChatMessages(id);
+        var chatMessages = await chatService.GetChatMessages(id);
         return Ok(chatMessages);
     }
 
     [HttpPost("sendMessage")]
     public async Task<IActionResult> AddChatMessage(SendChatMessageDTO chatMessage)
     {
-        var user = await _auth.GetUser(User);
+        var user = await authService.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
@@ -86,19 +77,19 @@ public class ChatController : ControllerBase
         {
             return BadRequest("Invalid chat message content");
         }
-        await _chatService.AddChatMessage(chatMessage.ChatRoomId, user, chatMessage.Content);
+        await chatService.AddChatMessage(chatMessage.ChatRoomId, user, chatMessage.Content);
         return Ok();
     }
 
     [HttpDelete("deleteChatRoom/{id}")]
     public async Task<IActionResult> DeleteChatRoom(Guid id)
     {
-        var user = await _auth.GetUser(User);
+        var user = await authService.GetUser(User);
         if (user == null)
         {
             return Unauthorized();
         }
-        await _chatService.DeleteChatRoom(id, user);
+        await chatService.DeleteChatRoom(id, user);
         return Ok();
     }
 }

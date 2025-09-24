@@ -6,11 +6,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace kvad_be.Database;
 
-public class AppDbContext : DbContext
+public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         // Configuration is handled in Program.cs via dependency injection
@@ -98,20 +95,20 @@ public class AppDbContext : DbContext
         {
             d.HasKey(x => x.Id);
             d.HasIndex(x => x.Symbol).IsUnique();
-            
+
             // Configure identity to start from 0 and increment by 1
             d.Property(x => x.Id)
                 .ValueGeneratedNever(); // We'll provide the IDs manually in seed data
-            
+
             d.ToTable(tb =>
             {
                 // 1. Sequential ID validation is handled by PostgreSQL triggers (check constraints can't use subqueries)
                 // 2. Prevent deletion if any Unit.Dimension[Id] != 0 (using PostgreSQL triggers)
                 tb.HasTrigger("trg_enumunitdimension_prevent_delete_if_used");
-                
+
                 // 3. Trigger to expand existing Unit.Dimension arrays when new EnumUnitDimension is inserted
                 tb.HasTrigger("trg_enumunitdimension_expand_unit_dimensions");
-                
+
                 // 4. Trigger to validate sequential IDs on insert
                 tb.HasTrigger("trg_enumunitdimension_validate_sequential_id");
             });
@@ -389,7 +386,7 @@ public class AppDbContext : DbContext
 
         // Seed many-to-many relationship data via join tables
         // Note: The relationship configurations are handled automatically by EF for conventional many-to-many relationships
-        
+
         // Seed the GroupUser join table
         modelBuilder.Entity("GroupUser").HasData(
             new { GroupsId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"), UsersId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730") }

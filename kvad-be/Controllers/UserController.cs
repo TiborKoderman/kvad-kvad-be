@@ -4,21 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class UserController : ControllerBase
+public class UserController(UserService userService, AuthService authService) : ControllerBase
 {
-    private readonly UserService _userService;
-    private readonly AuthService _auth;
-
-    public UserController(UserService userService, AuthService authService)
-    {
-        _userService = userService;
-        _auth = authService;
-    }
-
     [HttpGet("{username}")]
     public async Task<IActionResult> GetUserByUsername(string username)
     {
-        var user = await _userService.getUser(username);
+        var user = await userService.getUser(username);
         if (user == null)
         {
             return NotFound();
@@ -29,7 +20,7 @@ public class UserController : ControllerBase
     [HttpGet("me")]
     public async Task<IActionResult> GetMe()
     {
-        var user = await _auth.GetUser(User);
+        var user = await authService.GetUser(User);
         if (user == null)
         {
             return NotFound();
@@ -40,7 +31,7 @@ public class UserController : ControllerBase
     [HttpGet("id/{id}")]
     public async Task<IActionResult> GetUserById(Guid id)
     {
-        var user = await _userService.getUser(id);
+        var user = await userService.getUser(id);
         if (user == null)
         {
             return NotFound();
@@ -51,28 +42,28 @@ public class UserController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
-        var users = await _userService.getUsers();
+        var users = await userService.getUsers();
         return Ok(users);
     }
 
     [HttpGet("table")]
     public async Task<IActionResult> GetUserTable()
     {
-        var userTable = await _userService.getUserTable();
+        var userTable = await userService.getUserTable();
         return Ok(userTable);
     }
 
     [HttpPut]
     public async Task<IActionResult> UpdateUser([FromBody] User user)
     {
-        await _userService.updateUser(user);
+        await userService.updateUser(user);
         return Ok();
     }
 
     [HttpDelete]
     public async Task<IActionResult> DeleteUser([FromBody] User user)
     {
-        await _userService.deleteUser(user);
+        await userService.deleteUser(user);
         return Ok();
     }
 
@@ -81,24 +72,24 @@ public class UserController : ControllerBase
     [HttpPost("icon")]
     public async Task<IActionResult> UploadIcon(IFormFile icon)
     {
-        var user = await _userService.getUser("admin");
+        var user = await userService.getUser("admin");
         if (user == null)
         {
             return NotFound();
         }
-        await _userService.uploadIcon(user.Id, icon);
+        await userService.uploadIcon(user.Id, icon);
         return Ok();
     }
 
     [HttpGet("icon/{username}")]
     public async Task<IActionResult> GetIcon(string username)
     {
-        User? user = await _userService.getUser(username);
+        User? user = await userService.getUser(username);
         if (user == null)
         {
             return NotFound();
         }
-        var icon = await _userService.getIcon(user.Id);
+        var icon = await userService.getIcon(user.Id);
         if (icon == null)
         {
             return NotFound();

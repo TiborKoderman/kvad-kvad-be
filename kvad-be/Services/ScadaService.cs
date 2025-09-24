@@ -3,23 +3,16 @@ using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using kvad_be.Database;
 
-public class ScadaService
+public class ScadaService(AppDbContext context)
 {
-    private readonly AppDbContext _context;
-
-    public ScadaService(AppDbContext context)
-    {
-        _context = context;
-    }
-
     public async Task<List<ScadaObjectTemplate>> GetAllScadaObjectTemplates()
     {
-        return await _context.ScadaObjectTemplates.ToListAsync();
+        return await context.ScadaObjectTemplates.ToListAsync();
     }
 
     public async Task<ScadaObjectTemplate?> GetScadaObjectTemplateById(Guid id)
     {
-        return await _context.ScadaObjectTemplates.FindAsync(id);
+        return await context.ScadaObjectTemplates.FindAsync(id);
     }
 
     public async Task DeleteScadaObjectTemplate(Guid id)
@@ -27,8 +20,8 @@ public class ScadaService
         var template = await GetScadaObjectTemplateById(id);
         if (template != null)
         {
-            _context.ScadaObjectTemplates.Remove(template);
-            await _context.SaveChangesAsync();
+            context.ScadaObjectTemplates.Remove(template);
+            await context.SaveChangesAsync();
         }
     }
 
@@ -42,11 +35,11 @@ public class ScadaService
         template.Data = dto.Data ?? template.Data;
 
         if (dto.Id == null)
-            await _context.ScadaObjectTemplates.AddAsync(template);
+            await context.ScadaObjectTemplates.AddAsync(template);
         else
-            _context.ScadaObjectTemplates.Update(template);
+            context.ScadaObjectTemplates.Update(template);
 
-        await _context.SaveChangesAsync();
+        await context.SaveChangesAsync();
         return template;
     }
 }

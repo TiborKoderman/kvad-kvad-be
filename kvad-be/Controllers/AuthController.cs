@@ -1,18 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+namespace kvad_be.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController : ControllerBase
+public class AuthController(AuthService authService) : ControllerBase
 {
-    private readonly AuthService _authService;
-
-    public AuthController(AuthService authService)
-    {
-        _authService = authService;
-    }
-
-
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<IActionResult> Login(LoginDTO loginRequest)
@@ -21,7 +14,7 @@ public class AuthController : ControllerBase
         {
             return BadRequest("Invalid login request");
         }
-        var token = await _authService.Authenticate(loginRequest.Username, loginRequest.Password);
+        var token = await authService.Authenticate(loginRequest.Username, loginRequest.Password);
         if (token == null)
         {
             return Unauthorized("Invalid username or password");
@@ -37,7 +30,7 @@ public class AuthController : ControllerBase
         {
             return BadRequest("Invalid register request");
         }
-        var user = await _authService.Register(registerRequest.Username, registerRequest.Password);
+        var user = await authService.Register(registerRequest.Username, registerRequest.Password);
         if (user == null)
         {
             return BadRequest("User already exists");
@@ -49,7 +42,7 @@ public class AuthController : ControllerBase
     [HttpGet("users")]
     public async Task<IActionResult> GetUsers()
     {
-        var users = await _authService.GetUsers();
+        var users = await authService.GetUsers();
         if (users == null)
         {
             return NotFound();

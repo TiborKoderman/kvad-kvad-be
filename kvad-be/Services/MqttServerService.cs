@@ -8,31 +8,17 @@ using System.Text.Json;
 using MQTTnet.Protocol;
 using System.Buffers;
 
-public class MqttServerService : BackgroundService
+public class MqttServerService(
+    IConfiguration configuration,
+    IServiceProvider serviceProvider,
+    ILogger<MqttServerService> logger,
+    JsonSerializerOptions jsonOptions) : BackgroundService
 {
     private MqttServer? _mqttServer;
-    private readonly string _certPath;
-    private readonly string _certPassword;
-    private readonly int _mqttPort;
-    private readonly int _encryptedMqttPort;
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<MqttServerService> _logger;
-    private readonly JsonSerializerOptions _jsonOptions;
-
-    public MqttServerService(
-        IConfiguration configuration, 
-        IServiceProvider serviceProvider,
-        ILogger<MqttServerService> logger,
-        JsonSerializerOptions jsonOptions)
-    {
-        _certPath = configuration["MqttServer:CertPath"] ?? "server-cert.pfx";
-        _certPassword = configuration["MqttServer:CertPassword"] ?? "your_password";
-        _mqttPort = int.Parse(configuration["MqttServer:MqttPort"] ?? "1883");
-        _encryptedMqttPort = int.Parse(configuration["MqttServer:EncryptedMqttPort"] ?? "8883");
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-        _jsonOptions = jsonOptions;
-    }
+    private readonly string _certPath = configuration["MqttServer:CertPath"] ?? "server-cert.pfx";
+    private readonly string _certPassword = configuration["MqttServer:CertPassword"] ?? "your_password";
+    private readonly int _mqttPort = int.Parse(configuration["MqttServer:MqttPort"] ?? "1883");
+    private readonly int _encryptedMqttPort = int.Parse(configuration["MqttServer:EncryptedMqttPort"] ?? "8883");
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -93,10 +79,10 @@ public class MqttServerService : BackgroundService
                 .Build();
 
         var server = mqttServerFactory.CreateMqttServer(mqttServerOptions);
-        
+
         // Subscribe to message events for heartbeat handling
         server.InterceptingPublishAsync += OnMessageReceived;
-        
+
         await server.StartAsync();
         Console.WriteLine("MQTT server started with certificate.");
         return server;
@@ -108,7 +94,7 @@ public class MqttServerService : BackgroundService
         {
             var topic = eventArgs.ApplicationMessage.Topic;
             var payload = string.Empty;
-            
+
             if (!eventArgs.ApplicationMessage.Payload.IsEmpty)
             {
                 var payloadBytes = eventArgs.ApplicationMessage.Payload.ToArray();
@@ -123,7 +109,7 @@ public class MqttServerService : BackgroundService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing MQTT message on topic: {Topic}", eventArgs.ApplicationMessage.Topic);
+            logger.LogError(ex, "Error processing MQTT message on topic: {Topic}", eventArgs.ApplicationMessage.Topic);
         }
     }
 
@@ -141,29 +127,29 @@ public class MqttServerService : BackgroundService
             var topicParts = topic.Split('/');
             if (topicParts.Length != 3 || !Guid.TryParse(topicParts[1], out var deviceId))
             {
-                _logger.LogWarning("Invalid heartbeat topic format: {Topic}", topic);
+                logger.LogWarning("Invalid heartbeat topic format: {Topic}", topic);
                 return;
             }
 
             // Parse heartbeat payload
-            var heartbeat = JsonSerializer.Deserialize<HeartbeatDTO>(payload, _jsonOptions);
+            var heartbeat = JsonSerializer.Deserialize<HeartbeatDTO>(payload, jsonOptions);
             if (heartbeat == null)
             {
-                _logger.LogWarning("Failed to deserialize heartbeat payload from device {DeviceId}", deviceId);
+                logger.LogWarning("Failed to deserialize heartbeat payload from device {DeviceId}", deviceId);
                 return;
             }
 
             // Use scoped service to handle the heartbeat
-            using var scope = _serviceProvider.CreateScope();
+            using var scope = serviceProvider.CreateScope();
             var heartbeatHandler = scope.ServiceProvider.GetRequiredService<DeviceHeartbeatHandlerService>();
-            
+
             await heartbeatHandler.HandleHeartbeatAsync(deviceId, heartbeat);
 
-            _logger.LogDebug("Processed heartbeat for device {DeviceId} on topic {Topic}", deviceId, topic);
+            logger.LogDebug("Processed heartbeat for device {DeviceId} on topic {Topic}", deviceId, topic);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling heartbeat message from topic: {Topic}", topic);
+            logger.LogError(ex, "Error handling heartbeat message from topic: {Topic}", topic);
         }
     }
 

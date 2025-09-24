@@ -1,10 +1,6 @@
-public struct Value<T>
+public readonly struct Value<T>(T value)
 {
-    private readonly T _value;
-    public Value(T value)
-    {
-        _value = value;
-    }
+    private readonly T _value = value;
 
     public static byte[] ToBytes(Value<T> value)
     {
@@ -40,7 +36,7 @@ public struct Value<T>
         if (typeof(T) == typeof(short))
             return new Value<T>((T)(object)BitConverter.ToInt16(bytes, 0));
         if (typeof(T) == typeof(string))
-            return new Value<T>((T)(object)System.Text.Encoding.UTF8.GetString(bytes));
+            return new Value<T>((T)(object)Encoding.UTF8.GetString(bytes));
         throw new NotSupportedException($"Type {typeof(T)} is not supported for conversion from bytes.");
     }
 

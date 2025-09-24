@@ -6,25 +6,16 @@ using kvad_be.Services.WebSocket;
 [Route("ws")]
 [ApiController]
 [AllowAnonymous]
-public class WebSocketController : ControllerBase
+public class WebSocketController(TopicHub topicHub, AuthService authService) : ControllerBase
 {
-  private readonly TopicHub _topicHub;
-  private readonly AuthService _authService;
-
-  public WebSocketController(TopicHub topicHub, AuthService authService)
-  {
-    _topicHub = topicHub;
-    _authService = authService;
-  }
-
   [HttpGet("")]
   public async Task Get()
   {
 
     if (HttpContext.WebSockets.IsWebSocketRequest)
     {
-      var user = await _authService.GetUser(User);
-      await _topicHub.ConnectClientAsync(HttpContext, user);
+      var user = await authService.GetUser(User);
+      await topicHub.ConnectClientAsync(HttpContext, user);
     }
     else
     {

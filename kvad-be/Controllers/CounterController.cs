@@ -1,40 +1,32 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 
 [ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class CounterController : Controller
+public class CounterController(CounterService counterService) : Controller
 {
-    private readonly CounterService _counterService;
-
-    public CounterController(CounterService counterService)
-    {
-        _counterService = counterService;
-    }
-
     [HttpGet("increment")]
     public async Task<IActionResult> Increment()
     {
-        return Ok(await _counterService.Increment());
+        return Ok(await counterService.Increment());
     }
 
     [HttpGet("decrement")]
     public async Task<IActionResult> Decrement()
     {
-        return Ok(await _counterService.Decrement());
+        return Ok(await counterService.Decrement());
     }
 
     [HttpGet("reset")]
     public async Task<IActionResult> Reset()
     {
-        return Ok(await _counterService.Reset());
+        return Ok(await counterService.Reset());
     }
 
     [HttpGet("get")]
     public async Task<IActionResult> Get()
     {
-        return Ok(await _counterService.GetCounter());
+        return Ok(await counterService.GetCounter());
     }
 }

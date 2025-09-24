@@ -5,18 +5,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using kvad_be.Database;
 
-public class ChatService
+public class ChatService(AppDbContext context)
 {
-    private readonly AppDbContext _context;
 
     // private readonly List<WebSocket> connections = [];
 
     private static ConcurrentDictionary<Guid, HashSet<WebSocket>> connections = new ConcurrentDictionary<Guid, HashSet<WebSocket>>();
 
-    public ChatService(AppDbContext context)
-    {
-        _context = context;
-    }
     public Task<ChatRoomDTO> CreateChatRoom(string chatRoomName, User user)
     {
         var chatRoom = new ChatRoom
@@ -33,21 +28,21 @@ public class ChatService
         ChatRoomDTO chatRoomDTO = new(chatRoom.Id, chatRoom.Name, chatRoom.Users, chatRoom.CreatedAt, chatRoom.UpdatedAt);
 
 
-        _context.ChatRooms.Add(chatRoom);
-        _context.SaveChanges();
+        context.ChatRooms.Add(chatRoom);
+        context.SaveChanges();
         return Task.FromResult(chatRoomDTO);
     }
 
     public Task<List<ChatRoomDTO>> GetChatRooms(User user)
     {
-        var chatRooms = _context.ChatRooms.Where(cr => cr.Users.Contains(user)).OrderByDescending(cr => cr.UpdatedAt).ToList();
+        var chatRooms = context.ChatRooms.Where(cr => cr.Users.Contains(user)).OrderByDescending(cr => cr.UpdatedAt).ToList();
         var chatRoomDTOs = chatRooms.Select(cr => new ChatRoomDTO(cr.Id, cr.Name, cr.Users, cr.CreatedAt, cr.UpdatedAt)).ToList();
         return Task.FromResult(chatRoomDTOs);
     }
 
     public Task<ChatRoom> GetChatRoom(Guid chatRoomId)
     {
-        var chatRoom = _context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
+        var chatRoom = context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
         if (chatRoom == null)
         {
             throw new Exception("Chat room not found");
@@ -58,7 +53,7 @@ public class ChatService
     //get chats in a chat room
     public Task<List<ChatMessageDTO>> GetChatMessages(Guid chatRoomId)
     {
-        var chatMessages = _context.ChatMessages
+        var chatMessages = context.ChatMessages
             .Where(cm => cm.ChatRoomId == chatRoomId)
             .OrderBy(cm => cm.CreatedAt)
             .ToList();
@@ -70,7 +65,7 @@ public class ChatService
 
     public async Task AddChatMessage(Guid chatRoomId, User user, string content)
     {
-        var chatRoom = _context.ChatRooms.Include(cr => cr.Users).FirstOrDefault(cr => cr.Id == chatRoomId);
+        var chatRoom = context.ChatRooms.Include(cr => cr.Users).FirstOrDefault(cr => cr.Id == chatRoomId);
         if (chatRoom == null)
         {
             throw new Exception("Chat room not found");
@@ -102,25 +97,25 @@ public class ChatService
             }
         });
 
-        await _context.ChatMessages.AddAsync(chatMessage);
-        await _context.SaveChangesAsync();
+        await context.ChatMessages.AddAsync(chatMessage);
+        await context.SaveChangesAsync();
     }
 
     public Task AddUserToChatRoom(Guid chatRoomId, User user)
     {
-        var chatRoom = _context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
+        var chatRoom = context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
         if (chatRoom == null)
         {
             throw new Exception("Chat room not found");
         }
         chatRoom.Users.Add(user);
-        _context.SaveChanges();
+        context.SaveChanges();
         return Task.CompletedTask;
     }
 
     public Task DeleteChatRoom(Guid chatRoomId, User user)
     {
-        var chatRoom = _context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
+        var chatRoom = context.ChatRooms.FirstOrDefault(cr => cr.Id == chatRoomId);
         if (chatRoom == null)
         {
             throw new Exception("Chat room not found");
@@ -129,8 +124,8 @@ public class ChatService
         {
             throw new Exception("User is not a member of the chat room");
         }
-        _context.ChatRooms.Remove(chatRoom);
-        _context.SaveChanges();
+        context.ChatRooms.Remove(chatRoom);
+        context.SaveChanges();
         return Task.CompletedTask;
     }
 
