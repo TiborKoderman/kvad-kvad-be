@@ -153,15 +153,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseWebSockets();
 
-// app.UseMiddleware<UserMiddleware>();
-// app.UseMiddleware<WebSocketMiddleware>();
-
-var wsOptions = new WebSocketOptions
-{
-//   KeepAliveInterval = TimeSpan.FromSeconds(30),
-  // AllowedOrigins = { "https://your.site" } // if needed
-};
-app.UseWebSockets(wsOptions);
 
 // 3) Map the WebSocket endpoint -> TopicHub.ConnectClientAsync
 // app.Map("/ws", async (HttpContext ctx, TopicHub hub) => await hub.ConnectClientAsync(ctx));

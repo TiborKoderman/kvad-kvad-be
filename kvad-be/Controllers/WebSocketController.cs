@@ -1,30 +1,25 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Net.WebSockets;
-using System.Text;
+using System.Security.Claims;
 
 [Route("ws")]
-[AllowAnonymous]
 [ApiController]
 public class WebSocketController : ControllerBase
 {
-
   private readonly TopicHub _topicHub;
-  private readonly AuthService _auth;
 
-  public WebSocketController(TopicHub topicHub, AuthService authService)
+  public WebSocketController(TopicHub topicHub)
   {
     _topicHub = topicHub;
-    _auth = authService;
   }
 
   [HttpGet("")]
   public async Task Get()
   {
-    var user = await _auth.GetUser(User);
+
     if (HttpContext.WebSockets.IsWebSocketRequest)
     {
-      await _topicHub.ConnectClientAsync(HttpContext, user);
+      await _topicHub.ConnectClientAsync(HttpContext);
     }
     else
     {

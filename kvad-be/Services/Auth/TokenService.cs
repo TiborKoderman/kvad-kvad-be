@@ -1,6 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,15 +15,19 @@ public sealed class TokenService
     _creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
   }
 
-  public string CreateAccessToken(Guid userId, IEnumerable<string> roles)
+  public string CreateAccessToken(Guid userId, IEnumerable<string> roles, IEnumerable<Claim>? extraClaims = null)
   {
     var now = DateTime.UtcNow;
 
     var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, userId.ToString())
+            new(ClaimTypes.NameIdentifier, userId.ToString()),
+            new(JwtRegisteredClaimNames.Sub, userId.ToString()),
         };
     claims.AddRange(roles.Select(r => new Claim(ClaimTypes.Role, r)));
+
+    if (extraClaims is not null)
+      claims.AddRange(extraClaims);
 
     var token = new JwtSecurityToken(
         issuer: _opt.Issuer,
@@ -36,26 +39,7 @@ public sealed class TokenService
     );
 
     return new JwtSecurityTokenHandler().WriteToken(token);
-  }
     
-    public string VerifyToken(string token)
-    {
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.ASCII.GetBytes(_opt.Key);
-        tokenHandler.ValidateToken(token, new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(key),
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidIssuer = _opt.Issuer,
-            ValidAudience = _opt.Audience,
-            ValidateLifetime = true
-        }, out SecurityToken validatedToken);
+  }
 
-        var jwtToken = (JwtSecurityToken)validatedToken;
-        var userId = jwtToken.Claims.First(x => x.Type == ClaimTypes.NameIdentifier).Value;
-
-        return userId;
-    }
 }

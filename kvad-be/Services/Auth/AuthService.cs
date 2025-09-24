@@ -38,9 +38,9 @@ public class AuthService
         return await _db.Users.FirstOrDefaultAsync(u => u.Username == username);
     }
 
-    public async Task<User?> GetUser(ClaimsPrincipal principal)
+    public async Task<User?> GetUser(ClaimsPrincipal? principal)
     {
-        var userId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (userId == null || !Guid.TryParse(userId, out var guidId))
             return null;
 

@@ -19,9 +19,9 @@ public class TopicHub
     _authService = authService;
   }
 
-  public async Task ConnectClientAsync(HttpContext context, User? user = null)
+  public async Task ConnectClientAsync(HttpContext context)
   {
-    // string? token = context.Request.Query["token"];
+    var user = await _authService.GetUser(context.User);
 
     if (user == null)
     {
@@ -43,7 +43,7 @@ public class TopicHub
     try
     {
       await SendGreeting(client);
-      //await ReceiveLoop(client);
+      await ReceiveLoop(client);
     }
     catch (Exception ex)
     {
@@ -65,7 +65,7 @@ public class TopicHub
     await SendFrame(client, greeting);
   }
 
-  private async Task RecieveLoop(WsClient client)
+  private async Task ReceiveLoop(WsClient client)
   {
     var socket = client.Socket;
     var buffer = new byte[4096];
@@ -155,17 +155,17 @@ public class TopicHub
         await HandleSubscribe(client, frame);
         break;
       case Command.UNSUBSCRIBE:
-        // Handle unsubscribe logic
+        await HandleUnsubscribe(client, frame);
         break;
       case Command.PUBLISH:
-        // Handle publish logic
+        await HandlePublish(client, frame);
         break;
       case Command.PING:
         await HandlePing(client);
         break;
-      case Command.PONG:
       case Command.DISCONNECT:
-      case Command.ACK:
+        await DisconnectClient(client);
+        break;
       case Command.NACK:
       case Command.BEGIN:
       case Command.COMMIT:

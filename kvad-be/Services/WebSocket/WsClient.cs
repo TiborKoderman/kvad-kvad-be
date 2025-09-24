@@ -6,7 +6,6 @@ public class WsClient(WebSocket Socket, User? User = null)
   public WebSocket Socket { get; set; } = Socket;
   public User? User { get; set; } = User;
   public HashSet<string> Subscriptions { get; } = new(StringComparer.Ordinal);
-  public bool IsAuthenticated { get; set; }
 
 
   private readonly CancellationTokenSource _cts = new();

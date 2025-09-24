@@ -78,71 +78,116 @@ public sealed class Frame
   }
 
 
+
   public static Frame Parse(ReadOnlyMemory<byte> data)
   {
     var span = data.Span;
     var frame = new Frame();
 
-    int position = 0;
+    int position = -1;
     int lineStart = 0;
     bool inHeaders = true;
     bool firstLine = true;
 
-    for (int i = 0; i < span.Length; i++)
+    void ProcessLine(ReadOnlySpan<byte> line)
     {
-      if (span[i] == (byte)'\n')
+      // Tolerate a single trailing '\r' even though we frame with '\n'
+      if (line.Length > 0 && line[^1] == (byte)'\r')
+        line = line[..^1];
+
+      if (firstLine)
       {
-        int lineLength = i - lineStart;
+        var commandStr = Encoding.UTF8.GetString(line);
 
-        if (firstLine)
+        // If you have an enum Command:
+        if (!Enum.TryParse<Command>(commandStr, ignoreCase: true, out var cmd))
+          throw new InvalidOperationException($"Unknown command: {commandStr}");
+        frame.Command = cmd; // <-- if your Frame.Command is string, set frame.Command = commandStr;
+
+        firstLine = false;
+        return;
+      }
+
+      if (inHeaders)
+      {
+        if (line.Length == 0)
         {
-          var commandStr = Encoding.UTF8.GetString(span.Slice(lineStart, lineLength));
-          if (!Enum.TryParse<Command>(commandStr, out var command))
-            throw new InvalidOperationException($"Unknown command: {commandStr}");
-          frame.Command = command;
-          firstLine = false;
-        }
-        else if (inHeaders)
-        {
-          if (lineLength == 0)
-          {
-            // Empty line marks end of headers
-            inHeaders = false;
-            position = i + 1;
-            break;
-          }
-
-          var lineSpan = span.Slice(lineStart, lineLength);
-          var colonIndex = lineSpan.IndexOf((byte)':');
-
-          if (colonIndex > 0)
-          {
-            var key = Encoding.UTF8.GetString(lineSpan[..colonIndex]).Trim();
-            var value = Encoding.UTF8.GetString(lineSpan[(colonIndex + 1)..]).Trim();
-            frame.Headers[key] = value;
-          }
+          // Blank line = end of headers; payload starts at next byte
+          inHeaders = false;
+          return;
         }
 
-        lineStart = i + 1;
+        int colon = line.IndexOf((byte)':');
+        if (colon > 0)
+        {
+          var key = Encoding.UTF8.GetString(line[..colon]).Trim();
+          var val = Encoding.UTF8.GetString(line[(colon + 1)..]).Trim();
+          if (key.Length != 0) frame.Headers[key] = val;
+        }
+        // else: ignore malformed header line without colon
       }
     }
 
-    // Extract payload if present (zero-copy)
-    if (position < span.Length)
+     for (int i = 0; i < span.Length; i++)
+  {
+    if (span[i] == (byte)'\n')
     {
-      frame.Payload = data[position..];
+      var line = span.Slice(lineStart, i - lineStart);
+      ProcessLine(line);
+
+      if (!inHeaders && position < 0)
+      {
+        // First time we exit headers: payload starts after this '\n'
+        position = i + 1;
+        // Do NOT break—there might be payload bytes after this; we only needed the index.
+        // We’ll stop scanning lines here to avoid misinterpreting payload contents as lines.
+        break;
+      }
+
+      lineStart = i + 1;
+    }
+  }
+
+  // If we never hit a '\n' for the last line (EOF without newline), process the trailing line
+  if (position < 0) // only if we haven’t already determined start-of-payload
+  {
+    if (lineStart < span.Length)
+    {
+      var tailLine = span.Slice(lineStart);
+      ProcessLine(tailLine);
     }
 
-    if (frame.Headers.TryGetValue("ContentLength", out var lenStr) &&
-    int.TryParse(lenStr, out var contentLen) &&
-    contentLen >= 0 &&
-    contentLen <= frame.Payload.Length)
+    // If headers are still "open", there was no blank line → no payload
+    if (inHeaders)
     {
-      frame.Payload = frame.Payload[..contentLen];
+      position = span.Length; // payload empty
     }
+    else if (position < 0)
+    {
+      // We ended headers in the EOF tail-line case; payload begins after that line.
+      // Since there was no '\n' to step past, payload starts exactly at end of tail line.
+      position = span.Length;
+    }
+  }
 
+  // Slice payload zero-copy
+  if (position < 0) position = span.Length; // safety
+  if (position <= span.Length)
+    frame.Payload = data[position..];
+  else
+    frame.Payload = ReadOnlyMemory<byte>.Empty;
 
-    return frame;
+  // Respect ContentLength (if present and sane)
+  if (frame.Headers.TryGetValue("ContentLength", out var lenStr) &&
+      int.TryParse(lenStr, out var contentLen) &&
+      contentLen >= 0)
+  {
+    if (contentLen > frame.Payload.Length)
+      throw new InvalidOperationException($"Declared ContentLength {contentLen} exceeds available payload {frame.Payload.Length}.");
+    frame.Payload = frame.Payload[..contentLen];
+  }
+
+  return frame;
   }
 
 
@@ -302,4 +347,22 @@ public record StatusCode(int Code, string Description)
 
   //implicit conversion to key-value pair for headers
   public static implicit operator (string, string)(StatusCode status) => ("status", status.ToString());
+}
+
+
+
+public enum Headers
+{
+  DataType,
+  ContentType,
+  ContentLength,
+  Type,
+  Destination,
+  Topic,
+  Id,
+  Receipt,
+  ReceiptId,
+  Authorization,
+  UserId,
+  Timestamp
 }
