@@ -19,6 +19,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="MQTTnet" />
     <PackageReference Include="MQTTnet.Server" />
@@ -36,6 +37,5 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Zeroconf" />
-    <ProjectReference Include="..\EnumStringSet.Generator\EnumStringSet.Generator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 </Project>

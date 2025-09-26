@@ -58,24 +58,6 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     var socket = client.Socket;
     var buffer = new byte[4096];
 
-    // Optional: background ping to keep idle connections alive
-    // using var pingCts = CancellationTokenSource.CreateLinkedTokenSource(client.Cancellation);
-    // _ = Task.Run(async () =>
-    // {
-    //   try
-    //   {
-    //     while (!pingCts.IsCancellationRequested && socket.State == WebSocketState.Open)
-    //     {
-    //       await Task.Delay(ReceiveLoopPingInterval, pingCts.Token);
-    //       if (socket.State != WebSocketState.Open) break;
-    //       var ping = new Frame(Command.PING);
-    //       await SendFrame(client, ping);
-    //     }
-    //   }
-    //   catch { /* ignore */ }
-    // }, pingCts.Token);
-
-
     try
     {
       while (socket.State == WebSocketState.Open && !client.Cancellation.IsCancellationRequested)
@@ -186,7 +168,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
 
     var data = frame.ToArraySegment();
     var msgType = frame.GetSuggestedMessageType();
-    await client.Socket.SendAsync(data, WebSocketMessageType.Text, true, client.Cancellation);
+    await client.Socket.SendAsync(data, msgType, true, client.Cancellation);
   }
 
   private async Task HandleSubscribe(WsClient client, Frame frame)
@@ -280,13 +262,13 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     }
 
     // Build delivery frame (MESSAGE) preserving payload and key headers
-    var deliveryHeaders = new Dictionary<string, string>(StringComparer.Ordinal)
+    var deliveryHeaders = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
       [Header.Topic] = topic,
       [Header.Timestamp] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()
     };
 
-    foreach (var k in new[] { Header.DataType, Header.ContentType, Header.ContentLength, Header.Type })
+    foreach (var k in new[] { Header.DataType, Header.ContentType, Header.Type })
       if (frame.Headers.TryGetValue(k, out var v)) deliveryHeaders[k] = v;
 
     if (client.User != null)
@@ -324,7 +306,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     var pong = new Frame
     {
       Command = Command.PONG,
-      Headers = { ["Timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() }
+      Headers = { ["timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() }
     };
 
     await SendFrame(client, pong);
@@ -334,7 +316,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
 
   public async Task<int> PublishAsync(string topic, ReadOnlyMemory<byte> payload, Dictionary<string, string>? headers = null, bool scopePerUser = false, User? fromUser = null)
   {
-    var headerBag = new Dictionary<string, string>(StringComparer.Ordinal)
+    var headerBag = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
       ["topic"] = topic
     };
@@ -342,8 +324,6 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
       foreach (var kv in headers) headerBag[kv.Key] = kv.Value;
     if (headerBag.TryGetValue(Header.DataType, out _) == false)
       headerBag[Header.DataType] = "binary"; // default for raw payload
-    if (string.Equals(headerBag[Header.DataType], "binary", StringComparison.OrdinalIgnoreCase))
-      headerBag[Header.ContentLength] = payload.Length.ToString();
     if (fromUser != null)
       headerBag[Header.From] = fromUser.Id.ToString();
 
@@ -371,11 +351,11 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
   // Convenience helpers
   public Task<int> PublishTextAsync(string topic, string text, Dictionary<string, string>? headers = null)
     => PublishAsync(topic, Encoding.UTF8.GetBytes(text),
-         headers ?? new(StringComparer.Ordinal) { ["DataType"] = "text" });
+      headers ?? new(StringComparer.OrdinalIgnoreCase) { ["dataType"] = "text" });
 
   public Task<int> PublishJsonAsync<T>(string topic, T payload, Dictionary<string, string>? headers = null) where T : notnull
   {
-    var h = headers ?? new(StringComparer.Ordinal);
+    var h = headers ?? new(StringComparer.OrdinalIgnoreCase);
     h[Header.DataType] = "json";
     h[Header.ContentType] = "application/json";
     h[Header.Type] = typeof(T).Name;

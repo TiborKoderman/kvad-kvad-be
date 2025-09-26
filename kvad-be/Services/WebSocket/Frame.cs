@@ -1,14 +1,21 @@
 namespace kvad_be.Services.WebSocket;
 
+using System;
 using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 
 public sealed class Frame
 {
   public Command Command { get; set; }
-  public Dictionary<string, string> Headers { get; set; } = new(StringComparer.Ordinal);
+  public Dictionary<string, string> Headers { get; set; } = new(StringComparer.OrdinalIgnoreCase);
   public ReadOnlyMemory<byte> Payload { get; set; } = ReadOnlyMemory<byte>.Empty;
 
+  public string DataType
+  {
+    get => Headers.TryGetValue(Header.DataType, out var v) ? v : "binary";
+    set => Headers[Header.DataType] = value;
+  }
   public Frame() { }
 
 
@@ -16,7 +23,7 @@ public sealed class Frame
   public Frame(Command command, string textPayload, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? [];
+    Headers = headers ?? new(StringComparer.OrdinalIgnoreCase);
     Headers[Header.DataType] = "text";
     Payload = Encoding.UTF8.GetBytes(textPayload);
   }
@@ -25,7 +32,7 @@ public sealed class Frame
   public Frame(Command command, object jsonObject, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? [];
+    Headers = headers ?? new(StringComparer.OrdinalIgnoreCase);
     Headers[Header.DataType] = "json";
     Headers[Header.ContentType] = "application/json";
 
@@ -37,9 +44,8 @@ public sealed class Frame
   public Frame(Command command, byte[] binaryData, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? [];
+    Headers = headers ?? new(StringComparer.OrdinalIgnoreCase);
     Headers[Header.DataType] = "binary";
-    Headers[Header.ContentLength] = $"{binaryData.Length}";
     Payload = binaryData;
   }
 
@@ -47,9 +53,8 @@ public sealed class Frame
   public Frame(Command command, ReadOnlyMemory<byte> binaryData, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? [];
+    Headers = headers ?? new(StringComparer.OrdinalIgnoreCase);
     Headers[Header.DataType] = "binary";
-    Headers[Header.ContentLength] = $"{binaryData.Length}";
     Payload = binaryData;
   }
 
@@ -58,7 +63,7 @@ public sealed class Frame
   public Frame(Command command, Dictionary<string, string>? headers = null)
   {
     Command = command;
-    Headers = headers ?? [];
+    Headers = headers ?? new(StringComparer.OrdinalIgnoreCase);
   }
 
   // Static factory method for creating typed frames
@@ -67,7 +72,7 @@ public sealed class Frame
     var frame = new Frame
     {
       Command = command,
-      Headers = headers ?? []
+      Headers = headers ?? new(StringComparer.OrdinalIgnoreCase)
     };
     frame.Headers[Header.DataType] = "json";
     frame.Headers[Header.ContentType] = "application/json";
@@ -84,7 +89,7 @@ public sealed class Frame
     var span = data.Span;
     var frame = new Frame();
 
-    int position = -1;
+    int payloadStart = -1;
     int lineStart = 0;
     bool inHeaders = true;
     bool firstLine = true;
@@ -135,10 +140,10 @@ public sealed class Frame
         var line = span.Slice(lineStart, i - lineStart);
         ProcessLine(line);
 
-        if (!inHeaders && position < 0)
+        if (!inHeaders && payloadStart < 0)
         {
           // First time we exit headers: payload starts after this '\n'
-          position = i + 1;
+          payloadStart = i + 1;
           // Do NOT break—there might be payload bytes after this; we only needed the index.
           // We’ll stop scanning lines here to avoid misinterpreting payload contents as lines.
           break;
@@ -149,7 +154,7 @@ public sealed class Frame
     }
 
     // If we never hit a '\n' for the last line (EOF without newline), process the trailing line
-    if (position < 0) // only if we haven’t already determined start-of-payload
+    if (payloadStart < 0) // only if we haven’t already determined start-of-payload
     {
       if (lineStart < span.Length)
       {
@@ -160,32 +165,17 @@ public sealed class Frame
       // If headers are still "open", there was no blank line → no payload
       if (inHeaders)
       {
-        position = span.Length; // payload empty
+        payloadStart = span.Length; // payload empty
       }
-      else if (position < 0)
+      else if (payloadStart < 0)
       {
         // We ended headers in the EOF tail-line case; payload begins after that line.
         // Since there was no '\n' to step past, payload starts exactly at end of tail line.
-        position = span.Length;
+        payloadStart = span.Length;
       }
     }
 
-    // Slice payload zero-copy
-    if (position < 0) position = span.Length; // safety
-    if (position <= span.Length)
-      frame.Payload = data[position..];
-    else
-      frame.Payload = ReadOnlyMemory<byte>.Empty;
-
-    // Respect ContentLength (if present and sane)
-    if (frame.Headers.TryGetValue(Header.ContentLength, out var lenStr) &&
-        int.TryParse(lenStr, out var contentLen) &&
-        contentLen >= 0)
-    {
-      if (contentLen > frame.Payload.Length)
-        throw new InvalidOperationException($"Declared ContentLength {contentLen} exceeds available payload {frame.Payload.Length}.");
-      frame.Payload = frame.Payload[..contentLen];
-    }
+    frame.Payload = payloadStart <= span.Length ? data[payloadStart..] : ReadOnlyMemory<byte>.Empty;
 
     return frame;
   }
@@ -222,9 +212,7 @@ public sealed class Frame
 
     // Copy payload
     if (!Payload.IsEmpty)
-    {
       Payload.CopyTo(new Memory<byte>(buffer, position, Payload.Length));
-    }
 
     return new ArraySegment<byte>(buffer, 0, totalSize);
   }
@@ -232,10 +220,11 @@ public sealed class Frame
   // Helper to calculate header size
   private int CalculateHeaderSize()
   {
-    int size = Encoding.UTF8.GetByteCount(Command.ToString()) + 1; // LF
+    int size = Encoding.UTF8.GetByteCount(Command.ToString()) + 1; // COMMAND + LF
     foreach (var kvp in Headers)
-      size += Encoding.UTF8.GetByteCount(kvp.Key) + 2 + Encoding.UTF8.GetByteCount(kvp.Value) + 2; // "Key: Value\n"
-    size += 1;   // empty line
+      // Key + ':' + ' ' + Value + '\n'
+      size += Encoding.UTF8.GetByteCount(kvp.Key) + 1 + 1 + Encoding.UTF8.GetByteCount(kvp.Value) + 1;
+    size += 1;   // empty line (LF) between headers and payload
     return size;
   }
   // Deserialize JSON payload to type T
