@@ -340,8 +340,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     };
     if (headers != null)
       foreach (var kv in headers) headerBag[kv.Key] = kv.Value;
-
-    if (headerBag.TryGetValue("DataType", out var dt) == false)
+    if (headerBag.TryGetValue("DataType", out _) == false)
       headerBag[Header.DataType] = "binary"; // default for raw payload
     if (string.Equals(headerBag[Header.DataType], "binary", StringComparison.OrdinalIgnoreCase))
       headerBag[Header.ContentLength] = payload.Length.ToString();
@@ -433,3 +432,5 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
   // }
 
 }
+
+

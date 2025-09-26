@@ -271,6 +271,8 @@ public sealed class Frame
       : WebSocketMessageType.Text;
   }
 
+
+
 }
 
 public enum Command
