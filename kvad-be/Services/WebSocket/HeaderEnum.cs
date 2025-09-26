@@ -36,4 +36,12 @@ public readonly struct Header : IEquatable<Header>
   public static readonly Header Id = "Id";
   public static readonly Header ReplyTo = "Reply-To";
   public static readonly Header CorrelationId = "Correlation-Id";
+  public static readonly Header Timestamp = "Timestamp";
+  public static readonly Header UserId = "User-Id";
+  public static readonly Header From = "From";
+  public static readonly Header To = "To";
+  public static readonly Header Server = "Server";
+  public static readonly Header Status = "Status";
+  public static readonly Header Scope = "Scope";
+  public static readonly Header Delivered = "Delivered";
 }

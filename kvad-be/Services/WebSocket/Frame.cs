@@ -350,21 +350,3 @@ public record Status(int Code, string Description)
   //implicit conversion to key-value pair for headers
   public static implicit operator (string, string)(Status status) => ("status", status.ToString());
 }
-
-
-
-internal enum Headers
-{
-  DataType,
-  ContentType,
-  ContentLength,
-  Type,
-  Destination,
-  Topic,
-  Id,
-  Receipt,
-  ReceiptId,
-  Authorization,
-  UserId,
-  Timestamp
-}

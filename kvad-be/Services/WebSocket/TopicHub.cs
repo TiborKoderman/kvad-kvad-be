@@ -47,8 +47,8 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
   {
     var greeting = new Frame(Command.CONNECTED, new Dictionary<string, string>
     {
-      { "Timestamp", DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() },
-      { "Server", "Kvad WebSocket Server v1.0" }
+      { Header.Timestamp, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString() },
+      { Header.Server, "Kvad WebSocket Server v1.0" }
     });
     await SendFrame(client, greeting);
   }
@@ -165,7 +165,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
   {
     var errorFrame = new Frame(Command.ERROR, message, new Dictionary<string, string>
     {
-      { "code", errorCode }
+      { Header.Status, errorCode }
     });
     await SendFrame(client, errorFrame);
   }
@@ -174,7 +174,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
   {
     var okFrame = new Frame(command, message ?? string.Empty, new Dictionary<string, string>
     {
-      ["Status"] = Status.OK
+      [Header.Status] = Status.OK
     });
     await SendFrame(client, okFrame);
   }
@@ -191,7 +191,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
 
   private async Task HandleSubscribe(WsClient client, Frame frame)
   {
-    if (!frame.Headers.TryGetValue("Topic", out var topic))
+    if (!frame.Headers.TryGetValue(Header.Topic, out var topic))
     {
       await SendError(client, Status.BadRequest, "Missing 'topic' header in SUBSCRIBE frame.");
       return;
@@ -212,7 +212,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     var response = new Frame
     {
       Command = Command.SUBSCRIBED,
-      Headers = { ["Topic"] = topic, ["Status"] = Status.OK }
+      Headers = { [Header.Topic] = topic, [Header.Status] = Status.OK }
     };
     await SendFrame(client, response);
     logger.LogInformation("Client {ClientId} subscribed to {Topic}", client.Id, topic);
@@ -221,7 +221,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
 
   private async Task HandleUnsubscribe(WsClient client, Frame frame)
   {
-    if (!frame.Headers.TryGetValue("Topic", out var topic))
+    if (!frame.Headers.TryGetValue(Header.Topic, out var topic))
     {
       await SendError(client, Status.BadRequest, "Missing 'topic' header in UNSUBSCRIBE frame.");
       return;
@@ -245,7 +245,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     await SendFrame(client, new Frame
     {
       Command = Command.UNSUBSCRIBED,
-      Headers = { ["Topic"] = topic, ["Status"] = Status.OK }
+      Headers = { [Header.Topic] = topic, [Header.Status] = Status.OK }
     });
 
     logger.LogInformation("Client {ClientId} unsubscribed from {Topic}", client.Id, topic);
@@ -253,14 +253,14 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
 
   private async Task HandlePublish(WsClient client, Frame frame)
   {
-    if (!frame.Headers.TryGetValue("Topic", out var topic) || string.IsNullOrWhiteSpace(topic))
+    if (!frame.Headers.TryGetValue(Header.Topic, out var topic) || string.IsNullOrWhiteSpace(topic))
     {
       await SendError(client, Status.BadRequest, "Missing 'topic' header in PUBLISH.");
       return;
     }
 
     // Optional per-user scoping for publish as well
-    if (frame.Headers.TryGetValue("Scope", out var scope) &&
+    if (frame.Headers.TryGetValue(Header.Scope, out var scope) &&
         scope.Equals("user", StringComparison.OrdinalIgnoreCase) &&
         client.User is not null)
     {
@@ -271,9 +271,9 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     {
       await SendFrame(client, new Frame(Command.PUBLISHED, "No subscribers for topic.", new Dictionary<string, string>
       {
-        ["Topic"] = topic,
-        ["code"] = Status.OK,
-        ["delivered"] = "0"
+        [Header.Topic] = topic,
+        [Header.Status] = Status.OK,
+        [Header.Delivered] = "0"
       }));
       logger.LogInformation("Publish to {Topic} had no subscribers", topic);
       return;
@@ -282,15 +282,15 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     // Build delivery frame (MESSAGE) preserving payload and key headers
     var deliveryHeaders = new Dictionary<string, string>(StringComparer.Ordinal)
     {
-      ["Topic"] = topic,
-      ["timestamp"] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()
+      [Header.Topic] = topic,
+      [Header.Timestamp] = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString()
     };
 
-    foreach (var k in new[] { "DataType", "ContentType", "ContentLength", "Type" })
+    foreach (var k in new[] { Header.DataType, Header.ContentType, Header.ContentLength, Header.Type })
       if (frame.Headers.TryGetValue(k, out var v)) deliveryHeaders[k] = v;
 
     if (client.User != null)
-      deliveryHeaders["From"] = client.User.Id.ToString();
+      deliveryHeaders[Header.From] = client.User.Id.ToString();
 
     var message = new Frame(Command.MESSAGE, frame.Payload, deliveryHeaders);
 
@@ -311,8 +311,8 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     await SendFrame(client, new Frame(Command.PUBLISHED, "Message published.", new Dictionary<string, string>
     {
       [Header.Topic] = topic,
-      ["code"] = Status.OK,
-      ["delivered"] = delivered.ToString()
+      [Header.Status] = Status.OK,
+      [Header.Delivered] = delivered.ToString()
     }));
 
     logger.LogInformation("Published message to {Topic}, delivered to {Count} subscribers", topic, delivered);
@@ -340,12 +340,12 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     };
     if (headers != null)
       foreach (var kv in headers) headerBag[kv.Key] = kv.Value;
-    if (headerBag.TryGetValue("DataType", out _) == false)
+    if (headerBag.TryGetValue(Header.DataType, out _) == false)
       headerBag[Header.DataType] = "binary"; // default for raw payload
     if (string.Equals(headerBag[Header.DataType], "binary", StringComparison.OrdinalIgnoreCase))
       headerBag[Header.ContentLength] = payload.Length.ToString();
     if (fromUser != null)
-      headerBag["From"] = fromUser.Id.ToString();
+      headerBag[Header.From] = fromUser.Id.ToString();
 
     //   var topicKey = t
 
