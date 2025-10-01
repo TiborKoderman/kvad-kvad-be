@@ -316,6 +316,8 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
 
   public async Task<int> PublishAsync(string topic, ReadOnlyMemory<byte> payload, Dictionary<string, string>? headers = null, bool scopePerUser = false, User? fromUser = null)
   {
+    if (!_topics.TryGetValue(topic, out var t) || t.IsEmpty)
+      return 0;
     var headerBag = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
     {
       ["topic"] = topic
@@ -329,8 +331,7 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
 
     //   var topicKey = t
 
-    if (!_topics.TryGetValue(topic, out var t) || t.IsEmpty)
-      return 0;
+
     var msg = new Frame
     {
       Command = Command.MESSAGE,
@@ -344,7 +345,6 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
       if (sub.Socket.State != WebSocketState.Open) continue;
       try { await SendFrame(sub, msg); delivered++; }
       catch { /* ignore a single failure */ }
-
     }
     return delivered;
   }
@@ -373,43 +373,6 @@ public class TopicHub(ILogger<TopicHub> logger, TopicActivationManager activatio
     return topic;
   }
 
-
-  //   private IDisposable StartPublisherForTopic(string topicKey)
-  // {
-  //   // Example: parse deviceId from topicKey like "device/{id}/state"
-  //   // var deviceId = ...;
-
-  //   var cts = new CancellationTokenSource();
-
-  //   _ = Task.Run(async () =>
-  //   {
-  //     try
-  //     {
-  //       while (!cts.IsCancellationRequested)
-  //       {
-  //         // fetch/update device state
-  //         // var state = await DeviceService.UpdateStateAsync(topicKey, cts.Token);
-
-  //         // broadcast only if still subscribed (cheap guard)
-  //         if (_topics.TryGetValue(topicKey, out var topic) && !topic.IsEmpty)
-  //           await PublishJsonAsync(topicKey, state);
-
-  //         await Task.Delay(TimeSpan.FromSeconds(1), cts.Token); // poll period
-  //       }
-  //     }
-  //     catch (OperationCanceledException) { }
-  //     catch (Exception ex) { _logger.LogError(ex, "Publisher loop failed for {Topic}", topicKey); }
-  //   }, cts.Token);
-
-  //   return new CancellationDisposable(cts);
-  // }
-
-  // private sealed class CancellationDisposable : IDisposable
-  // {
-  //   private readonly CancellationTokenSource _cts;
-  //   public CancellationDisposable(CancellationTokenSource cts) => _cts = cts;
-  //   public void Dispose() { try { _cts.Cancel(); _cts.Dispose(); } catch { } }
-  // }
 
 }
 

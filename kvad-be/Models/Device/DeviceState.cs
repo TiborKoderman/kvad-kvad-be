@@ -19,13 +19,10 @@ public class DeviceState
     public short? HbJitterPct { get; set; } = null;
 
     public string? ConfigHash { get; set; } = null;
+    public int? Rssi { get; set; }
 
     // Optional health (cheap metrics only)
-    public string? LastIp { get; set; }
-    public int? Rssi { get; set; }
-    public short? BatteryPct { get; set; }
-    public short? LoadPct { get; set; }
-    public float? TempC { get; set; }
+    [Column(TypeName = "jsonb")] public JsonDocument? AdditionalHealth { get; set; }
 
     public DeviceMode Mode { get; set; } = DeviceMode.Unknown;
     public DeviceConnectivity Connectivity { get; set; } = DeviceConnectivity.Unknown;
@@ -42,6 +39,7 @@ public enum DeviceConnectivity
 {
     Online,
     Offline,
+    Stale,
     Intermittent,
     Unreachable,
     Unknown
@@ -62,6 +60,10 @@ public enum DeviceHealth
 public enum DeviceMode
 {
     Normal,
+    LowPower,
+    Sleep,
+    Active,
+    Idle,
     Maintenance,
     Emergency,
     Test,

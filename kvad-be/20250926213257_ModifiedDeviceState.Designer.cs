@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NodaTime;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
@@ -13,14 +14,13 @@ using NpgsqlTypes;
 using kvad_be.Database;
 
 #nullable disable
-
-namespace kvad_be.Migrations
+[DbContext(typeof(AppDbContext))]
+[Migration("20250926213257_ModifiedDeviceState")]
+partial class ModifiedDeviceState
 {
-    [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    /// <inheritdoc />
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
-        {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "9.0.9")
@@ -28,7 +28,7 @@ namespace kvad_be.Migrations
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceConnectivity", new[] { "online", "offline", "stale", "intermittent", "unreachable", "unknown" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceHealth", new[] { "healthy", "warning", "critical", "unknown" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceMode", new[] { "normal", "low_power", "sleep", "active", "idle", "maintenance", "emergency", "test", "unknown" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "DeviceMode", new[] { "normal", "maintenance", "emergency", "test", "unknown" });
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ChatMessage", b =>
@@ -383,7 +383,7 @@ namespace kvad_be.Migrations
                             HbIntervalSec = 10,
                             HbJitterPct = (short)20,
                             Health = 3,
-                            Mode = 8,
+                            Mode = 4,
                             Seq = 0L,
                             UptimeSec = 0
                         });
@@ -1686,4 +1686,3 @@ namespace kvad_be.Migrations
 #pragma warning restore 612, 618
         }
     }
-}

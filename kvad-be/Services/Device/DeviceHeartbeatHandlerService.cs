@@ -18,6 +18,7 @@ public class DeviceHeartbeatHandlerService(
             var device = await context.Devices
                 .Include(d => d.State)
                 .Include(d => d.HeartbeatSettings)
+                .Include(d => d.Groups)
                 .FirstOrDefaultAsync(d => d.Id == deviceId);
 
             if (device == null)
@@ -38,6 +39,7 @@ public class DeviceHeartbeatHandlerService(
             device.State.Seq = heartbeat.Seq;
             device.State.UptimeSec = (int)heartbeat.UptimeS;
             device.State.ConfigHash = heartbeat.CfgHash;
+            device.State.Rssi = heartbeat.Rssi.HasValue ? (int?)heartbeat.Rssi.Value : null;
 
             // Update flags and extra data if provided
             if (heartbeat.Flags != null)
@@ -63,6 +65,10 @@ public class DeviceHeartbeatHandlerService(
 
             await topicHub.PublishJsonAsync(
                 topic: $"device/state",
+                payload: device.State
+                );
+            await topicHub.PublishJsonAsync(
+                topic: $"d/{device.Id}/state",
                 payload: device.State
                 );
             logger.LogDebug(

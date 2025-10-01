@@ -117,6 +117,7 @@ public class DeviceService(AppDbContext context, ILogger<DeviceService> logger, 
         device.State.Seq = heartbeat.Seq;
         device.State.UptimeSec = (int)heartbeat.UptimeS;
         device.State.ConfigHash = heartbeat.CfgHash;
+        device.State.Rssi = heartbeat.Rssi.HasValue ? (int?)heartbeat.Rssi.Value : null;
 
         // Update connectivity to Online when receiving heartbeat
         device.State.Connectivity = DeviceConnectivity.Online;

@@ -33,11 +33,16 @@ public class DeviceHeartbeatSettings
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum DeviceLifecycle
 {
-    Unknown,
-    Discovered,
-    Commissioning,
-    InService,
-    OutOfService,
-    Decommissioned,
-    Retired,
+    Unregistered,    // manufactured but not known to backend
+    Provisioning,    // onboarding/claiming/config push
+    Commissioned,    // provisioned + accepted by backend (ready for use)
+    Active,          // in normal service
+    Updating,        // OTA or config migration in progress
+    Maintenance,     // intentionally taken out of service for work
+    Suspended,       // temporarily disabled by policy
+    Decommissioning, // being removed from service (wiping, transfer)
+    Decommissioned,  // removed from service; data retained for records
+    Retired,         // final archival state; no further operations expected
+    Faulted,         // unrecoverable failure detected (manual action needed)
+    Unknown
 }
