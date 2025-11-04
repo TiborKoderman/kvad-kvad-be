@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using kvad_be.Models.User;
 
 public class User
 {
@@ -21,5 +22,5 @@ public class User
     public List<ChatRoom> ChatRooms { get; set; } = [];
 
     [Column(TypeName = "jsonb")]
-    public List<kvad_be.Models.User.SidebarItem> Sidebar { get; set; } = [];
+    public List<SidebarItem> Sidebar { get; set; } = [];
 }

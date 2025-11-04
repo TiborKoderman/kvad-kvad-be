@@ -1,5 +1,5 @@
 using kvad_be.Database;
-
+using kvad_be.Models.User;
 public class MenuService(AppDbContext context)
 {
 

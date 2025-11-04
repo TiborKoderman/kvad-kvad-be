@@ -19,22 +19,22 @@ public static class DbContextConfiguration
     {
         // Use the same data source factory that runtime uses
         var dataSource = PostgresDataSourceFactory.Create(connectionString);
-        optionsBuilder.UseNpgsql(dataSource, options =>
+        optionsBuilder.UseNpgsql(dataSource, o =>
         {
             // Enable NodaTime support for EF Core
-            options.UseNodaTime();
+            o.UseNodaTime();
             // Ensure migrations go to the Migrations folder
-            options.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+            o.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
             // Optional: Set custom migrations history table name
-            options.MigrationsHistoryTable("__EFMigrationsHistory");
+            o.MigrationsHistoryTable("__EFMigrationsHistory");
         });
-        
+
         // Add any other common configuration here
         // optionsBuilder.EnableSensitiveDataLogging(); // For development only
         // optionsBuilder.LogTo(Console.WriteLine); // For development only
     }    /// <summary>
-    /// Get connection string from configuration with validation
-    /// </summary>
+         /// Get connection string from configuration with validation
+         /// </summary>
     public static string GetConnectionString(IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");

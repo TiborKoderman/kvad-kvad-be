@@ -6,6 +6,7 @@
     <RootNamespace>kvad_be</RootNamespace>
     <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
     <NoWarn>$(NoWarn);CS7022</NoWarn>
+    <MigrationsDirectory>Migrations</MigrationsDirectory>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AutoMapper" />

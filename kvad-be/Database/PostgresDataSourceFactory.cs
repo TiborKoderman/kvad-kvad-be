@@ -1,4 +1,5 @@
 // Infrastructure/Postgres/PostgresDataSourceFactory.cs
+using System.Text.Json;
 using Npgsql;
 
 namespace kvad_be.Database;
@@ -9,7 +10,6 @@ public static class PostgresDataSourceFactory
     {
         var dsb = new NpgsqlDataSourceBuilder(connectionString);
 
-        // Enable dynamic JSON mapping for JSONB columns
         dsb.EnableDynamicJson();
         dsb.UseNodaTime();
 

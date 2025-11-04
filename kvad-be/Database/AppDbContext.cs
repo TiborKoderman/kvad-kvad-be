@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using kvad_be.Database.Converters;
+using kvad_be.Models.User;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace kvad_be.Database;
@@ -64,6 +65,10 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             .HaveConversion<Rational.LongArrayConverter>()
             .HaveColumnType("bigint[]");
 
+        configurationBuilder.Properties<List<SidebarItem>>()
+            .HaveConversion<JsonbConverter<List<SidebarItem>>>()
+            .HaveColumnType("jsonb");
+
 
 
     }
@@ -74,21 +79,47 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.HasPostgresEnum<DeviceHealth>();
         modelBuilder.HasPostgresEnum<DeviceMode>();
 
+        // Automatically apply JSONB converter to all properties with [Column(TypeName = "jsonb")]
+        // ApplyJsonbConverters(modelBuilder);
 
-        modelBuilder.Entity<User>()
-        .HasAlternateKey(u => u.Username);
+        modelBuilder.Entity<User>(entity =>
+        {
+            // Alternate key on Username
+            entity.HasAlternateKey(u => u.Username);
+
+            // 1-to-1: User ↔ Group (User has FK PrivateGroupId)
+            entity.HasOne(u => u.PrivateGroup)
+                  .WithOne(g => g.PrivateOwner)
+                  .HasForeignKey<User>(u => u.PrivateGroupId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // Sidebar jsonb with default []
+            entity.Property(u => u.Sidebar)
+                  .HasColumnType("jsonb")
+                  .HasDefaultValueSql("'[]'::jsonb");
+        });
+
 
         modelBuilder.Entity<ChatMessage>()
             .HasKey(cm => new { cm.ChatRoomId, cm.Id });
 
-        modelBuilder.Entity<Unit>(e =>
+        modelBuilder.Entity<Unit>(u =>
         {
-            e.HasKey(x => x.Symbol);
+            u.HasKey(x => x.Symbol);
 
-            e.HasDiscriminator<string>("UnitKind")
+            u.HasDiscriminator<string>("UnitKind")
              .HasValue<LinearUnit>("linear")
              .HasValue<AffineUnit>("affine")
              .HasValue<LogarithmicUnit>("log");
+
+            u.Property(unit => unit.Dimension)
+            .HasColumnType("smallint[]")
+            .IsRequired();
+
+            u.ToTable(tb =>
+            {
+                tb.HasTrigger("trg_unit_pad_dimension_array");
+            });
         });
 
         modelBuilder.Entity<EnumUnitDimension>(d =>
@@ -114,23 +145,6 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             });
         });
 
-        // Configure Unit.Dimension array with comprehensive validation
-        modelBuilder.Entity<Unit>(u =>
-        {
-            u.Property(unit => unit.Dimension)
-                .HasColumnType("smallint[]")
-                .IsRequired();
-
-            u.ToTable(tb =>
-            {
-                // Note: Check constraint for array length validation is not possible in PostgreSQL 
-                // as it doesn't allow subqueries in check constraints.
-                // Array length validation is handled by application logic and database triggers.
-
-                // 5. Trigger to automatically pad Unit.Dimension arrays to correct length
-                tb.HasTrigger("trg_unit_pad_dimension_array");
-            });
-        });
 
 
         modelBuilder.Entity<ChatMessage>()
@@ -144,11 +158,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
 
 
-        modelBuilder.Entity<User>()
-            .HasOne(u => u.PrivateGroup)
-            .WithOne(g => g.PrivateOwner) // 👈 1-to-1 setup
-            .HasForeignKey<User>(u => u.PrivateGroupId)
-            .OnDelete(DeleteBehavior.Cascade); // optional, prevents cascade loops
+
 
         modelBuilder.Entity<TagHist>(eb =>
         {
@@ -314,6 +324,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             IUnitFactory.CreateUnit("K", "Kelvin", "Temperature", [0, 0, 0, 0, 1, 0, 0], null),
             IUnitFactory.CreateUnit("mol", "Mole", "Amount of Substance", [0, 0, 0, 0, 0, 1, 0], null),
             IUnitFactory.CreateUnit("cd", "Candela", "Luminous Intensity", [0, 0, 0, 0, 0, 0, 1], null)
+
+
         );
 
         // Seed admin group first (required for user)
@@ -333,7 +345,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
                 Username = "admin",
                 Password = "$argon2id$v=19$m=32768,t=4,p=1$g8fJIqwvK69pwVZEFI2+NQ$X5P9Sd32U7UTUJmjFP/t6P5vW/7lNS/RQYLE3nPbvXU",
                 PrivateGroupId = Guid.Parse("cf960f59-cf1f-49cc-8b2c-de4c5e437730"),
-                Icon = "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png"
+                Icon = "data/user_icons/cf960f59-cf1f-49cc-8b2c-de4c5e437730.png",
             }
         );
 
@@ -400,6 +412,44 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
 
     }
+
+    /// <summary>
+    /// Automatically applies JSONB converters to all properties annotated with [Column(TypeName = "jsonb")]
+    /// This ensures deterministic serialization and prevents EF Core model drift issues.
+    /// </summary>
+    // private void ApplyJsonbConverters(ModelBuilder modelBuilder)
+    // {
+    //     foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+    //     {
+    //         foreach (var property in entityType.GetProperties())
+    //         {
+    //             // Check if the property has [Column(TypeName = "jsonb")] attribute
+    //             var columnAttribute = property.PropertyInfo?
+    //                 .GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.Schema.ColumnAttribute), false)
+    //                 .FirstOrDefault() as System.ComponentModel.DataAnnotations.Schema.ColumnAttribute;
+
+    //             if (columnAttribute?.TypeName == "jsonb")
+    //             {
+    //                 var propertyType = property.ClrType;
+
+    //                 // Skip if it's already JsonDocument (Npgsql handles this natively)
+    //                 if (propertyType == typeof(System.Text.Json.JsonDocument))
+    //                 {
+    //                     continue;
+    //                 }
+
+    //                 // Create and apply the converter
+    //                 var converterType = typeof(JsonbConverter<>).MakeGenericType(propertyType);
+    //                 var converter = Activator.CreateInstance(converterType) as ValueConverter;
+
+    //                 if (converter != null)
+    //                 {
+    //                     property.SetValueConverter(converter);
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
 
 

@@ -1,9 +1,8 @@
 namespace kvad_be.Models.User;
 
-public class SidebarItem
-{
-  public required string Name { get; set; }
-  public required string Icon { get; set; }
-  public required string Link { get; set; }
-  public List<SidebarItem>? Children { get; set; }
-}
+public record SidebarItem(
+  string Name,
+  string Route,
+  string Icon,
+  List<SidebarItem>? Children
+);
