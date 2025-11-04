@@ -26,13 +26,18 @@ public class AuthService(AppDbContext db, TokenService tokens)
         return await db.Users.FirstOrDefaultAsync(u => u.Username == username);
     }
 
-    public async Task<User?> GetUser(ClaimsPrincipal? principal)
+    public async Task<User> GetUser(ClaimsPrincipal? principal, CancellationToken ct = default)
     {
         var userId = principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId == null || !Guid.TryParse(userId, out var guidId))
-            return null;
 
-        return await db.Users.FirstOrDefaultAsync(u => u.Id == guidId);
+        if (userId == null || !Guid.TryParse(userId, out var guidId))
+            throw new UnauthorizedAccessException("Missing or invalid token.");
+
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == guidId, ct);
+        if (user == null)
+            throw new UnauthorizedAccessException("User not found.");
+
+        return user;
     }
 
     public async Task<User?> GetUserWithGroupsAndRolesById(string id)

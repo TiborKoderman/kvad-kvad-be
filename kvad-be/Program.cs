@@ -6,6 +6,8 @@ using kvad_be.Database;
 using Microsoft.EntityFrameworkCore.Storage;
 using NodaTime;
 using kvad_be.Services.WebSocket;
+using kvad_be.Filters;
+using kvad_be.ModelBinders;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,12 +19,17 @@ if (builder.Environment.IsDevelopment())
 
 var Configuration = builder.Configuration;
 
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
+builder.Services.AddControllers(o => o.Filters.Add<AuthExceptionFilter>())
+    .AddJsonOptions(o =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        o.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        o.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    })
+    .AddMvcOptions(o =>
+    {
+        o.ModelBinderProviders.Insert(0, new CurrentUserBinderProvider());
     });
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -62,7 +69,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 
 });
-
 builder.Services.AddScoped<SystemInfoService>();
 builder.Services.AddScoped<SystemServiceManagmentService>();
 builder.Services.AddScoped<DockerService>();
@@ -75,6 +81,7 @@ builder.Services.AddScoped<GroupService>();
 builder.Services.AddScoped<DeviceService>();
 builder.Services.AddScoped<DeviceHeartbeatHandlerService>();
 builder.Services.AddScoped<ScadaService>();
+builder.Services.AddTransient<CurrentUserBinder>();
 
 // Add NodaTime clock for dependency injection
 builder.Services.AddSingleton<IClock>(SystemClock.Instance);

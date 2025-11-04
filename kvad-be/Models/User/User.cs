@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 public class User
@@ -19,4 +20,6 @@ public class User
     [JsonIgnore]
     public List<ChatRoom> ChatRooms { get; set; } = [];
 
+    [Column(TypeName = "jsonb")]
+    public List<SidebarItem> Sidebar { get; set; } = [];
 }
