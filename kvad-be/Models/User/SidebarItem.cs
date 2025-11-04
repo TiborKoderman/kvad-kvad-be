@@ -1,3 +1,5 @@
+namespace kvad_be.Models.User;
+
 public class SidebarItem
 {
   public required string Name { get; set; }

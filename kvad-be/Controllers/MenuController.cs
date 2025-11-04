@@ -10,6 +10,6 @@ public class MenuController(MenuService menuService, AuthService authService) : 
   public async Task<IActionResult> UpdateSidebar([FromServices] User user, [FromBody] List<SidebarItem> newSidebar)
   {
     await menuService.UpdateSidebarItems(user, newSidebar);
-    return NoContent();
+    return Ok(newSidebar);
   }
 }
