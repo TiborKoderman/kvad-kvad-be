@@ -13,4 +13,11 @@ public class MenuController(MenuService menuService) : Controller
     await menuService.UpdateSidebarItems(user, newSidebar);
     return Ok(newSidebar);
   }
+
+  [HttpGet("sidebar")]
+  public async Task<IActionResult> GetSidebar([FromServices] User user)
+  {
+    var sidebar = await menuService.GetSidebarItems(user);
+    return Ok(sidebar);
+  }
 }
