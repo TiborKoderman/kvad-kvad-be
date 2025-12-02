@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Diagnostics;
 using kvad_be.Database;
@@ -41,34 +40,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "KVAD API", Version = "v1" });
-
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer { token }\"",
-        Name = "Authorization",
-        In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer"
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement()
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-
-});
+builder.Services.AddOpenApi();
 builder.Services.AddScoped<SystemInfoService>();
 builder.Services.AddScoped<SystemServiceManagmentService>();
 builder.Services.AddScoped<DockerService>();
@@ -143,12 +115,7 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-     {
-         //  c.SwaggerEndpoint("/swagger/v1/swagger.json", "Kvad API V1");
-     });
-
+    app.MapOpenApi();
     app.UseCors("AllowAll");
 }
 
@@ -162,11 +129,6 @@ app.UseWebSockets();
 
 
 app.MapControllers();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Kvad API V1");
-    c.RoutePrefix = "swagger";
-});
 
 await DbSeeder.SeedAsync(app.Services).ConfigureAwait(false);
 
