@@ -10,4 +10,3 @@ public class SidebarItem
   List<SidebarItem>? Children = null!;
 
 }
-

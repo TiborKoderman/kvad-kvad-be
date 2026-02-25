@@ -64,7 +64,6 @@ builder.Services.AddSingleton<TokenService>();
 builder.Services.AddSingleton<TopicHub>();
 builder.Services.AddSingleton<TopicActivationManager>();
 
-
 // Configure global JSON serializer options
 builder.Services.Configure<JsonSerializerOptions>(options =>
 {

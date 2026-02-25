@@ -6,3 +6,7 @@ csharp_style_unused_value_expression_statement_preference = unused_local_variabl
 
 # IDE0058: Expression value is never used
 csharp_style_unused_value_expression_statement_preference = unused_local_variable
+
+# Prefer framework type names (Int32) over built-in keywords (int)
+dotnet_style_predefined_type_for_locals_parameters_members = false:suggestion
+dotnet_style_predefined_type_for_member_access = false:suggestion
